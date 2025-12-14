@@ -756,74 +756,74 @@ El sistema incluye **48 iconos** en formato PNG ubicados en `media/icons/`:
 
 ### Iconos de Acción
 | Icono | Nombre | Uso |
-|-------|--------|-----|
-| ➕ | `add.png` | Agregar nuevo elemento |
-| ➕ | `addItem.png` | Agregar ítem a lista |
-| ✔️ | `check.png` | Confirmar acción |
-| ✔️ | `checkgreen.png` | Confirmación exitosa |
-| ❌ | `cancel.png` | Cancelar acción |
-| 🗑️ | `delete.png` | Eliminar elemento |
-| 🗑️ | `deleteTrash.png` | Papelera |
-| 🔍 | `search.png` | Buscar |
-| 💾 | `save.png` | Guardar |
-| 💾 | `saveAs.png` | Guardar como |
-| 📂 | `openFolder.png` | Abrir carpeta |
-| 📋 | `copyPaste.png` | Copiar/pegar |
-| 🧹 | `clear.png` | Limpiar |
-| ⬅️ | `back.png` | Volver |
-| 📚 | `history.png` | Historial |
+|:-----:|--------|-----|
+| ![add](media/icons/add.png) | `add.png` | Agregar nuevo elemento |
+| ![addItem](media/icons/addItem.png) | `addItem.png` | Agregar ítem a lista |
+| ![check](media/icons/check.png) | `check.png` | Confirmar acción |
+| ![checkgreen](media/icons/checkgreen.png) | `checkgreen.png` | Confirmación exitosa |
+| ![cancel](media/icons/cancel.png) | `cancel.png` | Cancelar acción |
+| ![delete](media/icons/delete.png) | `delete.png` | Eliminar elemento |
+| ![deleteTrash](media/icons/deleteTrash.png) | `deleteTrash.png` | Papelera |
+| ![search](media/icons/search.png) | `search.png` | Buscar |
+| ![save](media/icons/save.png) | `save.png` | Guardar |
+| ![saveAs](media/icons/saveAs.png) | `saveAs.png` | Guardar como |
+| ![openFolder](media/icons/openFolder.png) | `openFolder.png` | Abrir carpeta |
+| ![copyPaste](media/icons/copyPaste.png) | `copyPaste.png` | Copiar/pegar |
+| ![clear](media/icons/clear.png) | `clear.png` | Limpiar |
+| ![back](media/icons/back.png) | `back.png` | Volver |
+| ![history](media/icons/history.png) | `history.png` | Historial |
 
 ### Iconos de Documento
 | Icono | Nombre | Uso |
-|-------|--------|-----|
-| 📄 | `pdf.png` | Archivo PDF |
-| 📝 | `note.png` | Nota |
-| ➕📝 | `noteAdd.png` | Agregar nota |
-| 👁️ | `preview.png` | Vista previa |
-| 📋 | `termsAndCondition.png` | Términos y condiciones |
+|:-----:|--------|-----|
+| ![pdf](media/icons/pdf.png) | `pdf.png` | Archivo PDF |
+| ![note](media/icons/note.png) | `note.png` | Nota |
+| ![noteAdd](media/icons/noteAdd.png) | `noteAdd.png` | Agregar nota |
+| ![preview](media/icons/preview.png) | `preview.png` | Vista previa |
+| ![termsAndCondition](media/icons/termsAndCondition.png) | `termsAndCondition.png` | Términos y condiciones |
 
 ### Iconos de Empresa
 | Icono | Nombre | Uso |
-|-------|--------|-----|
-| 🏢 | `company.png` | Empresa |
-| 🏪 | `imageCompany.png` | Imagen de empresa |
-| 🏦 | `bank.png` | Banco |
-| 📍 | `direction.png` | Dirección |
-| 📧 | `mail.png` | Correo electrónico |
-| 📞 | `phone.png` | Teléfono |
-| 🌍 | `worldWideLocation.png` | Ubicación global |
+|:-----:|--------|-----|
+| ![company](media/icons/company.png) | `company.png` | Empresa |
+| ![imageCompany](media/icons/imageCompany.png) | `imageCompany.png` | Imagen de empresa |
+| ![bank](media/icons/bank.png) | `bank.png` | Banco |
+| ![direction](media/icons/direction.png) | `direction.png` | Dirección |
+| ![mail](media/icons/mail.png) | `mail.png` | Correo electrónico |
+| ![phone](media/icons/phone.png) | `phone.png` | Teléfono |
+| ![worldWideLocation](media/icons/worldWideLocation.png) | `worldWideLocation.png` | Ubicación global |
 
 ### Iconos de Producto
 | Icono | Nombre | Uso |
-|-------|--------|-----|
-| 📦 | `box.png` | Producto |
-| 🖼️ | `image.png` | Imagen |
-| 🛒 | `imageProducts.png` | Imágenes de productos |
-| 💰 | `money.png` | Precio |
-| 💳 | `paymentMethod.png` | Método de pago |
-| 🚚 | `delivery.png` | Envío |
+|:-----:|--------|-----|
+| ![box](media/icons/box.png) | `box.png` | Producto |
+| ![image](media/icons/image.png) | `image.png` | Imagen |
+| ![imageProducts](media/icons/imageProducts.png) | `imageProducts.png` | Imágenes de productos |
+| ![money](media/icons/money.png) | `money.png` | Precio |
+| ![paymentMethod](media/icons/paymentMethod.png) | `paymentMethod.png` | Método de pago |
+| ![delivery](media/icons/delivery.png) | `delivery.png` | Envío |
 
 ### Iconos de Estado
 | Icono | Nombre | Uso |
-|-------|--------|-----|
-| ⚠️ | `warninCircle.png` | Advertencia |
-| 🔴 | `highPriority.png` | Alta prioridad |
-| 🛡️ | `shield.png` | Seguridad |
-| ✅🛡️ | `shieldOk.png` | Verificado |
-| ⚠️🛡️ | `shieldWarning.png` | Advertencia de seguridad |
-| ✔️ | `checkverif.png` | Verificado |
-| ❌ | `cancelverif.png` | No verificado |
-| 🚫 | `forbidden.png` | Prohibido |
+|:-----:|--------|-----|
+| ![warninCircle](media/icons/warninCircle.png) | `warninCircle.png` | Advertencia |
+| ![highPriority](media/icons/highPriority.png) | `highPriority.png` | Alta prioridad |
+| ![shield](media/icons/shield.png) | `shield.png` | Seguridad |
+| ![shieldOk](media/icons/shieldOk.png) | `shieldOk.png` | Verificado |
+| ![shieldWarning](media/icons/shieldWarning.png) | `shieldWarning.png` | Advertencia de seguridad |
+| ![checkverif](media/icons/checkverif.png) | `checkverif.png` | Verificado |
+| ![cancelverif](media/icons/cancelverif.png) | `cancelverif.png` | No verificado |
+| ![forbidden](media/icons/forbidden.png) | `forbidden.png` | Prohibido |
 
 ### Iconos del Sistema
 | Icono | Nombre | Uso |
-|-------|--------|-----|
-| ⚙️ | `settings.png` | Configuración |
-| 🎨 | `theme.png` | Temas |
-| 📅 | `calendar.png` | Calendario |
-| 🔧 | `maintenance.png` | Mantenimiento |
-| 🔍 | `filter.png` | Filtros |
-| 🛡️ | `warranty.png` | Garantía |
+|:-----:|--------|-----|
+| ![settings](media/icons/settings.png) | `settings.png` | Configuración |
+| ![theme](media/icons/theme.png) | `theme.png` | Temas |
+| ![calendar](media/icons/calendar.png) | `calendar.png` | Calendario |
+| ![maintenance](media/icons/maintenance.png) | `maintenance.png` | Mantenimiento |
+| ![filter](media/icons/filter.png) | `filter.png` | Filtros |
+| ![warranty](media/icons/warranty.png) | `warranty.png` | Garantía |
 
 ---
 
