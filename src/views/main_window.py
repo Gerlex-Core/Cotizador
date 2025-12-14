@@ -22,6 +22,7 @@ from .components.tables.animated_table import QuotationTable
 from .components.panels.glass_panel import GlassPanel
 from .components.canvas.drop_canvas import DropCanvas
 from .terms_window import TermsWindow
+from .products_window import ProductsWindow
 from .history_window import HistoryWindow
 from .components.notification.toast_notification import ToastNotification
 from .components.editor.rich_text_editor import RichTextEditor
@@ -75,6 +76,8 @@ class MainWindow(QMainWindow):
         self._cover_page_data = {}
         # Enhanced terms data storage
         self._terms_data = {}
+        # Products data storage (now managed via ProductsWindow)
+        self._products_data = {}
         self.icon_manager = IconManager.get_instance()
         
         # Setup paths
@@ -317,13 +320,10 @@ class MainWindow(QMainWindow):
             }
         """)
         
-        # TAB 1: Products
-        self._create_products_tab()
-        
-        # TAB 2: Details (Canvas)
+        # TAB 1: Details (with Products card)
         self._create_details_tab()
         
-        # TAB 3: Finance
+        # TAB 2: Finance
         self._create_finance_tab()
         
         main_layout.addWidget(self.tabs, 1)
@@ -536,6 +536,53 @@ class MainWindow(QMainWindow):
         cover_layout.addWidget(self.edit_cover_btn)
         content_layout.addWidget(cover_frame)
         
+        # === 1.5 PRODUCTS ===
+        products_frame = QFrame()
+        products_frame.setStyleSheet(card_style)
+        products_layout = QVBoxLayout(products_frame)
+        products_layout.setContentsMargins(20, 16, 20, 16)
+        products_layout.setSpacing(12)
+        
+        products_header = QHBoxLayout()
+        products_header.setSpacing(12)
+        products_icon = QLabel()
+        products_icon.setFixedSize(44, 44)
+        products_icon.setStyleSheet("background: rgba(94, 92, 230, 0.3); border: 2px solid #5E5CE6; border-radius: 12px;")
+        products_icon.setPixmap(self.icon_manager.get_pixmap("box", 24))
+        products_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        products_header.addWidget(products_icon)
+        
+        products_text = QVBoxLayout()
+        products_text.setSpacing(2)
+        products_title = QLabel("Producto")
+        products_title.setStyleSheet("font-size: 16px; font-weight: bold; color: #FFFFFF;")
+        products_text.addWidget(products_title)
+        products_desc = QLabel("Elige los productos de la cotización + envío si aplica")
+        products_desc.setStyleSheet("font-size: 12px; color: rgba(255,255,255,0.5);")
+        products_text.addWidget(products_desc)
+        products_header.addLayout(products_text)
+        products_header.addStretch()
+        
+        self.include_products_check = QCheckBox("Incluir")
+        self.include_products_check.setChecked(True)
+        self.include_products_check.setStyleSheet("QCheckBox { font-size: 13px; color: #5E5CE6; font-weight: bold; } QCheckBox::indicator { width: 20px; height: 20px; border-radius: 4px; border: 2px solid #5E5CE6; } QCheckBox::indicator:checked { background: #5E5CE6; }")
+        products_header.addWidget(self.include_products_check)
+        products_layout.addLayout(products_header)
+        
+        # Products summary
+        self.products_summary = QLabel("Sin productos agregados")
+        self.products_summary.setStyleSheet("font-size: 12px; color: rgba(255,255,255,0.6); padding: 8px 0;")
+        self.products_summary.setWordWrap(True)
+        products_layout.addWidget(self.products_summary)
+        
+        btn_products = QPushButton("  Gestionar Productos y Envío")
+        btn_products.setIcon(self.icon_manager.get_icon("box", 18))
+        btn_products.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_products.setStyleSheet("QPushButton { background: rgba(94, 92, 230, 0.4); border: 1px solid #5E5CE6; border-radius: 10px; color: white; padding: 12px 24px; font-weight: bold; font-size: 13px; } QPushButton:hover { background: rgba(94, 92, 230, 0.6); }")
+        btn_products.clicked.connect(self._open_products_window)
+        products_layout.addWidget(btn_products)
+        content_layout.addWidget(products_frame)
+        
         # === 2. OBSERVATIONS ===
         obs_frame = QFrame()
         obs_frame.setStyleSheet(card_style)
@@ -673,6 +720,13 @@ class MainWindow(QMainWindow):
         
         self.canvas = DropCanvas()
         self.canvas.hide()
+        
+        # Hidden table for backward compatibility (products now managed via ProductsWindow)
+        self.table = QuotationTable()
+        self.table.hide()
+        
+        # Toast for warnings
+        self.toast = ToastNotification(self)
         
         self.tabs.addTab(tab, self.icon_manager.get_icon("note", 20), "Detalles")
     
@@ -1078,10 +1132,11 @@ class MainWindow(QMainWindow):
             iva_amount = after_discount * (iva_percent / 100)
         self.iva_amount_label.setText(f"+ {iva_amount:.2f}")
         
-        # Shipping - only apply if checkbox is checked
+        # Shipping - get from _products_data (widgets are in ProductsWindow)
         shipping_amount = 0.0
-        if hasattr(self, 'enable_shipping_check') and self.enable_shipping_check.isChecked():
-            shipping_amount = self.shipping_input.value() if hasattr(self, 'shipping_input') else 0
+        shipping_data = self._products_data.get('shipping', {})
+        if shipping_data.get('enabled', False):
+            shipping_amount = shipping_data.get('amount', 0)
         
         # Update shipping display in Products tab
         if hasattr(self, 'shipping_display'):
@@ -1159,6 +1214,9 @@ class MainWindow(QMainWindow):
             "terms_data": self._terms_data,
             "prepared_by": self.prepared_by_input.text() if hasattr(self, 'prepared_by_input') else "",
             "signature_source": self.signature_source.currentText() if hasattr(self, 'signature_source') else "Sin Firma",
+            
+            # Products data with shipping state (stored in _products_data)
+            "products_data": self._products_data,
             
             # Persistent UI Flags
             "ui_FLAGS": {
@@ -1313,6 +1371,10 @@ class MainWindow(QMainWindow):
         if hasattr(self, 'include_details_check'):
             state = flags.get("include_details", data.get("include_details", False))
             self.include_details_check.setChecked(state)
+        
+        # Load products_data (includes shipping state - widgets are in ProductsWindow)
+        if "products_data" in data:
+            self._products_data = data["products_data"]
         
         self.table.setRowCount(0)
         for prod in data.get("products", []):
@@ -1578,11 +1640,11 @@ class MainWindow(QMainWindow):
                     observaciones_data=self._observations_data,
                     numero_cotizacion=self.quotation_number_input.text(),
                     document_type=self.document_type_combo.currentText() if hasattr(self, 'document_type_combo') else "Cotizacion",
-                    shipping=self.shipping_input.value() if hasattr(self, 'shipping_input') else 0,
+                    shipping=self._products_data.get('shipping', {}).get('amount', 0) if self._products_data.get('shipping', {}).get('enabled', False) else 0,
                     cover_page_data=cover_page_data,
                     warranty_data=warranty_data,
                     estimated_days=int(self._terms_data.get('estimated_days', 7)),
-                    shipping_type=self.shipping_type_combo.currentText() if hasattr(self, 'shipping_type_combo') else "Sin envío",
+                    shipping_type=self._products_data.get('shipping', {}).get('type', 'Sin envío') if self._products_data.get('shipping', {}).get('enabled', False) else "Sin envío",
                     payment_method=str(self._terms_data.get('payment_method', '')),
                     bank_details=clean(self.bank_details.toHtml()) if (hasattr(self, 'bank_details') and hasattr(self, 'include_bank_details_check') and self.include_bank_details_check.isChecked()) else "",
                     installation_terms=clean(self._terms_data.get('installation_terms', '')),
@@ -1652,6 +1714,92 @@ class MainWindow(QMainWindow):
         if hasattr(self, 'cover_page_check') and data.get("enabled", False):
             self.cover_page_check.setChecked(True)
         self.cotz_manager.mark_modified()
+    
+    def _open_products_window(self):
+        """Open the products management window."""
+        # Prepare products data from table and stored shipping state
+        products = []
+        for p in self.table.getProducts():
+            products.append({
+                'descripcion': p[0],
+                'cantidad': p[1],
+                'unidad': p[2].strip() if p[2] else '',
+                'precio_unitario': p[3],
+                'importe': p[4],
+                'imagen': p[5] if len(p) > 5 else ''
+            })
+        
+        # Get shipping from stored _products_data (shipping widgets are in ProductsWindow, not here)
+        stored_shipping = self._products_data.get('shipping', {})
+        shipping = {
+            'enabled': stored_shipping.get('enabled', False),
+            'amount': stored_shipping.get('amount', 0),
+            'type': stored_shipping.get('type', 'Envío Local')
+        }
+        
+        products_data = {
+            'products': products if products else self._products_data.get('products', []),
+            'shipping': shipping
+        }
+        
+        # Create and show window
+        self.products_window = ProductsWindow(
+            products_data=products_data,
+            parent=None
+        )
+        self.products_window.products_saved.connect(self._on_products_saved)
+        self.products_window.show()
+    
+    def _on_products_saved(self, data: dict):
+        """Handle products data saved from window."""
+        self._products_data = data
+        
+        # Update hidden table with products for compatibility
+        self.table.setRowCount(0)
+        for prod in data.get('products', []):
+            self.table.addProduct(
+                description=prod.get('descripcion', ''),
+                quantity=str(prod.get('cantidad', '')),
+                unit=prod.get('unidad', ''),
+                price=str(prod.get('precio_unitario', '')),
+                amount=str(prod.get('importe', '')),
+                image_path=prod.get('imagen', '')
+            )
+        
+        # Shipping state is already stored in _products_data, no widgets to update here
+        # (shipping widgets only exist in ProductsWindow)
+        
+        # Update products summary
+        self._update_products_summary()
+        
+        # Recalculate totals
+        self._calculate_total()
+        
+        # Mark as modified
+        self.cotz_manager.mark_modified()
+    
+    def _update_products_summary(self):
+        """Update the products summary display in details tab."""
+        if not hasattr(self, 'products_summary'):
+            return
+        
+        products = self._products_data.get('products', [])
+        count = len(products)
+        
+        if count == 0:
+            self.products_summary.setText("Sin productos agregados")
+            return
+        
+        total = self._products_data.get('total', 0)
+        shipping = self._products_data.get('shipping', {})
+        
+        summary_parts = [f"{count} producto{'s' if count != 1 else ''}"]
+        summary_parts.append(f"Total: {total:.2f} {self.config.moneda}")
+        
+        if shipping.get('enabled', False):
+            summary_parts.append(f"Envío: +{shipping.get('amount', 0):.2f}")
+        
+        self.products_summary.setText(" • ".join(summary_parts))
     
     def _open_observations_window(self):
         """Open the observations window."""

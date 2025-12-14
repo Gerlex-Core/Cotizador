@@ -416,6 +416,10 @@ class PDFGenerator:
         c = canvas.Canvas(file_path, pagesize=A4)
         width, height = A4
         
+        # Store for internal method access
+        self._current_eslogan = datos_empresa.get('eslogan', '')
+        self._current_width = width
+        
         # Reset page counter
         self._page_number = 1
         
@@ -439,7 +443,12 @@ class PDFGenerator:
         y = self._draw_table(c, width, y, productos)
         
         # === TOTAL ===
-        y = self._draw_total(c, width, y, total, moneda)
+        # Determine if shipping is enabled (has a valid shipping type)
+        shipping_enabled = shipping_type and shipping_type != "Sin envío"
+        y = self._draw_total(c, width, y, total, moneda, 
+                             shipping_enabled=shipping_enabled,
+                             shipping_type=shipping_type,
+                             shipping=shipping)
         
         # === SUMMARY (Resumen de condiciones) - Below Total on Page 1/2 ===
         if mostrar_terminos:
@@ -807,6 +816,9 @@ class PDFGenerator:
                     w0, h0 = t0.wrap(table_width, available_height)
                     t0.drawOn(c, left_margin, y - h0)
                     
+                    # Draw footer before new page
+                    self._draw_footer(c, width, self._current_eslogan, self._page_number)
+                    
                     # New Page
                     c.showPage()
                     self._page_number += 1
@@ -819,6 +831,7 @@ class PDFGenerator:
                         break # Should not happen if h > available
                 else:
                     # Could not split (maybe single row too large?), force new page
+                    self._draw_footer(c, width, self._current_eslogan, self._page_number)
                     c.showPage()
                     self._page_number += 1
                     y = A4[1] - 40
@@ -828,9 +841,31 @@ class PDFGenerator:
         return y
     
     def _draw_total(self, c: canvas.Canvas, width: float, y: float,
-                    total: float, moneda: str) -> float:
-        """Draw the total section."""
-        # Total box settings
+                    total: float, moneda: str, shipping_enabled: bool = False,
+                    shipping_type: str = "", shipping: float = 0) -> float:
+        """Draw the total section with optional shipping info above."""
+        left_margin = 40
+        
+        # === SHIPPING INFO (if enabled) ===
+        if shipping_enabled and shipping_type:
+            c.setFont("Helvetica", 10)
+            c.setFillColor(self.COLORS['gray'])
+            
+            # Build shipping text
+            if shipping_type == "Gratis":
+                shipping_text = f"Envío: {shipping_type}"
+            elif shipping > 0:
+                shipping_text = f"Envío: {shipping_type} + {shipping:,.2f} {moneda}"
+            else:
+                shipping_text = f"Envío: {shipping_type}"
+            
+            # Position in the right area (aligned with total box)
+            box_width = 250
+            box_x = width - 40 - box_width
+            c.drawString(box_x + 15, y - 10, shipping_text)
+            y -= 25
+        
+        # === TOTAL BOX ===
         amount_text = f"{total:.2f} {moneda}"
         est_text_width = len(amount_text) * 9 + 50 
         box_width = max(250, est_text_width + 80)
@@ -881,11 +916,11 @@ class PDFGenerator:
         # Shipping info
         if shipping_type and shipping_type != "Sin envío":
             if shipping > 0:
-                terms.append(f"Envío: {shipping_type} (${shipping:,.2f} {moneda})")
+                terms.append(f"Envío: {shipping_type} ({shipping:,.2f} {moneda})")
             else:
                 terms.append(f"Envío: {shipping_type}")
         elif shipping > 0:
-            terms.append(f"Costo de Envío: ${shipping:,.2f} {moneda}")
+            terms.append(f"Costo de Envío: {shipping:,.2f} {moneda}")
         
         # IVA
         if apply_iva:

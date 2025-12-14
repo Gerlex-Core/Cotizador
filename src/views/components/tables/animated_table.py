@@ -13,21 +13,23 @@ from src.views.styles.icon_manager import IconManager
 class TableItemDelegate(QStyledItemDelegate):
     """
     Custom delegate to fix the double textbox issue when editing cells.
-    This delegate ensures only one clean editor appears.
+    This delegate ensures only one clean editor appears and hides the underlying text.
     """
     
     def createEditor(self, parent: QWidget, option, index):
         """Create a single clean editor for the cell."""
         editor = QLineEdit(parent)
         editor.setFrame(False)
+        editor.setAutoFillBackground(True)  # Ensure background fills the cell
         editor.setStyleSheet("""
             QLineEdit {
-                background-color: rgba(10, 132, 255, 0.2);
+                background-color: #1A1A1E;
                 color: white;
                 border: 2px solid #0A84FF;
                 border-radius: 4px;
                 padding: 6px 8px;
                 font-size: 14px;
+                selection-background-color: #0A84FF;
             }
         """)
         return editor
@@ -37,6 +39,7 @@ class TableItemDelegate(QStyledItemDelegate):
         value = index.model().data(index, Qt.ItemDataRole.DisplayRole)
         if value:
             editor.setText(str(value))
+            editor.selectAll()  # Select all text for easy replacement
         else:
             editor.setText("")
     
@@ -45,8 +48,15 @@ class TableItemDelegate(QStyledItemDelegate):
         model.setData(index, editor.text(), Qt.ItemDataRole.EditRole)
     
     def updateEditorGeometry(self, editor: QWidget, option, index):
-        """Set editor geometry to match the cell."""
-        editor.setGeometry(option.rect)
+        """Set editor geometry to match the cell exactly, covering underlying text."""
+        # Expand geometry slightly to ensure full coverage
+        rect = option.rect
+        editor.setGeometry(rect)
+    
+    def paint(self, painter, option, index):
+        """Custom paint to handle selection and hover states properly."""
+        # Call the parent paint method
+        super().paint(painter, option, index)
 
 
 class AnimatedTable(QTableWidget):
