@@ -523,23 +523,26 @@ class PDFGenerator:
              
              y = self._draw_warranty_section(c, width, y, warranty_data)
 
-        # === ACCEPTANCE (Page 6+ start) ===
-        # Force new page for Acceptance/Signatures if we want it isolated, or after warranty
-        if y < 250 or True: # User said "cada seccion critica tiene su propia hoja", let's force it for Acceptance too?
-            # Or maybe Acceptance can flow if Warranty was short.
-            # But specific request "no vamos a compartir otra hoja...".
-            # Let's Force Page for Acceptance.
+        # === ACCEPTANCE AND SIGNATURES ===
+        # Only create this section if there's something to show
+        acceptance_text = terms_data.get("acceptance_terms", "") if terms_data else ""
+        has_acceptance = bool(acceptance_text and acceptance_text.strip())
+        
+        # Only draw this section if firma is enabled OR there's acceptance text
+        if mostrar_firma or has_acceptance:
+            # Force new page for Acceptance/Signatures section
             self._draw_footer(c, width, datos_empresa.get('eslogan', ''), self._page_number)
             c.showPage()
             self._page_number += 1
             y = height - 50
-        
-        acceptance_text = terms_data.get("acceptance_terms", "") if terms_data else ""
-        y = self._draw_acceptance_section(c, width, y, acceptance_text)
-        
-        # Signatures
-        if mostrar_firma:
-             y = self._draw_signature(c, width, y)
+            
+            # Draw acceptance section (only draws if has content)
+            if has_acceptance:
+                y = self._draw_acceptance_section(c, width, y, acceptance_text)
+            
+            # Signatures (only if checkbox enabled)
+            if mostrar_firma:
+                y = self._draw_signature(c, width, y)
         
         # Final Footer
         self._draw_footer(c, width, datos_empresa.get('eslogan', ''), self._page_number)

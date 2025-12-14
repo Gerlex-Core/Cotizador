@@ -4,6 +4,7 @@ Handles theme loading, application, and management of animations, sounds, effect
 """
 
 import os
+import sys
 import json
 from typing import Dict, Any, Optional, List
 from PyQt6.QtWidgets import QWidget, QApplication
@@ -17,8 +18,14 @@ from .icon_manager import IconManager
 from .layout_engine import LayoutEngine, get_layout_engine
 
 
-# Base directory for themes
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+# Base directory for themes - handles both development and frozen (PyInstaller) builds
+def _get_base_dir():
+    """Get base directory, works for both dev and PyInstaller frozen builds."""
+    if getattr(sys, 'frozen', False):
+        return sys._MEIPASS
+    return os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
+BASE_DIR = _get_base_dir()
 THEMES_DIR = os.path.join(BASE_DIR, "media", "themes")
 CUSTOM_THEMES_DIR = os.path.join(THEMES_DIR, "custom")
 ICONS_DIR = os.path.join(BASE_DIR, "media", "icons")

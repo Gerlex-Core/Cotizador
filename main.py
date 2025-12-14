@@ -29,7 +29,7 @@ def main():
     
     # Set application metadata
     app.setApplicationName("Cotizador Pro")
-    app.setApplicationVersion("2.0.0")
+    app.setApplicationVersion("3.0.0")
     app.setOrganizationName("Cotizador")
     
     # Enable high DPI scaling

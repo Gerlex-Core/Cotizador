@@ -63,3 +63,13 @@ src/archivocotizacion/
 # Temporary files
 *.tmp
 *.temp
+
+# PyInstaller build files
+build.bat
+CotizadorPro.spec
+version_manager.py
+version.json
+version_pending.json
+build/
+dist/
+*.exe

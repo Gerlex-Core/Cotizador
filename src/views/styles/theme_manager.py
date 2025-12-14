@@ -5,6 +5,7 @@ Now uses ThemeEngine as backend for enhanced functionality.
 """
 
 import os
+import sys
 import json
 from typing import Dict, Optional
 
@@ -12,8 +13,14 @@ from .theme_engine import ThemeEngine, ThemeData, get_theme_engine
 from .theme_base import ThemeConfig
 
 
-# Paths for theme files
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+# Paths for theme files - handles both development and frozen (PyInstaller) builds
+def _get_base_dir():
+    """Get base directory, works for both dev and PyInstaller frozen builds."""
+    if getattr(sys, 'frozen', False):
+        return sys._MEIPASS
+    return os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
+BASE_DIR = _get_base_dir()
 THEMES_DIR = os.path.join(BASE_DIR, "media", "themes")
 # Legacy support
 LEGACY_THEMES_DIR = os.path.join(BASE_DIR, "options", "themes", "custom")
