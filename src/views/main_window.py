@@ -1654,7 +1654,8 @@ class MainWindow(QMainWindow):
                     # Sanitize terms_data in place or copy? Copy safest
                     terms_data={k: clean(v) if isinstance(v, str) and k.endswith('_terms') else v for k, v in self._terms_data.items()},
                     prepared_by=prepared_by,
-                    signature_image=signature_image
+                    signature_image=signature_image,
+                    mostrar_firma=include_signature  # Only show signature if checkbox enabled
                 )
                 QMessageBox.information(self, "Exito", "PDF generado correctamente.")
             except Exception as e:

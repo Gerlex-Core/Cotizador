@@ -403,15 +403,25 @@ class PDFGenerator:
             terms_data: Enhanced terms and conditions data (Clauses)
         """
         # Determine if we have extended clauses to show
+        # Default to False - only show if explicitly enabled
         mostrar_terms_blocks = False
         if terms_data:
-            mostrar_terms_blocks = (
-                terms_data.get("show_installation", True) or
-                terms_data.get("show_payment", True) or
-                terms_data.get("show_general", True)
-            )
-        # Installation might be passed as separate arg too, check both
-        if installation_terms: mostrar_terms_blocks = True
+            # Only show if the flags are explicitly True AND have content
+            def has_content(text):
+                if not text:
+                    return False
+                import re
+                return bool(re.sub(r'<[^>]+>', '', str(text)).strip())
+            
+            show_install = terms_data.get("show_installation", False) and has_content(terms_data.get("installation_terms"))
+            show_pay = terms_data.get("show_payment", False) and has_content(terms_data.get("payment_terms"))
+            show_gen = terms_data.get("show_general", False) and has_content(terms_data.get("general_terms"))
+            mostrar_terms_blocks = show_install or show_pay or show_gen
+        # Installation might be passed as separate arg too, check content
+        if installation_terms:
+            import re
+            if re.sub(r'<[^>]+>', '', str(installation_terms)).strip():
+                mostrar_terms_blocks = True
         
         c = canvas.Canvas(file_path, pagesize=A4)
         width, height = A4
@@ -513,34 +523,57 @@ class PDFGenerator:
                      
                      y = self._draw_bank_details(c, width, y, bank_details)
 
-        # 2. Warranty Section (Page 4+ start)
-        if warranty_data and (warranty_data.get("duration") or warranty_data.get("terms") or warranty_data.get("warranty_terms")):
-             # Force new page for Warranty ALWAYS
-             self._draw_footer(c, width, datos_empresa.get('eslogan', ''), self._page_number)
-             c.showPage()
-             self._page_number += 1
-             y = height - 50
-             
-             y = self._draw_warranty_section(c, width, y, warranty_data)
+        # 2. Warranty Section - Only if EXPLICITLY enabled via checkbox AND has content
+        # Helper to check if text has content (strips HTML)
+        def has_content(text):
+            if not text:
+                return False
+            import re
+            plain = re.sub(r'<[^>]+>', '', str(text)).strip()
+            return bool(plain)
+        
+        # Check if warranty is enabled via checkbox flag (show_warranty from TermsWindow)
+        show_warranty = terms_data.get("show_warranty", False) if terms_data else False
+        
+        # Only proceed if warranty checkbox is checked
+        if show_warranty and warranty_data:
+            # Then verify there's actual content
+            has_warranty_content = (
+                has_content(warranty_data.get("duration")) or
+                has_content(warranty_data.get("garantia")) or
+                has_content(warranty_data.get("covers")) or
+                has_content(warranty_data.get("excludes")) or
+                has_content(warranty_data.get("warning")) or
+                has_content(warranty_data.get("verification")) or
+                has_content(warranty_data.get("terms")) or
+                has_content(warranty_data.get("warranty_terms"))
+            )
+            
+            if has_warranty_content:
+                self._draw_footer(c, width, datos_empresa.get('eslogan', ''), self._page_number)
+                c.showPage()
+                self._page_number += 1
+                y = height - 50
+                y = self._draw_warranty_section(c, width, y, warranty_data)
 
         # === ACCEPTANCE AND SIGNATURES ===
-        # Only create this section if there's something to show
+        # Check if acceptance is enabled via checkbox flag (show_acceptance from TermsWindow)
+        show_acceptance = terms_data.get("show_acceptance", False) if terms_data else False
         acceptance_text = terms_data.get("acceptance_terms", "") if terms_data else ""
-        has_acceptance = bool(acceptance_text and acceptance_text.strip())
         
-        # Only draw this section if firma is enabled OR there's acceptance text
+        # Only show acceptance if explicitly enabled AND has content
+        has_acceptance = show_acceptance and has_content(acceptance_text)
+        
+        # Only create this page if firma is enabled OR acceptance is enabled with content
         if mostrar_firma or has_acceptance:
-            # Force new page for Acceptance/Signatures section
             self._draw_footer(c, width, datos_empresa.get('eslogan', ''), self._page_number)
             c.showPage()
             self._page_number += 1
             y = height - 50
             
-            # Draw acceptance section (only draws if has content)
             if has_acceptance:
                 y = self._draw_acceptance_section(c, width, y, acceptance_text)
             
-            # Signatures (only if checkbox enabled)
             if mostrar_firma:
                 y = self._draw_signature(c, width, y)
         
@@ -582,28 +615,53 @@ class PDFGenerator:
         
         # === LEFT SIDE: COMPANY INFO ===
         
-        # Try to load company logo
-        logo_path = self._get_logo_path(empresa, datos_empresa)
+        # Load company logo directly from .emp ZIP file
         logo_height = 0
+        import zipfile
+        import io
         
-        if logo_path and os.path.exists(logo_path):
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        emp_file = os.path.join(base_dir, "media", "companies", f"{empresa}.emp")
+        
+        print(f"[LOGO] Buscando empresa: {empresa}")
+        print(f"[LOGO] Archivo .emp: {emp_file}")
+        
+        if os.path.exists(emp_file):
             try:
-                logo = ImageReader(logo_path)
-                orig_width, orig_height = logo.getSize()
-                
-                # Scale logo
-                max_logo_width = 80
-                max_logo_height = 50
-                ratio = min(max_logo_width / orig_width, max_logo_height / orig_height)
-                
-                new_width = orig_width * ratio
-                new_height = orig_height * ratio
-                
-                c.drawImage(logo, left_margin, y - new_height, 
-                           width=new_width, height=new_height)
-                logo_height = new_height + 10
+                with zipfile.ZipFile(emp_file, 'r') as zf:
+                    # Find logo file in ZIP
+                    logo_data = None
+                    for name in zf.namelist():
+                        if name.startswith("logo."):
+                            logo_data = zf.read(name)
+                            print(f"[LOGO] ✓ Encontrado en ZIP: {name} ({len(logo_data)} bytes)")
+                            break
+                    
+                    if logo_data:
+                        # Load from memory
+                        logo_stream = io.BytesIO(logo_data)
+                        logo = ImageReader(logo_stream)
+                        orig_width, orig_height = logo.getSize()
+                        print(f"[LOGO] ✓ Logo cargado: {orig_width}x{orig_height}")
+                        
+                        # Scale logo
+                        max_logo_width = 80
+                        max_logo_height = 50
+                        ratio = min(max_logo_width / orig_width, max_logo_height / orig_height)
+                        
+                        new_width = orig_width * ratio
+                        new_height = orig_height * ratio
+                        
+                        c.drawImage(logo, left_margin, y - new_height, 
+                                   width=new_width, height=new_height)
+                        logo_height = new_height + 10
+                        print(f"[LOGO] ✓ Logo dibujado en PDF")
+                    else:
+                        print(f"[LOGO] ✗ No hay logo en el archivo .emp")
             except Exception as e:
-                print(f"Error loading logo: {e}")
+                print(f"[LOGO] ✗ Error: {e}")
+        else:
+            print(f"[LOGO] ✗ Archivo .emp no existe: {emp_file}")
         
         # Company name
         info_x = left_margin
@@ -692,24 +750,67 @@ class PDFGenerator:
         return y - 15
     
     def _get_logo_path(self, empresa: str, datos_empresa: dict) -> Optional[str]:
-        """Get the logo path for the company."""
-        # Check in datos_empresa
-        if datos_empresa.get('logo'):
-            logo = datos_empresa['logo']
-            if os.path.exists(logo):
-                return logo
-            
-            # Try relative to media directory
-            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-            media_path = os.path.join(base_dir, "media", logo)
-            if os.path.exists(media_path):
-                return media_path
+        """Get the logo path for the company, extracting from .emp ZIP if needed."""
+        import zipfile
+        import tempfile
+        import sys
         
-        # Try legacy path
-        legacy_path = os.path.join("options", "company", "logo", empresa, f"{empresa}_logo.png")
-        if os.path.exists(legacy_path):
-            return legacy_path
+        # Immediate output for debugging
+        print("=" * 50, flush=True)
+        print(f"[LOGO] === ENTRANDO A _get_logo_path ===", flush=True)
+        print(f"[LOGO] Buscando logo para empresa: '{empresa}'", flush=True)
+        sys.stdout.flush()
         
+        # Get base directory
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        
+        # 1. Check if already extracted to temp
+        temp_dir = os.path.join(base_dir, "media", "config", "temp_companies", empresa)
+        if os.path.isdir(temp_dir):
+            for ext in ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp']:
+                logo_path = os.path.join(temp_dir, f"logo.{ext}")
+                if os.path.exists(logo_path):
+                    print(f"[LOGO] ✓ Encontrado en temp: {logo_path}")
+                    print("=" * 50)
+                    return logo_path
+        
+        # 2. Check logo_path from datos_empresa
+        if datos_empresa.get('logo_path'):
+            logo_path = datos_empresa['logo_path']
+            if os.path.exists(logo_path):
+                print(f"[LOGO] ✓ Encontrado en datos_empresa: {logo_path}")
+                print("=" * 50)
+                return logo_path
+        
+        # 3. Extract from .emp ZIP file
+        emp_file = os.path.join(base_dir, "media", "companies", f"{empresa}.emp")
+        print(f"[LOGO] Buscando archivo .emp: {emp_file}")
+        
+        if os.path.exists(emp_file):
+            try:
+                with zipfile.ZipFile(emp_file, 'r') as zf:
+                    # Find logo file in ZIP
+                    for name in zf.namelist():
+                        if name.startswith("logo."):
+                            print(f"[LOGO] ✓ Logo encontrado en ZIP: {name}")
+                            
+                            # Extract to temp directory
+                            os.makedirs(temp_dir, exist_ok=True)
+                            zf.extract(name, temp_dir)
+                            extracted_path = os.path.join(temp_dir, name)
+                            
+                            print(f"[LOGO] ✓ Extraído a: {extracted_path}")
+                            print("=" * 50)
+                            return extracted_path
+                            
+                print(f"[LOGO] ✗ No hay logo en el archivo .emp")
+            except Exception as e:
+                print(f"[LOGO] ✗ Error leyendo .emp: {e}")
+        else:
+            print(f"[LOGO] ✗ Archivo .emp no existe")
+        
+        print(f"[LOGO] ✗ NO SE ENCONTRÓ LOGO PARA '{empresa}'")
+        print("=" * 50)
         return None
     
     def _draw_table(self, c: canvas.Canvas, width: float, y: float,
@@ -3552,8 +3653,24 @@ def generar_pdf(file_path: str, empresa: str, datos_empresa: dict,
                 payment_method: str = "", bank_details: str = "",
                  payment_type: str = "", apply_iva: bool = True,
                  include_details: bool = True, terms_data: dict = None,
-                 prepared_by: str = "", signature_image: str = None):
+                 prepared_by: str = "", signature_image: str = None,
+                 mostrar_firma: bool = False, mostrar_terminos: bool = True):
     """Legacy compatibility function with extended parameters."""
+    
+    # Check if warranty_data is actually empty (all fields blank)
+    has_warranty = False
+    if warranty_data:
+        has_warranty = bool(
+            warranty_data.get("duration") or
+            warranty_data.get("garantia") or
+            warranty_data.get("covers") or
+            warranty_data.get("excludes") or
+            warranty_data.get("warning") or
+            warranty_data.get("verification") or
+            warranty_data.get("terms") or
+            warranty_data.get("warranty_terms")
+        )
+    
     generator = PDFGenerator()
     generator.generate(
         file_path=file_path,
@@ -3563,8 +3680,8 @@ def generar_pdf(file_path: str, empresa: str, datos_empresa: dict,
         total=total,
         moneda=moneda,
         fecha=fecha,
-        mostrar_terminos=True, # Always show terms if using this function
-        mostrar_firma=True, # Always show signature if using this function
+        mostrar_terminos=mostrar_terminos,
+        mostrar_firma=mostrar_firma,  # Now properly passed from caller
         validez_dias=validez_dias,
         cliente=cliente,
         observaciones_data=observaciones_data,
@@ -3572,7 +3689,7 @@ def generar_pdf(file_path: str, empresa: str, datos_empresa: dict,
         document_type=document_type,
         shipping=shipping,
         cover_page_data=cover_page_data,
-        warranty_data=warranty_data,
+        warranty_data=warranty_data if has_warranty else None,  # Only pass if has content
         estimated_days=estimated_days,
         shipping_type=shipping_type,
         installation_terms=installation_terms,
