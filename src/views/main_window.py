@@ -262,6 +262,7 @@ class MainWindow(QMainWindow):
         self.validez_input.setSuffix(" días")
         self.validez_input.setMinimumHeight(35)
         self.validez_input.setMaximumWidth(100)
+        self.validez_input.valueChanged.connect(self._on_header_validez_changed)
         header_layout.addWidget(self.validez_input, 1, 5)
         
         # Row 2: Client Info (compact)
@@ -474,143 +475,202 @@ class MainWindow(QMainWindow):
         """Create the details/observations tab with cover page option."""
         tab = QWidget()
         layout = QVBoxLayout(tab)
-        layout.setSpacing(16)
-        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(20)
+        layout.setContentsMargins(24, 24, 24, 24)
         
-        # Create scroll area
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setStyleSheet("QScrollArea { border: none; background: transparent; }")
         
         content = QWidget()
         content_layout = QVBoxLayout(content)
-        content_layout.setSpacing(16)
+        content_layout.setSpacing(20)
         
-        # Header with icon
-        header = self._create_icon_label("note", "Observaciones y Detalles", 18)
-        content_layout.addWidget(header)
-        
-        # === Cover Page Section ===
-        cover_frame = QFrame()
-        cover_frame.setStyleSheet("""
+        # Unified card style
+        card_style = """
             QFrame {
-                background-color: rgba(10, 132, 255, 0.1);
-                border: 2px solid rgba(10, 132, 255, 0.3);
-                border-radius: 10px;
-                padding: 15px;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                    stop:0 rgba(30, 30, 35, 0.95), stop:1 rgba(25, 25, 30, 0.9));
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 16px;
             }
-        """)
+        """
+        
+        # === 1. COVER PAGE ===
+        cover_frame = QFrame()
+        cover_frame.setStyleSheet(card_style)
         cover_layout = QVBoxLayout(cover_frame)
+        cover_layout.setContentsMargins(20, 16, 20, 16)
+        cover_layout.setSpacing(12)
         
         cover_header = QHBoxLayout()
+        cover_header.setSpacing(12)
         cover_icon = QLabel()
-        cover_icon.setPixmap(self.icon_manager.get_pixmap("pdf", 20))
+        cover_icon.setFixedSize(44, 44)
+        cover_icon.setStyleSheet("background: rgba(10, 132, 255, 0.3); border: 2px solid #0A84FF; border-radius: 12px;")
+        cover_icon.setPixmap(self.icon_manager.get_pixmap("pdf", 24))
+        cover_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
         cover_header.addWidget(cover_icon)
+        
+        cover_text = QVBoxLayout()
+        cover_text.setSpacing(2)
         cover_title = QLabel("Carátula del Documento")
-        cover_title.setStyleSheet("font-size: 15px; font-weight: bold; color: #0A84FF;")
-        cover_header.addWidget(cover_title)
+        cover_title.setStyleSheet("font-size: 16px; font-weight: bold; color: #FFFFFF;")
+        cover_text.addWidget(cover_title)
+        cover_desc = QLabel("Portada profesional para tu cotización")
+        cover_desc.setStyleSheet("font-size: 12px; color: rgba(255,255,255,0.5);")
+        cover_text.addWidget(cover_desc)
+        cover_header.addLayout(cover_text)
         cover_header.addStretch()
         
-        self.cover_page_check = QCheckBox("Incluir Carátula")
-        self.cover_page_check.setStyleSheet("font-size: 13px;")
+        self.cover_page_check = QCheckBox("Incluir")
+        self.cover_page_check.setStyleSheet("QCheckBox { font-size: 13px; color: #0A84FF; font-weight: bold; } QCheckBox::indicator { width: 20px; height: 20px; border-radius: 4px; border: 2px solid #0A84FF; } QCheckBox::indicator:checked { background: #0A84FF; }")
         cover_header.addWidget(self.cover_page_check)
         cover_layout.addLayout(cover_header)
         
-        self.edit_cover_btn = QPushButton("Editar Carátula")
+        self.edit_cover_btn = QPushButton("  Editar Carátula")
         self.edit_cover_btn.setIcon(self.icon_manager.get_icon("noteAdd", 18))
-        self.edit_cover_btn.setStyleSheet("background-color: rgba(10, 132, 255, 0.3); border: 1px solid #0A84FF; border-radius: 6px; color: white; padding: 10px 20px; font-weight: bold;")
+        self.edit_cover_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.edit_cover_btn.setStyleSheet("QPushButton { background: rgba(10, 132, 255, 0.4); border: 1px solid #0A84FF; border-radius: 10px; color: white; padding: 12px 24px; font-weight: bold; font-size: 13px; } QPushButton:hover { background: rgba(10, 132, 255, 0.6); }")
         self.edit_cover_btn.clicked.connect(self._open_cover_page_editor)
-        cover_layout.addWidget(self.edit_cover_btn, 0, Qt.AlignmentFlag.AlignLeft)
-        
+        cover_layout.addWidget(self.edit_cover_btn)
         content_layout.addWidget(cover_frame)
         
-        # === Observations Section ===
+        # === 2. OBSERVATIONS ===
         obs_frame = QFrame()
-        obs_frame.setStyleSheet("QFrame { background-color: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 15px; }")
+        obs_frame.setStyleSheet(card_style)
         obs_layout = QVBoxLayout(obs_frame)
+        obs_layout.setContentsMargins(20, 16, 20, 16)
+        obs_layout.setSpacing(12)
         
         obs_header = QHBoxLayout()
+        obs_header.setSpacing(12)
         obs_icon = QLabel()
-        obs_icon.setPixmap(self.icon_manager.get_pixmap("termsAndCondition", 18))
+        obs_icon.setFixedSize(44, 44)
+        obs_icon.setStyleSheet("background: rgba(52, 199, 89, 0.3); border: 2px solid #34C759; border-radius: 12px;")
+        obs_icon.setPixmap(self.icon_manager.get_pixmap("termsAndCondition", 24))
+        obs_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
         obs_header.addWidget(obs_icon)
-        obs_title = QLabel("Observaciones")
-        obs_title.setStyleSheet("font-weight: bold; font-size: 14px;")
-        obs_header.addWidget(obs_title)
+        
+        obs_text = QVBoxLayout()
+        obs_text.setSpacing(2)
+        obs_title = QLabel("Observaciones y Notas")
+        obs_title.setStyleSheet("font-size: 16px; font-weight: bold; color: #FFFFFF;")
+        obs_text.addWidget(obs_title)
+        self.observations_summary = QLabel("Sin observaciones añadidas")
+        self.observations_summary.setStyleSheet("font-size: 12px; color: rgba(255,255,255,0.5);")
+        self.observations_summary.setWordWrap(True)
+        obs_text.addWidget(self.observations_summary)
+        obs_header.addLayout(obs_text)
         obs_header.addStretch()
-        self.include_details_check = QCheckBox("Incluir Detalles en PDF")
-        self.include_details_check.setChecked(True)
-        self.include_details_check.setStyleSheet("font-size: 13px; font-weight: bold; color: #34C759;")
+        
+        self.include_details_check = QCheckBox("Incluir")
+        self.include_details_check.setChecked(False)
+        self.include_details_check.setStyleSheet("QCheckBox { font-size: 13px; color: #34C759; font-weight: bold; } QCheckBox::indicator { width: 20px; height: 20px; border-radius: 4px; border: 2px solid #34C759; } QCheckBox::indicator:checked { background: #34C759; }")
         obs_header.addWidget(self.include_details_check)
         obs_layout.addLayout(obs_header)
         
-        self.observations_summary = QLabel("Sin observaciones añadidas")
-        self.observations_summary.setStyleSheet("color: rgba(255,255,255,0.5); padding: 10px;")
-        self.observations_summary.setWordWrap(True)
-        obs_layout.addWidget(self.observations_summary)
-        
-        btn_open = QPushButton("Abrir Ventana de Observaciones")
+        btn_open = QPushButton("  Abrir Ventana de Observaciones")
         btn_open.setIcon(self.icon_manager.get_icon("noteAdd", 18))
-        btn_open.setStyleSheet("background-color: rgba(52, 199, 89, 0.3); border: 1px solid #34C759; border-radius: 6px; color: white; padding: 12px 24px; font-weight: bold;")
+        btn_open.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_open.setStyleSheet("QPushButton { background: rgba(52, 199, 89, 0.4); border: 1px solid #34C759; border-radius: 10px; color: white; padding: 12px 24px; font-weight: bold; font-size: 13px; } QPushButton:hover { background: rgba(52, 199, 89, 0.6); }")
         btn_open.clicked.connect(self._open_observations_window)
-        obs_layout.addWidget(btn_open, 0, Qt.AlignmentFlag.AlignCenter)
-        
+        obs_layout.addWidget(btn_open)
         content_layout.addWidget(obs_frame)
         
-        # === Terms & Conditions Section (Consolidated) ===
+        # === 3. TERMS & CONDITIONS ===
         terms_frame = QFrame()
-        terms_frame.setStyleSheet("QFrame { background-color: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 15px; }")
+        terms_frame.setStyleSheet(card_style)
         terms_layout = QVBoxLayout(terms_frame)
+        terms_layout.setContentsMargins(20, 16, 20, 16)
+        terms_layout.setSpacing(12)
         
         terms_header = QHBoxLayout()
+        terms_header.setSpacing(12)
         terms_icon = QLabel()
-        terms_icon.setPixmap(self.icon_manager.get_pixmap("maintenance", 18))
+        terms_icon.setFixedSize(44, 44)
+        terms_icon.setStyleSheet("background: rgba(255, 149, 0, 0.3); border: 2px solid #FF9500; border-radius: 12px;")
+        terms_icon.setPixmap(self.icon_manager.get_pixmap("maintenance", 24))
+        terms_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
         terms_header.addWidget(terms_icon)
+        
+        terms_text = QVBoxLayout()
+        terms_text.setSpacing(2)
         terms_title = QLabel("Términos, Condiciones y Garantía")
-        terms_title.setStyleSheet("font-weight: bold; font-size: 14px;")
-        terms_header.addWidget(terms_title)
+        terms_title.setStyleSheet("font-size: 16px; font-weight: bold; color: #FFFFFF;")
+        terms_text.addWidget(terms_title)
+        terms_desc = QLabel("Validez, entrega, garantía y formas de pago")
+        terms_desc.setStyleSheet("font-size: 12px; color: rgba(255,255,255,0.5);")
+        terms_text.addWidget(terms_desc)
+        terms_header.addLayout(terms_text)
         terms_header.addStretch()
         terms_layout.addLayout(terms_header)
         
-        # Terms Management Button and Summary
-        btn_terms = PrimaryButton("Gestionar Términos y Condiciones")
+        btn_terms = QPushButton("  Gestionar Términos y Condiciones")
         btn_terms.setIcon(self.icon_manager.get_icon("termsAndCondition", 18))
+        btn_terms.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_terms.setStyleSheet("QPushButton { background: rgba(255, 149, 0, 0.4); border: 1px solid #FF9500; border-radius: 10px; color: white; padding: 12px 24px; font-weight: bold; font-size: 13px; } QPushButton:hover { background: rgba(255, 149, 0, 0.6); }")
         btn_terms.clicked.connect(self._open_terms_window)
         terms_layout.addWidget(btn_terms)
         
-        hint_lbl = QLabel("Configure la validez, tiempos de entrega, garantía y formas de pago en el gestor.")
-        hint_lbl.setStyleSheet("color: rgba(255,255,255,0.6); font-style: italic;")
-        hint_lbl.setWordWrap(True)
-        terms_layout.addWidget(hint_lbl)
-        
+        # Validez row - syncs with _terms_data
+        validez_row = QHBoxLayout()
+        validez_lbl = QLabel("Validez de oferta:")
+        validez_lbl.setStyleSheet("font-size: 13px; color: rgba(255,255,255,0.7);")
+        validez_row.addWidget(validez_lbl)
+        self.validez_dias_spin = QSpinBox()
+        self.validez_dias_spin.setRange(1, 365)
+        self.validez_dias_spin.setValue(self._terms_data.get('validez_dias', 15))
+        self.validez_dias_spin.setSuffix(" días")
+        self.validez_dias_spin.setStyleSheet("QSpinBox { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 6px 12px; color: white; min-width: 100px; }")
+        self.validez_dias_spin.valueChanged.connect(self._on_validez_changed)
+        validez_row.addWidget(self.validez_dias_spin)
+        validez_row.addStretch()
+        terms_layout.addLayout(validez_row)
         content_layout.addWidget(terms_frame)
         
-        # === Signature Option ===
+        # === 4. SIGNATURE ===
         sig_frame = QFrame()
-        sig_frame.setStyleSheet("QFrame { background-color: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 15px; }")
-        sig_layout = QHBoxLayout(sig_frame)
+        sig_frame.setStyleSheet(card_style)
+        sig_layout = QVBoxLayout(sig_frame)
+        sig_layout.setContentsMargins(20, 16, 20, 16)
+        sig_layout.setSpacing(12)
         
+        sig_header = QHBoxLayout()
+        sig_header.setSpacing(12)
         sig_icon = QLabel()
-        sig_icon.setPixmap(self.icon_manager.get_pixmap("user", 18))
-        sig_layout.addWidget(sig_icon)
+        sig_icon.setFixedSize(44, 44)
+        sig_icon.setStyleSheet("background: rgba(175, 82, 222, 0.3); border: 2px solid #AF52DE; border-radius: 12px;")
+        sig_icon.setPixmap(self.icon_manager.get_pixmap("user", 24))
+        sig_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        sig_header.addWidget(sig_icon)
         
-        self.include_signature_check = QCheckBox("Incluir Firma en Cotización")
-        self.include_signature_check.setStyleSheet("font-weight: bold; font-size: 14px;")
-        self.include_signature_check.setChecked(True) 
-        sig_layout.addWidget(self.include_signature_check)
+        sig_text = QVBoxLayout()
+        sig_text.setSpacing(2)
+        sig_title = QLabel("Firma del Documento")
+        sig_title.setStyleSheet("font-size: 16px; font-weight: bold; color: #FFFFFF;")
+        sig_text.addWidget(sig_title)
+        sig_desc = QLabel("Incluye tu firma profesional en la cotización")
+        sig_desc.setStyleSheet("font-size: 12px; color: rgba(255,255,255,0.5);")
+        sig_text.addWidget(sig_desc)
+        sig_header.addLayout(sig_text)
+        sig_header.addStretch()
         
-        sig_layout.addStretch()
+        self.include_signature_check = QCheckBox("Incluir Firma")
+        self.include_signature_check.setStyleSheet("QCheckBox { font-size: 13px; color: #AF52DE; font-weight: bold; } QCheckBox::indicator { width: 20px; height: 20px; border-radius: 4px; border: 2px solid #AF52DE; } QCheckBox::indicator:checked { background: #AF52DE; }")
+        self.include_signature_check.setChecked(False)
+        sig_header.addWidget(self.include_signature_check)
+        sig_layout.addLayout(sig_header)
         content_layout.addWidget(sig_frame)
         
-        # Compatibility hidden field
+        # Hidden fields
         self.installation_terms = QTextEdit()
         self.installation_terms.hide()
-
         content_layout.addStretch()
         
         scroll.setWidget(content)
         layout.addWidget(scroll)
         
-        # Hidden canvas for backward compatibility
         self.canvas = DropCanvas()
         self.canvas.hide()
         
@@ -739,7 +799,7 @@ class MainWindow(QMainWindow):
         
         # Checkbox to include bank details in PDF
         self.include_bank_details_check = QCheckBox("Incluir en PDF")
-        self.include_bank_details_check.setChecked(True)
+        self.include_bank_details_check.setChecked(False)
         self.include_bank_details_check.setStyleSheet("font-size: 12px; color: #34C759;")
         bank_header.addWidget(self.include_bank_details_check)
         
@@ -821,6 +881,24 @@ class MainWindow(QMainWindow):
             self.setWindowTitle("Cotizador Pro - Cotizacion")
         else:
             self.setWindowTitle("Cotizador Pro - Recibo")
+    
+    def _on_validez_changed(self, value: int):
+        """Sync validez_dias from details tab to header and _terms_data."""
+        self._terms_data["validez_dias"] = value
+        # Sync to header spinbox without triggering infinite loop
+        if hasattr(self, 'validez_input'):
+            self.validez_input.blockSignals(True)
+            self.validez_input.setValue(value)
+            self.validez_input.blockSignals(False)
+    
+    def _on_header_validez_changed(self, value: int):
+        """Sync validez_dias from header to details tab and _terms_data."""
+        self._terms_data["validez_dias"] = value
+        # Sync to details tab spinbox without triggering infinite loop
+        if hasattr(self, 'validez_dias_spin'):
+            self.validez_dias_spin.blockSignals(True)
+            self.validez_dias_spin.setValue(value)
+            self.validez_dias_spin.blockSignals(False)
     
     def _load_companies(self):
         """Load companies into combo box."""
@@ -1176,6 +1254,17 @@ class MainWindow(QMainWindow):
         if "terms_data" in data:
             self._terms_data.update(data["terms_data"])
         
+        # Sync validez_dias spinbox with loaded data
+        validez_value = self._terms_data.get("validez_dias", 15)
+        if hasattr(self, 'validez_dias_spin'):
+            self.validez_dias_spin.blockSignals(True)
+            self.validez_dias_spin.setValue(validez_value)
+            self.validez_dias_spin.blockSignals(False)
+        if hasattr(self, 'validez_input'):
+            self.validez_input.blockSignals(True)
+            self.validez_input.setValue(validez_value)
+            self.validez_input.blockSignals(False)
+        
         # Signature fields
         if "prepared_by" in data and hasattr(self, 'prepared_by_input'):
             self.prepared_by_input.setText(data["prepared_by"])
@@ -1222,7 +1311,7 @@ class MainWindow(QMainWindow):
             
         # Details
         if hasattr(self, 'include_details_check'):
-            state = flags.get("include_details", data.get("include_details", True))
+            state = flags.get("include_details", data.get("include_details", False))
             self.include_details_check.setChecked(state)
         
         self.table.setRowCount(0)

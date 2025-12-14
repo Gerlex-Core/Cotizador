@@ -653,29 +653,28 @@ class ImageSearchDialog(QDialog):
     def _confirm_selection(self):
         if not self.current_image_data:
             return
-            
-        downloads_dir = os.path.join(os.getcwd(), "media", "images", "downloads")
+        
+        # Save to temp directory - CotzManager will embed images into .cotz when saved
+        import tempfile
+        downloads_dir = os.path.join(tempfile.gettempdir(), "cotizador_images")
         if not os.path.exists(downloads_dir):
             os.makedirs(downloads_dir)
-        
+    
         # Processing Logic using new ImageProcessor
         pixmap = ImageProcessor.load_pixmap(self.current_image_data)
-        
+    
         target_size = None
         keep_aspect = True
-        
+    
         # Check standard resize
         if self.standardize_check.isChecked():
             target_size = (300, 300)
             keep_aspect = False # Strict 300x300 as requested for standard
-            
-        # Determine extension based on original if possible, else default to jpg/png
-        # We'll use png for everything to support transparency unless user selected a jpg explicitly
-        # actually, better to stick to a consistent format or auto-detect?
-        # User asked for png support. Let's default to PNG for high quality + transparency support.
+        
+        # Unique filename with timestamp
         filename = f"img_{int(time.time())}.png"
         save_path = os.path.join(downloads_dir, filename)
-        
+    
         success = ImageProcessor.process_and_save(
             pixmap=pixmap,
             save_path=save_path,
@@ -683,7 +682,7 @@ class ImageSearchDialog(QDialog):
             keep_aspect=keep_aspect,
             quality=100
         )
-            
+        
         if success:
             self.selected_image_path = save_path
             self.accept()

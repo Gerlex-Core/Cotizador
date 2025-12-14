@@ -448,10 +448,10 @@ class TermsWindow(QMainWindow):
         
         # Install
         self.install_tab['editor'].setHtml(d.get('installation_terms', ''))
-        self.install_tab['check'].setChecked(d.get('show_installation', True))
+        self.install_tab['check'].setChecked(d.get('show_installation', False))
         
         # Warranty (5 sections)
-        self.warranty_tab['check'].setChecked(d.get('show_warranty', True))
+        self.warranty_tab['check'].setChecked(d.get('show_warranty', False))
         self.warranty_tab['duration'].setText(str(d.get('warranty_duration', '')))
         # Load new warranty fields - with legacy fallback
         legacy_warranty = d.get('warranty_terms', '')
@@ -463,19 +463,19 @@ class TermsWindow(QMainWindow):
         
         # Payment
         self.payment_tab['editor'].setHtml(d.get('payment_terms', ''))
-        self.payment_tab['check'].setChecked(d.get('show_payment', True))
+        self.payment_tab['check'].setChecked(d.get('show_payment', False))
         self.payment_tab['method'].setCurrentText(str(d.get('payment_method', '')))
         self.payment_tab['type'].setCurrentText(str(d.get('payment_type', '')))
         
         # General
         self.general_tab['editor'].setHtml(d.get('general_terms', ''))
-        self.general_tab['check'].setChecked(d.get('show_general', True))
+        self.general_tab['check'].setChecked(d.get('show_general', False))
         self.general_tab['validity'].setValue(int(d.get('validez_dias', 15)))
         self.general_tab['delivery'].setValue(int(d.get('estimated_days', 7)))
         
         # Acceptance
         self.acceptance_tab['editor'].setHtml(d.get('acceptance_terms', ''))
-        self.acceptance_tab['check'].setChecked(d.get('show_acceptance', True))
+        self.acceptance_tab['check'].setChecked(d.get('show_acceptance', False))
         
         self._update_preview()
 

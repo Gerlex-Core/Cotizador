@@ -53,8 +53,12 @@ media/images/download/
 # Logs
 *.log
 
-# Local history
+# Local history and quotation data
 media/historial/
+media/data/historial/
+
+# Quotation archive with product images
+src/archivocotizacion/
 
 # Temporary files
 *.tmp
