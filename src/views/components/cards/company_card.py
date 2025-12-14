@@ -10,10 +10,12 @@ from .card import Card
 from ..widgets.logo_widget import LogoWidget
 from ..buttons.animated_button import AnimatedButton, DangerButton
 from ...styles.icon_manager import IconManager
+from ...styles.theme_manager import ThemeManager
 
 class CompanyListCard(Card):
     """
     Card to display a company in the list.
+    Supports selected state with accent color highlighting.
     """
     clicked = pyqtSignal(str) # Emits company name
     edit_clicked = pyqtSignal(str)
@@ -22,9 +24,23 @@ class CompanyListCard(Card):
     def __init__(self, name: str, nit: str, logo_path: str, parent=None):
         super().__init__(parent)
         self.company_name = name
+        self._is_selected = False
+        
+        # Store base and selected styles
+        self._base_style = """
+            CompanyListCard {
+                background-color: rgba(30, 30, 30, 0.6);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+            }
+            CompanyListCard:hover {
+                background-color: rgba(40, 40, 40, 0.8);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }
+        """
         
         # Override padding
-        self.layout.setContentsMargins(12, 12, 12, 12)
+        self._content_layout.setContentsMargins(12, 12, 12, 12)
         
         # Horizontal layout for the card content
         h_layout = QHBoxLayout()
@@ -53,24 +69,51 @@ class CompanyListCard(Card):
             
         h_layout.addLayout(info_layout, 1) # 1 stretch factor to push buttons right
         
-        # Buttons (only visible on hover or always?)
-        # Let's add them but maybe they are handled by the main view via selection. 
-        # But having them on the card is nice.
-        
-        # Actually, standard list behavior usually selects. 
-        # Adding buttons directly might interfere with selection if not careful.
-        # But let's add them for "edit" and "delete" quick access
-        
-        btns_layout = QVBoxLayout() # Vertical or Horizontal? Horizontal usually better.
-        # But let's keep it simple.
-        
-        # For now, let's just make the whole card clickable.
-        # We can accept clicks via mousePressEvent
-        
         self.addLayout(h_layout)
         
         # Make the cursor a hand pointer
         self.setCursor(Qt.CursorShape.PointingHandCursor)
+    
+    def setSelected(self, selected: bool):
+        """Set the selected state of the card with accent color highlighting."""
+        self._is_selected = selected
+        
+        if selected:
+            # Get accent color from current theme
+            accent_color = ThemeManager.get_accent_color()
+            
+            # Create selected style with accent color
+            selected_style = f"""
+                CompanyListCard {{
+                    background-color: rgba({self._hex_to_rgb(accent_color)}, 0.15);
+                    border: 2px solid {accent_color};
+                    border-radius: 12px;
+                }}
+                CompanyListCard:hover {{
+                    background-color: rgba({self._hex_to_rgb(accent_color)}, 0.25);
+                    border: 2px solid {accent_color};
+                }}
+            """
+            self.setStyleSheet(selected_style)
+        else:
+            self.setStyleSheet(self._base_style)
+    
+    def isSelected(self) -> bool:
+        """Check if the card is currently selected."""
+        return self._is_selected
+    
+    def _hex_to_rgb(self, hex_color: str) -> str:
+        """Convert hex color to RGB comma-separated string."""
+        hex_color = hex_color.lstrip('#')
+        if len(hex_color) == 3:
+            hex_color = ''.join([c*2 for c in hex_color])
+        try:
+            r = int(hex_color[0:2], 16)
+            g = int(hex_color[2:4], 16)
+            b = int(hex_color[4:6], 16)
+            return f"{r}, {g}, {b}"
+        except (ValueError, IndexError):
+            return "10, 132, 255"  # Default accent color RGB
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:

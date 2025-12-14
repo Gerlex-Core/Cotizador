@@ -143,25 +143,70 @@ class CompanyManagerView(QMainWindow):
         right.addLayout(preview_header)
         
         # Wrap preview in a Card
-        preview_card = Card()
-        preview_layout = QVBoxLayout(preview_card)
+        self.preview_card = Card()
+        preview_layout = QVBoxLayout()
+        preview_layout.setSpacing(12)
         preview_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        self.preview_logo = LogoWidget(max_width=120, max_height=80)
+        # Logo - larger for better visibility
+        self.preview_logo = LogoWidget(max_width=150, max_height=100)
         preview_layout.addWidget(self.preview_logo, 0, Qt.AlignmentFlag.AlignCenter)
         
+        # Company name
         self.preview_name = QLabel("Seleccione una empresa")
-        self.preview_name.setStyleSheet("font-size: 16px; font-weight: bold;")
+        self.preview_name.setStyleSheet("font-size: 18px; font-weight: bold;")
         self.preview_name.setAlignment(Qt.AlignmentFlag.AlignCenter)
         preview_layout.addWidget(self.preview_name)
         
-        self.preview_info = QLabel("")
-        self.preview_info.setStyleSheet("color: rgba(255,255,255,0.6); font-size: 11px;")
-        self.preview_info.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.preview_info.setWordWrap(True)
-        preview_layout.addWidget(self.preview_info)
+        # Slogan (if any)
+        self.preview_slogan = QLabel("")
+        self.preview_slogan.setStyleSheet("font-size: 12px; font-style: italic; color: rgba(255,255,255,0.5);")
+        self.preview_slogan.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.preview_slogan.hide()
+        preview_layout.addWidget(self.preview_slogan)
         
-        right.addWidget(preview_card)
+        # Separator
+        separator = QFrame()
+        separator.setFrameShape(QFrame.Shape.HLine)
+        separator.setStyleSheet("background-color: rgba(255,255,255,0.1);")
+        separator.setFixedHeight(1)
+        preview_layout.addWidget(separator)
+        
+        # Info section with labels
+        self.preview_nit = QLabel("")
+        self.preview_nit.setStyleSheet("font-size: 13px; color: rgba(255,255,255,0.8);")
+        self.preview_nit.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.preview_nit.hide()
+        preview_layout.addWidget(self.preview_nit)
+        
+        self.preview_address = QLabel("")
+        self.preview_address.setStyleSheet("font-size: 12px; color: rgba(255,255,255,0.7);")
+        self.preview_address.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.preview_address.setWordWrap(True)
+        self.preview_address.hide()
+        preview_layout.addWidget(self.preview_address)
+        
+        self.preview_phone = QLabel("")
+        self.preview_phone.setStyleSheet("font-size: 12px; color: rgba(255,255,255,0.7);")
+        self.preview_phone.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.preview_phone.hide()
+        preview_layout.addWidget(self.preview_phone)
+        
+        self.preview_email = QLabel("")
+        self.preview_email.setStyleSheet("font-size: 12px; color: rgba(100,160,255,0.9);")
+        self.preview_email.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.preview_email.hide()
+        preview_layout.addWidget(self.preview_email)
+        
+        # Placeholder text when no company selected
+        self.preview_placeholder = QLabel("Haz clic en una empresa para ver sus detalles")
+        self.preview_placeholder.setStyleSheet("font-size: 11px; color: rgba(255,255,255,0.4);")
+        self.preview_placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.preview_placeholder.setWordWrap(True)
+        preview_layout.addWidget(self.preview_placeholder)
+        
+        self.preview_card.addLayout(preview_layout)
+        right.addWidget(self.preview_card)
         right.addStretch()
         
         content.addLayout(right, 1)
@@ -174,7 +219,10 @@ class CompanyManagerView(QMainWindow):
             item = self.scroll_layout.takeAt(0)
             if item.widget():
                 item.widget().deleteLater()
-                
+        
+        # Track cards for selection management
+        self._company_cards = {}
+        
         # Load new items
         for name in self.company_logic.get_company_names():
             company = self.company_logic.get_company(name)
@@ -183,6 +231,8 @@ class CompanyManagerView(QMainWindow):
                 card = CompanyListCard(company.name, company.nit, logo_path)
                 card.clicked.connect(self._select_company_by_name)
                 card.edit_clicked.connect(self._on_card_double_click)
+                # Store reference for selection management
+                self._company_cards[company.name] = card
                 # Insert before the stretch (which is the last item)
                 self.scroll_layout.insertWidget(self.scroll_layout.count() - 1, card)
                 
@@ -203,25 +253,78 @@ class CompanyManagerView(QMainWindow):
         """Clear the preview panel."""
         self.preview_logo.clear()
         self.preview_name.setText("Seleccione una empresa")
-        self.preview_info.setText("")
+        self.preview_slogan.setText("")
+        self.preview_slogan.hide()
+        self.preview_nit.setText("")
+        self.preview_nit.hide()
+        self.preview_address.setText("")
+        self.preview_address.hide()
+        self.preview_phone.setText("")
+        self.preview_phone.hide()
+        self.preview_email.setText("")
+        self.preview_email.hide()
+        self.preview_placeholder.show()
     
     def _select_company_by_name(self, name):
-        """Handle company selection from card."""
+        """Handle company selection from card with visual highlighting."""
+        # Deselect previous card
+        if hasattr(self, '_company_cards'):
+            for card_name, card in self._company_cards.items():
+                if card_name == self.selected_company:
+                    card.setSelected(False)
+        
+        # Select new card
         self.selected_company = name
+        if hasattr(self, '_company_cards') and name in self._company_cards:
+            self._company_cards[name].setSelected(True)
+        
         self.btn_edit.setEnabled(True)
         self.btn_delete.setEnabled(True)
         
         company = self.company_logic.get_company(self.selected_company)
         if company:
+            # Hide placeholder
+            self.preview_placeholder.hide()
+            
+            # Company name
             self.preview_name.setText(company.name)
             
-            info = []
-            if company.nit: info.append(f"NIT: {company.nit}")
-            if company.direccion: info.append(company.direccion)
-            if company.telefono: info.append(company.telefono)
-            if company.correo: info.append(company.correo)
-            self.preview_info.setText("\n".join(info))
+            # Slogan
+            if company.eslogan:
+                self.preview_slogan.setText(company.eslogan)
+                self.preview_slogan.show()
+            else:
+                self.preview_slogan.hide()
             
+            # NIT
+            if company.nit:
+                self.preview_nit.setText(f"NIT: {company.nit}")
+                self.preview_nit.show()
+            else:
+                self.preview_nit.hide()
+            
+            # Address
+            if company.direccion:
+                self.preview_address.setText(f"📍 {company.direccion}")
+                self.preview_address.show()
+            else:
+                self.preview_address.hide()
+            
+            # Phone
+            if company.telefono:
+                self.preview_phone.setText(f"📞 {company.telefono}")
+                self.preview_phone.show()
+            else:
+                self.preview_phone.hide()
+            
+            # Email
+            if company.correo:
+                self.preview_email.setText(f"✉️ {company.correo}")
+                self.preview_email.show()
+            else:
+                self.preview_email.hide()
+            
+            # Logo
             logo_path = self.company_logic.get_logo_absolute_path(self.selected_company)
             if logo_path:
                 self.preview_logo.setLogo(logo_path)

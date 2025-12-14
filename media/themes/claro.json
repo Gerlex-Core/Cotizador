@@ -1,28 +1,197 @@
 {
     "name": "Claro",
-    "background": "#F5F5F7",
-    "text_primary": "#1D1D1F",
-    "text_secondary": "#86868B",
-    "button_bg": "#FFFFFF",
-    "button_text": "#1D1D1F",
-    "button_hover_text": "#FFFFFF",
-    "border": "#D2D2D7",
-    "accent": "#0071E3",
-    "accent_dark": "#0058B0",
-    "menu_bg": "#FFFFFF",
-    "menubar_bg": "#F5F5F7",
-    "table_bg": "#FFFFFF",
-    "table_hover": "rgba(0,0,0,0.03)",
-    "header_bg": "#F5F5F7",
-    "input_bg": "#FFFFFF",
-    "scrollbar": "#C7C7CC",
-    "disabled_bg": "#F0F0F0",
-    "disabled_text": "#999999",
-    "disabled_border": "#E0E0E0",
-    "font_family": "Segoe UI, Arial",
-    "font_size": "14px",
-    "button_padding": "10px 20px",
-    "button_radius": "8px",
-    "button_weight": "600",
-    "label_weight": "normal"
+    "version": "2.0",
+    "author": "Cotizador Team",
+    "description": "Tema claro oficial con diseño limpio y moderno",
+    "is_official": true,
+    "colors": {
+        "background": {
+            "primary": "#F5F5F7",
+            "secondary": "#FFFFFF",
+            "tertiary": "rgba(0, 0, 0, 0.03)"
+        },
+        "accent": {
+            "primary": "#007AFF",
+            "secondary": "#34C759",
+            "tertiary": "#FF9500",
+            "glow": "rgba(0, 122, 255, 0.3)"
+        },
+        "text": {
+            "primary": "#1D1D1F",
+            "secondary": "#6E6E73",
+            "muted": "rgba(0, 0, 0, 0.5)",
+            "link": "#007AFF",
+            "highlight": "#007AFF"
+        },
+        "borders": {
+            "default": "#D1D1D6",
+            "focus": "#007AFF",
+            "subtle": "rgba(0, 0, 0, 0.08)",
+            "glow": "#007AFF"
+        },
+        "shadows": {
+            "small": "0 2px 8px rgba(0, 0, 0, 0.1)",
+            "medium": "0 4px 16px rgba(0, 0, 0, 0.15)",
+            "glow": "0 0 20px rgba(0, 122, 255, 0.2)"
+        },
+        "states": {
+            "success": "#34C759",
+            "error": "#FF3B30",
+            "warning": "#FF9500",
+            "info": "#5AC8FA"
+        }
+    },
+    "effects": {
+        "transparency": 0,
+        "glassmorphism": false,
+        "blur": {
+            "enabled": false,
+            "radius": 12
+        },
+        "bloom": {
+            "enabled": false,
+            "intensity": 0.2,
+            "color": "#007AFF"
+        },
+        "glow": {
+            "enabled": true,
+            "color": "#007AFF",
+            "intensity": 0.25
+        }
+    },
+    "typography": {
+        "fontFamily": "Segoe UI, Arial, sans-serif",
+        "fontSize": {
+            "xs": "11px",
+            "sm": "13px",
+            "base": "14px",
+            "lg": "16px",
+            "xl": "20px",
+            "xxl": "28px"
+        },
+        "fontWeight": {
+            "normal": 400,
+            "medium": 500,
+            "semibold": 600,
+            "bold": 700
+        },
+        "letterSpacing": "normal"
+    },
+    "animations": {
+        "globalSpeed": 1.0,
+        "components": {
+            "button": {
+                "hover": {
+                    "scale": 1.02,
+                    "duration": 150,
+                    "glow": false
+                },
+                "press": {
+                    "scale": 0.98,
+                    "duration": 100
+                },
+                "ripple": {
+                    "enabled": true,
+                    "duration": 400
+                }
+            },
+            "panel": {
+                "show": {
+                    "type": "fade",
+                    "duration": 200
+                },
+                "hide": {
+                    "type": "fade",
+                    "duration": 150
+                }
+            },
+            "table": {
+                "row_insert": {
+                    "duration": 200
+                },
+                "row_remove": {
+                    "duration": 150
+                }
+            },
+            "window": {
+                "show": {
+                    "type": "fade",
+                    "duration": 200
+                },
+                "hide": {
+                    "type": "fade",
+                    "duration": 150
+                }
+            },
+            "input": {
+                "focus": {
+                    "duration": 150
+                }
+            }
+        }
+    },
+    "sounds": {
+        "enabled": true,
+        "useSystemSounds": true,
+        "volume": 0.5
+    },
+    "layout": {
+        "usePanelsInsteadOfMenus": false,
+        "sidebarPosition": "left",
+        "headerStyle": "modern",
+        "footerVisible": true,
+        "windowBorderless": false,
+        "cornerRadius": {
+            "small": 4,
+            "medium": 8,
+            "large": 12,
+            "xl": 20
+        },
+        "spacing": {
+            "xs": 4,
+            "sm": 8,
+            "base": 16,
+            "lg": 24,
+            "xl": 32
+        },
+        "contentMargins": {
+            "top": 16,
+            "right": 16,
+            "bottom": 16,
+            "left": 16
+        }
+    },
+    "components": {
+        "button": {
+            "padding": "10px 20px",
+            "borderRadius": "8px",
+            "borderWidth": 1
+        },
+        "input": {
+            "padding": "8px 12px",
+            "borderRadius": "6px",
+            "minHeight": 36
+        },
+        "panel": {
+            "padding": 16,
+            "borderRadius": 12
+        },
+        "table": {
+            "rowHeight": 60,
+            "headerHeight": 50,
+            "alternateRowColors": true
+        },
+        "dialog": {
+            "borderRadius": 12,
+            "padding": 20
+        },
+        "menuBar": {
+            "height": 40
+        },
+        "scrollbar": {
+            "width": 12,
+            "borderRadius": 6
+        }
+    },
+    "icons": {}
 }

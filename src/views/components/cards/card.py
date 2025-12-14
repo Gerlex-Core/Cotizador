@@ -23,10 +23,10 @@ class Card(QFrame):
             }
         """)
         
-        # Layout
-        self.layout = QVBoxLayout(self)
-        self.layout.setContentsMargins(16, 16, 16, 16)
-        self.layout.setSpacing(8)
+        # Layout - using _content_layout to avoid shadowing QWidget.layout()
+        self._content_layout = QVBoxLayout(self)
+        self._content_layout.setContentsMargins(16, 16, 16, 16)
+        self._content_layout.setSpacing(8)
         
         # Shadow effect
         shadow = QGraphicsDropShadowEffect(self)
@@ -36,10 +36,10 @@ class Card(QFrame):
         self.setGraphicsEffect(shadow)
         
     def addWidget(self, widget):
-        self.layout.addWidget(widget)
+        self._content_layout.addWidget(widget)
         
     def addLayout(self, layout):
-        self.layout.addLayout(layout)
+        self._content_layout.addLayout(layout)
         
     def addStretch(self, stretch=0):
-        self.layout.addStretch(stretch)
+        self._content_layout.addStretch(stretch)

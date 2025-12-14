@@ -1,0 +1,240 @@
+{
+    "name": "Neon Cyberpunk",
+    "version": "1.0",
+    "author": "Cotizador Custom",
+    "description": "Tema cyberpunk con colores neón y efectos de glow intensos",
+    "is_official": false,
+    "colors": {
+        "background": {
+            "primary": "#0D0D1A",
+            "secondary": "#1A1A2E",
+            "tertiary": "rgba(255, 0, 255, 0.08)"
+        },
+        "accent": {
+            "primary": "#FF00FF",
+            "secondary": "#00FFFF",
+            "tertiary": "#FF6B00",
+            "glow": "rgba(255, 0, 255, 0.5)"
+        },
+        "text": {
+            "primary": "#FFFFFF",
+            "secondary": "#B0B0FF",
+            "muted": "rgba(255, 255, 255, 0.5)",
+            "link": "#00FFFF",
+            "highlight": "#FF00FF"
+        },
+        "borders": {
+            "default": "#3D3D5C",
+            "focus": "#FF00FF",
+            "subtle": "rgba(255, 0, 255, 0.2)",
+            "glow": "#00FFFF"
+        },
+        "shadows": {
+            "small": "0 2px 8px rgba(255, 0, 255, 0.3)",
+            "medium": "0 4px 16px rgba(255, 0, 255, 0.4)",
+            "glow": "0 0 30px rgba(255, 0, 255, 0.5)"
+        },
+        "states": {
+            "success": "#00FF88",
+            "error": "#FF3366",
+            "warning": "#FFB800",
+            "info": "#00FFFF"
+        }
+    },
+    "effects": {
+        "transparency": 0.95,
+        "glassmorphism": true,
+        "blur": {
+            "enabled": true,
+            "radius": 20
+        },
+        "bloom": {
+            "enabled": true,
+            "intensity": 0.5,
+            "color": "#FF00FF"
+        },
+        "glow": {
+            "enabled": true,
+            "color": "#FF00FF",
+            "intensity": 0.8
+        },
+        "neonBorders": true,
+        "scanlines": false,
+        "particles": false
+    },
+    "typography": {
+        "fontFamily": "Orbitron, Rajdhani, Segoe UI, sans-serif",
+        "fontSize": {
+            "xs": "11px",
+            "sm": "13px",
+            "base": "14px",
+            "lg": "16px",
+            "xl": "22px",
+            "xxl": "32px"
+        },
+        "fontWeight": {
+            "normal": 400,
+            "medium": 500,
+            "semibold": 600,
+            "bold": 700
+        },
+        "letterSpacing": "0.5px"
+    },
+    "animations": {
+        "globalSpeed": 1.2,
+        "components": {
+            "button": {
+                "hover": {
+                    "scale": 1.08,
+                    "duration": 200,
+                    "glow": true,
+                    "glowColor": "#FF00FF",
+                    "glowIntensity": 0.6
+                },
+                "press": {
+                    "scale": 0.92,
+                    "duration": 100
+                },
+                "ripple": {
+                    "enabled": true,
+                    "duration": 500,
+                    "color": "#00FFFF"
+                }
+            },
+            "panel": {
+                "show": {
+                    "type": "slide_fade",
+                    "direction": "up",
+                    "duration": 300,
+                    "easing": "OutBack"
+                },
+                "hide": {
+                    "type": "fade",
+                    "duration": 200
+                },
+                "glow_pulse": {
+                    "enabled": true,
+                    "duration": 2000,
+                    "from": 0.3,
+                    "to": 0.6
+                }
+            },
+            "table": {
+                "row_insert": {
+                    "duration": 250,
+                    "type": "slide_fade"
+                },
+                "row_remove": {
+                    "duration": 200
+                },
+                "row_hover": {
+                    "glow": true,
+                    "glowColor": "#00FFFF"
+                }
+            },
+            "window": {
+                "show": {
+                    "type": "scale_fade",
+                    "from_scale": 0.85,
+                    "to_scale": 1.0,
+                    "duration": 350,
+                    "easing": "OutBack"
+                },
+                "hide": {
+                    "type": "fade",
+                    "duration": 200
+                }
+            },
+            "input": {
+                "focus": {
+                    "glowColor": "#00FFFF",
+                    "glowIntensity": 0.5,
+                    "duration": 200
+                }
+            }
+        }
+    },
+    "sounds": {
+        "enabled": false,
+        "useSystemSounds": true,
+        "volume": 0.5
+    },
+    "layout": {
+        "usePanelsInsteadOfMenus": false,
+        "sidebarPosition": "left",
+        "headerStyle": "modern",
+        "footerVisible": true,
+        "windowBorderless": false,
+        "cornerRadius": {
+            "small": 4,
+            "medium": 10,
+            "large": 16,
+            "xl": 24
+        },
+        "spacing": {
+            "xs": 4,
+            "sm": 8,
+            "base": 16,
+            "lg": 24,
+            "xl": 32
+        },
+        "contentMargins": {
+            "top": 16,
+            "right": 16,
+            "bottom": 16,
+            "left": 16
+        }
+    },
+    "components": {
+        "button": {
+            "padding": "12px 24px",
+            "borderRadius": "10px",
+            "borderWidth": 2,
+            "borderStyle": "solid",
+            "backgroundGradient": {
+                "enabled": true,
+                "from": "#1A1A2E",
+                "to": "#0D0D1A"
+            },
+            "hoverBackgroundGradient": {
+                "enabled": true,
+                "from": "#FF00FF",
+                "to": "#CC00CC"
+            }
+        },
+        "input": {
+            "padding": "10px 14px",
+            "borderRadius": "8px",
+            "minHeight": 42,
+            "borderWidth": 2
+        },
+        "panel": {
+            "padding": 20,
+            "borderRadius": 16,
+            "borderWidth": 1,
+            "backgroundOpacity": 0.9
+        },
+        "table": {
+            "rowHeight": 65,
+            "headerHeight": 55,
+            "alternateRowColors": true,
+            "alternateRowOpacity": 0.05
+        },
+        "dialog": {
+            "borderRadius": 20,
+            "padding": 24,
+            "backdropBlur": true
+        },
+        "menuBar": {
+            "height": 45,
+            "itemPadding": "8px 16px"
+        },
+        "scrollbar": {
+            "width": 10,
+            "borderRadius": 5,
+            "trackColor": "#1A1A2E",
+            "thumbColor": "#FF00FF"
+        }
+    },
+    "icons": {}
+}

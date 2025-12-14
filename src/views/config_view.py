@@ -156,8 +156,9 @@ class ConfigManagerView(QMainWindow):
         
         grid.addWidget(QLabel("Tema:"), row, 0)
         self.combo_theme = QComboBox()
-        self.combo_theme.addItems(list(THEMES.keys()))
-        self.combo_theme.setCurrentText(self.config.tema)
+        self._populate_theme_combobox()
+        # Select current theme (must use index-based selection for custom model)
+        self._select_initial_theme()
         self.combo_theme.currentTextChanged.connect(self._preview_theme)
         self.combo_theme.setMinimumHeight(40)
         grid.addWidget(self.combo_theme, row, 1)
@@ -409,13 +410,126 @@ class ConfigManagerView(QMainWindow):
         else:
             self.sig_preview.setText("Sin Firma")
 
+    def _populate_theme_combobox(self):
+        """Populate theme combobox with grouped sections (Official / Unofficial)."""
+        from PyQt6.QtGui import QStandardItemModel, QStandardItem, QFont as QGFont
+        from PyQt6.QtCore import Qt
+        
+        # Get grouped themes
+        grouped = ThemeManager.get_grouped_themes()
+        
+        # Create model for custom items
+        model = QStandardItemModel()
+        
+        # Add official themes section
+        if grouped['official']:
+            # Section header - non-selectable
+            header_official = QStandardItem("─── Themes Oficiales ───")
+            header_official.setEnabled(False)
+            header_official.setSelectable(False)
+            font = QGFont()
+            font.setBold(True)
+            header_official.setFont(font)
+            header_official.setData(Qt.AlignmentFlag.AlignCenter, Qt.ItemDataRole.TextAlignmentRole)
+            model.appendRow(header_official)
+            
+            # Add official themes
+            for theme_name in grouped['official']:
+                item = QStandardItem(f"  {theme_name}")
+                item.setData(theme_name, Qt.ItemDataRole.UserRole)  # Store actual theme name
+                model.appendRow(item)
+        
+        # Add unofficial themes section
+        if grouped['unofficial']:
+            # Section header - non-selectable
+            header_unofficial = QStandardItem("─── Themes No Oficiales ───")
+            header_unofficial.setEnabled(False)
+            header_unofficial.setSelectable(False)
+            font = QGFont()
+            font.setBold(True)
+            header_unofficial.setFont(font)
+            header_unofficial.setData(Qt.AlignmentFlag.AlignCenter, Qt.ItemDataRole.TextAlignmentRole)
+            model.appendRow(header_unofficial)
+            
+            # Add unofficial themes
+            for theme_name in grouped['unofficial']:
+                item = QStandardItem(f"  {theme_name}")
+                item.setData(theme_name, Qt.ItemDataRole.UserRole)  # Store actual theme name
+                model.appendRow(item)
+        
+        self.combo_theme.setModel(model)
+
+    def _select_initial_theme(self):
+        """Select the current theme from config in the grouped combobox."""
+        from PyQt6.QtCore import Qt
+        target_theme = self.config.tema
+        model = self.combo_theme.model()
+        if not model:
+            return
+        
+        for i in range(model.rowCount()):
+            item = model.item(i)
+            if item and item.data(Qt.ItemDataRole.UserRole) == target_theme:
+                self.combo_theme.setCurrentIndex(i)
+                return
+        
+        # Fallback: try text match
+        for i in range(model.rowCount()):
+            item = model.item(i)
+            if item and item.isEnabled() and target_theme in item.text():
+                self.combo_theme.setCurrentIndex(i)
+                return
+
     def _preview_theme(self, theme_name: str):
         """Preview theme when selection changes."""
+        # Get actual theme name from UserRole if available (strips leading spaces)
+        model = self.combo_theme.model()
+        index = self.combo_theme.currentIndex()
+        if model and index >= 0:
+            item = model.item(index)
+            if item:
+                actual_name = item.data(Qt.ItemDataRole.UserRole)
+                if actual_name:
+                    theme_name = actual_name
+        
         ThemeManager.apply_theme(self, theme_name)
+    
+    def _get_current_theme_name(self) -> str:
+        """Get the actual theme name from the combobox (without leading spaces)."""
+        from PyQt6.QtCore import Qt
+        model = self.combo_theme.model()
+        index = self.combo_theme.currentIndex()
+        if model and index >= 0:
+            item = model.item(index)
+            if item:
+                actual_name = item.data(Qt.ItemDataRole.UserRole)
+                if actual_name:
+                    return actual_name
+        return self.combo_theme.currentText().strip()
+    
+    def _set_theme_by_name(self, theme_name: str):
+        """Set the combobox selection to match the given theme name."""
+        from PyQt6.QtCore import Qt
+        model = self.combo_theme.model()
+        if not model:
+            return
+        
+        for i in range(model.rowCount()):
+            item = model.item(i)
+            if item and item.data(Qt.ItemDataRole.UserRole) == theme_name:
+                self.combo_theme.setCurrentIndex(i)
+                return
+        
+        # Fallback: try text match
+        for i in range(model.rowCount()):
+            item = model.item(i)
+            if item and theme_name in item.text():
+                self.combo_theme.setCurrentIndex(i)
+                return
     
     def _reset_defaults(self):
         """Reset to default values."""
-        self.combo_theme.setCurrentText("Oscuro")
+        self._set_theme_by_name("Oscuro")
         self.combo_font.setCurrentText("Segoe UI")
         self.spin_size.setValue(14)
         self.combo_language.setCurrentText("es")
@@ -427,7 +541,7 @@ class ConfigManagerView(QMainWindow):
     def _save_config(self):
         """Save the configuration."""
         self.config.idioma = self.combo_language.currentText()
-        self.config.tema = self.combo_theme.currentText()
+        self.config.tema = self._get_current_theme_name()
         self.config.fuente = self.combo_font.currentText()
         self.config.tamaño_fuente = self.spin_size.value()
         self.config.moneda = self.combo_currency.currentText()

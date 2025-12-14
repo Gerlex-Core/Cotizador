@@ -1,20 +1,25 @@
 """
 Glass Panel Component with glassmorphism effect.
 Optimized for Windows to avoid QPainter conflicts.
+Implements IThemeable for full theme customization.
 """
 
+from typing import Dict, Any, List
 from PyQt6.QtWidgets import QFrame
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPainter, QColor, QBrush, QPen, QLinearGradient, QPainterPath
 
+from src.views.styles.themeable import IThemeable, get_component_registry
+from src.views.styles.effects_engine import get_effects_engine
 
-class GlassPanel(QFrame):
+
+class GlassPanel(QFrame, IThemeable):
     """
     A panel widget with enhanced glassmorphism effect:
     - Semi-transparent gradient background
     - Subtle glowing border
     - Inner highlight for depth
-    - No QGraphicsEffect to avoid QPainter conflicts on Windows
+    - Full theme support via IThemeable
     """
     
     def __init__(self, parent=None, blur_radius: int = 10, 
@@ -30,12 +35,75 @@ class GlassPanel(QFrame):
         self._glow_color = QColor(10, 132, 255)  # Accent color for glow
         self._glow_enabled = True
         
+        # Theme config cache
+        self._theme_config: Dict[str, Any] = {}
+        
+        # Effects engine reference
+        self._effects_engine = get_effects_engine()
+        
         # Enable custom painting
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
         
         # Default styling with padding
         self.setMinimumHeight(60)
         self.setContentsMargins(16, 16, 16, 16)
+        
+        # Register with component registry
+        get_component_registry().register(self)
+    
+    # === IThemeable Implementation ===
+    
+    @property
+    def component_type(self) -> str:
+        return "panel"
+    
+    @property
+    def theme_capabilities(self) -> List[str]:
+        return ['colors', 'effects', 'animations']
+    
+    def get_theme_metadata(self) -> Dict[str, Any]:
+        return {
+            "type": self.component_type,
+            "id": self.objectName() or f"panel_{id(self)}",
+            "visible": self.isVisible(),
+            "geometry": {
+                "x": self.x(),
+                "y": self.y(),
+                "width": self.width(),
+                "height": self.height()
+            },
+            "capabilities": self.theme_capabilities,
+            "properties": {
+                "corner_radius": self._corner_radius,
+                "glow_enabled": self._glow_enabled,
+                "background_opacity": self._background_opacity,
+                "glow_color": self._glow_color.name()
+            }
+        }
+    
+    def apply_theme_config(self, config: Dict[str, Any]):
+        self._theme_config = config
+        
+        if config:
+            # Apply corner radius
+            if 'borderRadius' in config:
+                self._corner_radius = config['borderRadius']
+            
+            # Apply padding
+            if 'padding' in config:
+                p = config['padding']
+                self.setContentsMargins(p, p, p, p)
+            
+            # Apply background opacity
+            if 'backgroundOpacity' in config:
+                self._background_opacity = config['backgroundOpacity']
+        
+        self.update()
+    
+    def on_theme_changed(self, theme_name: str):
+        self.update()
+    
+    # === Paint Event ===
     
     def paintEvent(self, event):
         """Custom paint for enhanced glassmorphism effect."""
@@ -107,6 +175,8 @@ class GlassPanel(QFrame):
         painter.end()
         
         super().paintEvent(event)
+    
+    # === Setters ===
     
     def setBackgroundColor(self, color: QColor):
         """Set the base background color."""
