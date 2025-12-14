@@ -1,0 +1,242 @@
+{
+    "name": "Dark Web Modern",
+    "description": "Estética de página web moderna en modo oscuro con glassmorphism, gradientes sutiles y UI contemporánea",
+    "elements": [
+        {
+            "type": "rect",
+            "rect": [
+                0,
+                0,
+                1,
+                1
+            ],
+            "color": "#0F0F0F"
+        },
+        {
+            "type": "circle",
+            "x": 0.20,
+            "y": 0.85,
+            "r": 0.35,
+            "color": "#6366F1",
+            "opacity": 0.08
+        },
+        {
+            "type": "circle",
+            "x": 0.80,
+            "y": 0.20,
+            "r": 0.30,
+            "color": "#EC4899",
+            "opacity": 0.06
+        },
+        {
+            "type": "circle",
+            "x": 0.50,
+            "y": 0.50,
+            "r": 0.25,
+            "color": "#8B5CF6",
+            "opacity": 0.04
+        },
+        {
+            "type": "rect",
+            "rect": [
+                0,
+                0.92,
+                1,
+                0.08
+            ],
+            "color": "#18181B"
+        },
+        {
+            "type": "line",
+            "x1": 0,
+            "y1": 0.92,
+            "x2": 1,
+            "y2": 0.92,
+            "stroke": "#27272A",
+            "stroke_width": 1
+        },
+        {
+            "type": "circle",
+            "x": 0.08,
+            "y": 0.96,
+            "r": 0.012,
+            "stroke": "#3F3F46",
+            "stroke_width": 1
+        },
+        {
+            "type": "rect",
+            "rect": [
+                0.30,
+                0.945,
+                0.40,
+                0.025
+            ],
+            "color": "#27272A",
+            "opacity": 0.8
+        },
+        {
+            "type": "circle",
+            "x": 0.92,
+            "y": 0.96,
+            "r": 0.010,
+            "color": "#22C55E"
+        },
+        {
+            "type": "image",
+            "path_var": "logo_path",
+            "x": 0.50,
+            "y": 0.82,
+            "w": 0.10
+        },
+        {
+            "type": "text",
+            "text": "{company_name}",
+            "x": 0.50,
+            "y": 0.72,
+            "align": "center",
+            "font": "Helvetica-Bold",
+            "size": 11,
+            "color": "#A1A1AA"
+        },
+        {
+            "type": "rect",
+            "rect": [
+                0.12,
+                0.40,
+                0.76,
+                0.22
+            ],
+            "color": "#18181B",
+            "opacity": 0.85
+        },
+        {
+            "type": "rect",
+            "rect": [
+                0.12,
+                0.40,
+                0.76,
+                0.22
+            ],
+            "stroke": "#27272A",
+            "stroke_width": 1
+        },
+        {
+            "type": "circle",
+            "x": 0.12,
+            "y": 0.62,
+            "r": 0.006,
+            "color": "#6366F1"
+        },
+        {
+            "type": "circle",
+            "x": 0.88,
+            "y": 0.40,
+            "r": 0.006,
+            "color": "#EC4899"
+        },
+        {
+            "type": "wrapped_text",
+            "text": "{project_name}",
+            "x": 0.50,
+            "y": 0.55,
+            "width": 0.65,
+            "align": "center",
+            "font": "Helvetica-Bold",
+            "size": 30,
+            "color": "#FAFAFA"
+        },
+        {
+            "type": "rect",
+            "rect": [
+                0.35,
+                0.43,
+                0.30,
+                0.025
+            ],
+            "color": "#6366F1",
+            "opacity": 0.2
+        },
+        {
+            "type": "text",
+            "text": "{subtitle}",
+            "x": 0.50,
+            "y": 0.44,
+            "align": "center",
+            "font": "Helvetica",
+            "size": 11,
+            "color": "#A78BFA"
+        },
+        {
+            "type": "rect",
+            "rect": [
+                0.30,
+                0.26,
+                0.40,
+                0.08
+            ],
+            "color": "#27272A",
+            "opacity": 0.9
+        },
+        {
+            "type": "rect",
+            "rect": [
+                0.30,
+                0.26,
+                0.40,
+                0.08
+            ],
+            "stroke": "#3F3F46",
+            "stroke_width": 1
+        },
+        {
+            "type": "text",
+            "text": "{client_name}",
+            "x": 0.50,
+            "y": 0.29,
+            "align": "center",
+            "font": "Helvetica-Bold",
+            "size": 14,
+            "color": "#FAFAFA"
+        },
+        {
+            "type": "line",
+            "x1": 0.40,
+            "y1": 0.20,
+            "x2": 0.60,
+            "y2": 0.20,
+            "stroke": "#3F3F46",
+            "stroke_width": 1
+        },
+        {
+            "type": "text",
+            "text": "{date}",
+            "x": 0.50,
+            "y": 0.14,
+            "align": "center",
+            "font": "Helvetica",
+            "size": 10,
+            "color": "#71717A"
+        },
+        {
+            "type": "circle",
+            "x": 0.45,
+            "y": 0.08,
+            "r": 0.004,
+            "color": "#6366F1"
+        },
+        {
+            "type": "circle",
+            "x": 0.50,
+            "y": 0.08,
+            "r": 0.004,
+            "color": "#8B5CF6"
+        },
+        {
+            "type": "circle",
+            "x": 0.55,
+            "y": 0.08,
+            "r": 0.004,
+            "color": "#EC4899"
+        }
+    ]
+}

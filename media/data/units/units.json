@@ -1,0 +1,188 @@
+{
+    "Cantidad": {
+        "Unidad (u)": {
+            "abreviacion": "u",
+            "factor": 1.0
+        },
+        "Cada uno (c/u)": {
+            "abreviacion": "c/u",
+            "factor": 1.0
+        },
+        "Paquete (pqt)": {
+            "abreviacion": "pqt",
+            "factor": 1.0
+        },
+        "Docena (dz)": {
+            "abreviacion": "dz",
+            "factor": 12.0
+        },
+        "Centena (ct)": {
+            "abreviacion": "ct",
+            "factor": 100.0
+        },
+        "Millar (mll)": {
+            "abreviacion": "mll",
+            "factor": 1000.0
+        },
+        "Caja (caja)": {
+            "abreviacion": "caja",
+            "factor": 1.0
+        },
+        "Bulto (bulto)": {
+            "abreviacion": "bulto",
+            "factor": 1.0
+        }
+    },
+    "Longitud": {
+        "Metros (m)": {
+            "abreviacion": "m",
+            "factor": 1.0
+        },
+        "Kilómetros (km)": {
+            "abreviacion": "km",
+            "factor": 0.001
+        },
+        "Centímetros (cm)": {
+            "abreviacion": "cm",
+            "factor": 100.0
+        },
+        "Milímetros (mm)": {
+            "abreviacion": "mm",
+            "factor": 1000.0
+        },
+        "Pulgadas (in)": {
+            "abreviacion": "in",
+            "factor": 39.3701
+        },
+        "Pies (ft)": {
+            "abreviacion": "ft",
+            "factor": 3.28084
+        }
+    },
+    "Peso": {
+        "Gramos (g)": {
+            "abreviacion": "g",
+            "factor": 1.0
+        },
+        "Kilogramos (kg)": {
+            "abreviacion": "kg",
+            "factor": 0.001
+        },
+        "Toneladas (t)": {
+            "abreviacion": "t",
+            "factor": 1e-06
+        },
+        "Libras (lb)": {
+            "abreviacion": "lb",
+            "factor": 0.00220462
+        },
+        "Onzas (oz)": {
+            "abreviacion": "oz",
+            "factor": 0.035274
+        }
+    },
+    "Volumen": {
+        "Litros (L)": {
+            "abreviacion": "L",
+            "factor": 1.0
+        },
+        "Mililitros (mL)": {
+            "abreviacion": "mL",
+            "factor": 1000.0
+        },
+        "Metros cúbicos (m³)": {
+            "abreviacion": "m³",
+            "factor": 0.001
+        },
+        "Galones (gal)": {
+            "abreviacion": "gal",
+            "factor": 0.264172
+        }
+    },
+    "Tiempo": {
+        "Segundos (s)": {
+            "abreviacion": "s",
+            "factor": 1.0
+        },
+        "Minutos (min)": {
+            "abreviacion": "min",
+            "factor": 0.0166667
+        },
+        "Horas (h)": {
+            "abreviacion": "h",
+            "factor": 0.000277778
+        },
+        "Días (d)": {
+            "abreviacion": "d",
+            "factor": 1.15741e-05
+        }
+    },
+    "Envio": {
+        "Envío Local": {
+            "abreviacion": "local",
+            "factor": 1.0
+        },
+        "Delivery": {
+            "abreviacion": "delivery",
+            "factor": 1.0
+        },
+        "Encomienda": {
+            "abreviacion": "encomienda",
+            "factor": 1.0
+        },
+        "Express/Urgente": {
+            "abreviacion": "express",
+            "factor": 1.0
+        },
+        "Pickup (Retiro)": {
+            "abreviacion": "pickup",
+            "factor": 1.0
+        },
+        "Courier Nacional": {
+            "abreviacion": "courier",
+            "factor": 1.0
+        },
+        "Courier Internacional": {
+            "abreviacion": "intl",
+            "factor": 1.0
+        },
+        "Flete": {
+            "abreviacion": "flete",
+            "factor": 1.0
+        },
+        "Transporte Especializado": {
+            "abreviacion": "especial",
+            "factor": 1.0
+        }
+    },
+    "servicio": {
+        "Instalación": {
+            "abreviacion": "inst",
+            "factor": 1.0
+        },
+        "Hora de Soporte": {
+            "abreviacion": "hr/sop",
+            "factor": 1.0
+        },
+        "Día de Trabajo": {
+            "abreviacion": "día",
+            "factor": 1.0
+        },
+        "Sesión": {
+            "abreviacion": "sesión",
+            "factor": 1.0
+        },
+        "Capacitación": {
+            "abreviacion": "cap",
+            "factor": 1.0
+        },
+        "Mantenimiento": {
+            "abreviacion": "mant",
+            "factor": 1.0
+        },
+        "Consultoría": {
+            "abreviacion": "cons",
+            "factor": 1.0
+        }
+    }
+}

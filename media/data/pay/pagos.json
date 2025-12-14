@@ -1,0 +1,41 @@
+{
+    "tipos_pago": [
+        "Efectivo",
+        "Tarjeta de Crédito",
+        "Tarjeta de Débito",
+        "Transferencia Bancaria",
+        "Transferencia Bancaria QR",
+        "Cheque",
+        "Depósito Bancario",
+        "Crédito",
+        "Contra Reembolso",
+        "PayPal",
+        "Billetera Digital",
+        "Criptomoneda",
+        "Letra de Cambio",
+        "Pagaré",
+        "Otro"
+    ],
+    "formas_pago": [
+        "50% anticipo, 50% contra entrega",
+        "100% anticipo",
+        "100% contra entrega",
+        "30% anticipo, 70% contra entrega",
+        "100% Productos + 50% Servicios anticipo, saldo contra entrega",
+        "Crédito 7 días",
+        "Crédito 15 días",
+        "Crédito 30 días",
+        "Crédito 45 días",
+        "Crédito 60 días",
+        "Crédito 90 días",
+        "Pago a convenir",
+        "Financiamiento 3 cuotas",
+        "Financiamiento 6 cuotas",
+        "Financiamiento 12 cuotas",
+        "Pago semanal",
+        "Pago quincenal",
+        "Pago mensual",
+        "Al contado",
+        "Otro"
+    ]
+}

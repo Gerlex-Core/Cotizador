@@ -1,0 +1,50 @@
+{
+    "styles": [
+        {
+            "name": "Moderno Azul",
+            "font": "Helvetica-Bold",
+            "size": 16,
+            "color": "#0A84FF",
+            "alignment": "left",
+            "underline": true,
+            "uppercase": false
+        },
+        {
+            "name": "Clásico Negro",
+            "font": "Times-Bold",
+            "size": 18,
+            "color": "#000000",
+            "alignment": "center",
+            "underline": false,
+            "uppercase": true
+        },
+        {
+            "name": "Ejecutivo Gris",
+            "font": "Helvetica-Bold",
+            "size": 16,
+            "color": "#444444",
+            "alignment": "left",
+            "underline": false,
+            "uppercase": true,
+            "border_bottom": true
+        },
+        {
+            "name": "Impacto Rojo",
+            "font": "Helvetica-Bold",
+            "size": 20,
+            "color": "#FF3B30",
+            "alignment": "center",
+            "underline": true,
+            "uppercase": true
+        },
+        {
+            "name": "Subtítulo Suave",
+            "font": "Helvetica-Oblique",
+            "size": 14,
+            "color": "#666666",
+            "alignment": "left",
+            "underline": false,
+            "uppercase": false
+        }
+    ]
+}

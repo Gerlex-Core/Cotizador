@@ -1,0 +1,223 @@
+{
+    "name": "Ocean Deep",
+    "description": "Diseño minimalista con azules profundos oceánicos, ondas sutiles y atmósfera marina elegante",
+    "elements": [
+        {
+            "type": "rect",
+            "rect": [
+                0,
+                0,
+                1,
+                1
+            ],
+            "color": "#F0F7FF"
+        },
+        {
+            "type": "circle",
+            "x": -0.12,
+            "y": 0.92,
+            "r": 0.40,
+            "color": "#228BE6",
+            "opacity": 0.07
+        },
+        {
+            "type": "circle",
+            "x": 0.02,
+            "y": 0.82,
+            "r": 0.22,
+            "color": "#339AF0",
+            "opacity": 0.05
+        },
+        {
+            "type": "circle",
+            "x": 1.10,
+            "y": 0.08,
+            "r": 0.35,
+            "color": "#1C7ED6",
+            "opacity": 0.06
+        },
+        {
+            "type": "circle",
+            "x": 0.92,
+            "y": 0.15,
+            "r": 0.18,
+            "color": "#4DABF7",
+            "opacity": 0.04
+        },
+        {
+            "type": "path",
+            "points": [
+                [
+                    0,
+                    0.18
+                ],
+                [
+                    0.25,
+                    0.22
+                ],
+                [
+                    0.50,
+                    0.17
+                ],
+                [
+                    0.75,
+                    0.21
+                ],
+                [
+                    1,
+                    0.18
+                ]
+            ],
+            "stroke": "#228BE6",
+            "stroke_width": 1,
+            "opacity": 0.25
+        },
+        {
+            "type": "path",
+            "points": [
+                [
+                    0,
+                    0.15
+                ],
+                [
+                    0.30,
+                    0.19
+                ],
+                [
+                    0.60,
+                    0.14
+                ],
+                [
+                    0.90,
+                    0.18
+                ],
+                [
+                    1,
+                    0.16
+                ]
+            ],
+            "stroke": "#339AF0",
+            "stroke_width": 1,
+            "opacity": 0.15
+        },
+        {
+            "type": "image",
+            "path_var": "logo_path",
+            "x": 0.50,
+            "y": 0.86,
+            "w": 0.12
+        },
+        {
+            "type": "text",
+            "text": "{company_name}",
+            "x": 0.50,
+            "y": 0.75,
+            "align": "center",
+            "font": "Helvetica-Bold",
+            "size": 13,
+            "color": "#1864AB"
+        },
+        {
+            "type": "line",
+            "x1": 0.32,
+            "y1": 0.71,
+            "x2": 0.68,
+            "y2": 0.71,
+            "stroke": "#228BE6",
+            "stroke_width": 1,
+            "opacity": 0.35
+        },
+        {
+            "type": "wrapped_text",
+            "text": "{project_name}",
+            "x": 0.50,
+            "y": 0.60,
+            "width": 0.75,
+            "align": "center",
+            "font": "Helvetica-Bold",
+            "size": 34,
+            "color": "#1C3D5A"
+        },
+        {
+            "type": "text",
+            "text": "{subtitle}",
+            "x": 0.50,
+            "y": 0.47,
+            "align": "center",
+            "font": "Helvetica",
+            "size": 14,
+            "color": "#339AF0"
+        },
+        {
+            "type": "circle",
+            "x": 0.45,
+            "y": 0.43,
+            "r": 0.004,
+            "color": "#228BE6",
+            "opacity": 0.5
+        },
+        {
+            "type": "circle",
+            "x": 0.50,
+            "y": 0.43,
+            "r": 0.005,
+            "color": "#228BE6"
+        },
+        {
+            "type": "circle",
+            "x": 0.55,
+            "y": 0.43,
+            "r": 0.004,
+            "color": "#228BE6",
+            "opacity": 0.5
+        },
+        {
+            "type": "text",
+            "text": "Preparado para",
+            "x": 0.50,
+            "y": 0.36,
+            "align": "center",
+            "font": "Helvetica",
+            "size": 10,
+            "color": "#868E96"
+        },
+        {
+            "type": "text",
+            "text": "{client_name}",
+            "x": 0.50,
+            "y": 0.31,
+            "align": "center",
+            "font": "Helvetica-Bold",
+            "size": 18,
+            "color": "#1C3D5A"
+        },
+        {
+            "type": "line",
+            "x1": 0.36,
+            "y1": 0.27,
+            "x2": 0.64,
+            "y2": 0.27,
+            "stroke": "#4DABF7",
+            "stroke_width": 1,
+            "opacity": 0.4
+        },
+        {
+            "type": "text",
+            "text": "{date}",
+            "x": 0.50,
+            "y": 0.14,
+            "align": "center",
+            "font": "Helvetica",
+            "size": 11,
+            "color": "#868E96"
+        },
+        {
+            "type": "circle",
+            "x": 0.50,
+            "y": 0.09,
+            "r": 0.004,
+            "color": "#228BE6",
+            "opacity": 0.4
+        }
+    ]
+}

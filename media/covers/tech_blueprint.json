@@ -1,0 +1,238 @@
+{
+    "name": "Tech Blueprint",
+    "description": "Diseño tecnológico con estética de planos técnicos, líneas de circuito sutiles y paleta azul tech",
+    "elements": [
+        {
+            "type": "rect",
+            "rect": [
+                0,
+                0,
+                1,
+                1
+            ],
+            "color": "#F8FAFC"
+        },
+        {
+            "type": "line",
+            "x1": 0.10,
+            "y1": 0,
+            "x2": 0.10,
+            "y2": 1,
+            "stroke": "#E2E8F0",
+            "stroke_width": 1
+        },
+        {
+            "type": "line",
+            "x1": 0.90,
+            "y1": 0,
+            "x2": 0.90,
+            "y2": 1,
+            "stroke": "#E2E8F0",
+            "stroke_width": 1
+        },
+        {
+            "type": "line",
+            "x1": 0,
+            "y1": 0.10,
+            "x2": 1,
+            "y2": 0.10,
+            "stroke": "#E2E8F0",
+            "stroke_width": 1
+        },
+        {
+            "type": "line",
+            "x1": 0,
+            "y1": 0.90,
+            "x2": 1,
+            "y2": 0.90,
+            "stroke": "#E2E8F0",
+            "stroke_width": 1
+        },
+        {
+            "type": "path",
+            "points": [
+                [
+                    0.10,
+                    0.75
+                ],
+                [
+                    0.15,
+                    0.75
+                ],
+                [
+                    0.15,
+                    0.80
+                ],
+                [
+                    0.20,
+                    0.80
+                ]
+            ],
+            "stroke": "#3B82F6",
+            "stroke_width": 1,
+            "opacity": 0.3
+        },
+        {
+            "type": "circle",
+            "x": 0.20,
+            "y": 0.80,
+            "r": 0.006,
+            "stroke": "#3B82F6",
+            "stroke_width": 1,
+            "opacity": 0.4
+        },
+        {
+            "type": "path",
+            "points": [
+                [
+                    0.90,
+                    0.25
+                ],
+                [
+                    0.85,
+                    0.25
+                ],
+                [
+                    0.85,
+                    0.20
+                ],
+                [
+                    0.80,
+                    0.20
+                ]
+            ],
+            "stroke": "#3B82F6",
+            "stroke_width": 1,
+            "opacity": 0.3
+        },
+        {
+            "type": "circle",
+            "x": 0.80,
+            "y": 0.20,
+            "r": 0.006,
+            "stroke": "#3B82F6",
+            "stroke_width": 1,
+            "opacity": 0.4
+        },
+        {
+            "type": "rect",
+            "rect": [
+                0.10,
+                0.10,
+                0.80,
+                0.80
+            ],
+            "stroke": "#3B82F6",
+            "stroke_width": 1,
+            "opacity": 0.2
+        },
+        {
+            "type": "image",
+            "path_var": "logo_path",
+            "x": 0.50,
+            "y": 0.82,
+            "w": 0.10
+        },
+        {
+            "type": "text",
+            "text": "{company_name}",
+            "x": 0.50,
+            "y": 0.72,
+            "align": "center",
+            "font": "Courier-Bold",
+            "size": 11,
+            "color": "#3B82F6"
+        },
+        {
+            "type": "rect",
+            "rect": [
+                0.15,
+                0.45,
+                0.70,
+                0.15
+            ],
+            "stroke": "#3B82F6",
+            "stroke_width": 1,
+            "opacity": 0.4
+        },
+        {
+            "type": "circle",
+            "x": 0.15,
+            "y": 0.45,
+            "r": 0.005,
+            "color": "#3B82F6"
+        },
+        {
+            "type": "circle",
+            "x": 0.85,
+            "y": 0.45,
+            "r": 0.005,
+            "color": "#3B82F6"
+        },
+        {
+            "type": "circle",
+            "x": 0.15,
+            "y": 0.60,
+            "r": 0.005,
+            "color": "#3B82F6"
+        },
+        {
+            "type": "circle",
+            "x": 0.85,
+            "y": 0.60,
+            "r": 0.005,
+            "color": "#3B82F6"
+        },
+        {
+            "type": "wrapped_text",
+            "text": "{project_name}",
+            "x": 0.50,
+            "y": 0.55,
+            "width": 0.60,
+            "align": "center",
+            "font": "Helvetica-Bold",
+            "size": 28,
+            "color": "#1E293B"
+        },
+        {
+            "type": "text",
+            "text": "// {subtitle}",
+            "x": 0.50,
+            "y": 0.40,
+            "align": "center",
+            "font": "Courier",
+            "size": 11,
+            "color": "#64748B"
+        },
+        {
+            "type": "text",
+            "text": "CLIENT:",
+            "x": 0.25,
+            "y": 0.30,
+            "align": "left",
+            "font": "Courier",
+            "size": 9,
+            "color": "#94A3B8"
+        },
+        {
+            "type": "text",
+            "text": "{client_name}",
+            "x": 0.50,
+            "y": 0.30,
+            "align": "center",
+            "font": "Helvetica-Bold",
+            "size": 14,
+            "color": "#1E293B"
+        },
+        {
+            "type": "text",
+            "text": "[{date}]",
+            "x": 0.50,
+            "y": 0.16,
+            "align": "center",
+            "font": "Courier",
+            "size": 10,
+            "color": "#94A3B8"
+        }
+    ]
+}

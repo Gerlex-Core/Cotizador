@@ -1,0 +1,170 @@
+{
+    "name": "Warm Pastel Dream",
+    "description": "Minimalista con colores cálidos pasteles, transparencias suaves y atmósfera acogedora y serena",
+    "elements": [
+        {
+            "type": "rect",
+            "rect": [
+                0,
+                0,
+                1,
+                1
+            ],
+            "color": "#FFF8F3"
+        },
+        {
+            "type": "circle",
+            "x": 0.15,
+            "y": 0.88,
+            "r": 0.25,
+            "color": "#FECACA",
+            "opacity": 0.35
+        },
+        {
+            "type": "circle",
+            "x": 0.08,
+            "y": 0.80,
+            "r": 0.15,
+            "color": "#FED7AA",
+            "opacity": 0.30
+        },
+        {
+            "type": "circle",
+            "x": 0.22,
+            "y": 0.75,
+            "r": 0.10,
+            "color": "#FECDD3",
+            "opacity": 0.25
+        },
+        {
+            "type": "circle",
+            "x": 0.85,
+            "y": 0.15,
+            "r": 0.22,
+            "color": "#FDE68A",
+            "opacity": 0.30
+        },
+        {
+            "type": "circle",
+            "x": 0.90,
+            "y": 0.25,
+            "r": 0.12,
+            "color": "#FED7AA",
+            "opacity": 0.25
+        },
+        {
+            "type": "circle",
+            "x": 0.78,
+            "y": 0.10,
+            "r": 0.08,
+            "color": "#FBCFE8",
+            "opacity": 0.28
+        },
+        {
+            "type": "circle",
+            "x": 0.50,
+            "y": 0.50,
+            "r": 0.18,
+            "color": "#FECACA",
+            "opacity": 0.12
+        },
+        {
+            "type": "image",
+            "path_var": "logo_path",
+            "x": 0.50,
+            "y": 0.84,
+            "w": 0.11
+        },
+        {
+            "type": "text",
+            "text": "{company_name}",
+            "x": 0.50,
+            "y": 0.73,
+            "align": "center",
+            "font": "Helvetica",
+            "size": 12,
+            "color": "#92400E"
+        },
+        {
+            "type": "line",
+            "x1": 0.35,
+            "y1": 0.69,
+            "x2": 0.65,
+            "y2": 0.69,
+            "stroke": "#FDBA74",
+            "stroke_width": 1,
+            "opacity": 0.6
+        },
+        {
+            "type": "wrapped_text",
+            "text": "{project_name}",
+            "x": 0.50,
+            "y": 0.58,
+            "width": 0.72,
+            "align": "center",
+            "font": "Helvetica-Bold",
+            "size": 32,
+            "color": "#78350F"
+        },
+        {
+            "type": "text",
+            "text": "{subtitle}",
+            "x": 0.50,
+            "y": 0.46,
+            "align": "center",
+            "font": "Helvetica",
+            "size": 13,
+            "color": "#B45309"
+        },
+        {
+            "type": "circle",
+            "x": 0.50,
+            "y": 0.41,
+            "r": 0.005,
+            "color": "#FDBA74",
+            "opacity": 0.7
+        },
+        {
+            "type": "text",
+            "text": "preparado para",
+            "x": 0.50,
+            "y": 0.35,
+            "align": "center",
+            "font": "Helvetica",
+            "size": 9,
+            "color": "#D97706",
+            "opacity": 0.7
+        },
+        {
+            "type": "text",
+            "text": "{client_name}",
+            "x": 0.50,
+            "y": 0.30,
+            "align": "center",
+            "font": "Helvetica-Bold",
+            "size": 16,
+            "color": "#78350F"
+        },
+        {
+            "type": "line",
+            "x1": 0.40,
+            "y1": 0.26,
+            "x2": 0.60,
+            "y2": 0.26,
+            "stroke": "#FED7AA",
+            "stroke_width": 1,
+            "opacity": 0.7
+        },
+        {
+            "type": "text",
+            "text": "{date}",
+            "x": 0.50,
+            "y": 0.15,
+            "align": "center",
+            "font": "Helvetica",
+            "size": 10,
+            "color": "#B45309",
+            "opacity": 0.7
+        }
+    ]
+}

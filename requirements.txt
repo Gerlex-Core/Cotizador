@@ -1,0 +1,11 @@
+# Cotizador Pro - Requirements
+# Install with: pip install -r requirements.txt
+
+# Core Dependencies
+PyQt6>=6.4.0           # Qt6 GUI framework for Python
+reportlab>=4.0.0 
+bs4      # PDF generation library
+requests
+PyMuPDF              # PDF to image rendering for previews (includes fitz module)
+# Optional - For creating standalone executables
+# pyinstaller>=5.0     # Uncomment to create .exe files

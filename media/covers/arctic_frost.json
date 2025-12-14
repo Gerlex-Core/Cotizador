@@ -1,0 +1,164 @@
+{
+    "name": "Arctic Frost",
+    "description": "Diseño minimalista con blancos puros y grises elegantes, toques azul hielo y atmósfera invernal premium",
+    "elements": [
+        {
+            "type": "rect",
+            "rect": [
+                0,
+                0,
+                1,
+                1
+            ],
+            "color": "#FAFCFF"
+        },
+        {
+            "type": "circle",
+            "x": -0.08,
+            "y": 0.92,
+            "r": 0.32,
+            "color": "#ADB5BD",
+            "opacity": 0.06
+        },
+        {
+            "type": "circle",
+            "x": 0.05,
+            "y": 0.82,
+            "r": 0.16,
+            "color": "#CED4DA",
+            "opacity": 0.05
+        },
+        {
+            "type": "circle",
+            "x": 1.06,
+            "y": 0.10,
+            "r": 0.28,
+            "color": "#74C0FC",
+            "opacity": 0.05
+        },
+        {
+            "type": "circle",
+            "x": 0.90,
+            "y": 0.18,
+            "r": 0.12,
+            "color": "#A5D8FF",
+            "opacity": 0.04
+        },
+        {
+            "type": "rect",
+            "rect": [
+                0.06,
+                0.06,
+                0.88,
+                0.88
+            ],
+            "stroke": "#DEE2E6",
+            "stroke_width": 1
+        },
+        {
+            "type": "image",
+            "path_var": "logo_path",
+            "x": 0.50,
+            "y": 0.85,
+            "w": 0.12
+        },
+        {
+            "type": "text",
+            "text": "{company_name}",
+            "x": 0.50,
+            "y": 0.74,
+            "align": "center",
+            "font": "Helvetica-Bold",
+            "size": 13,
+            "color": "#495057"
+        },
+        {
+            "type": "line",
+            "x1": 0.32,
+            "y1": 0.70,
+            "x2": 0.68,
+            "y2": 0.70,
+            "stroke": "#ADB5BD",
+            "stroke_width": 1,
+            "opacity": 0.5
+        },
+        {
+            "type": "wrapped_text",
+            "text": "{project_name}",
+            "x": 0.50,
+            "y": 0.58,
+            "width": 0.75,
+            "align": "center",
+            "font": "Helvetica-Bold",
+            "size": 34,
+            "color": "#212529"
+        },
+        {
+            "type": "text",
+            "text": "{subtitle}",
+            "x": 0.50,
+            "y": 0.46,
+            "align": "center",
+            "font": "Helvetica",
+            "size": 14,
+            "color": "#74C0FC"
+        },
+        {
+            "type": "line",
+            "x1": 0.44,
+            "y1": 0.42,
+            "x2": 0.56,
+            "y2": 0.42,
+            "stroke": "#74C0FC",
+            "stroke_width": 1,
+            "opacity": 0.6
+        },
+        {
+            "type": "text",
+            "text": "Preparado para",
+            "x": 0.50,
+            "y": 0.35,
+            "align": "center",
+            "font": "Helvetica",
+            "size": 10,
+            "color": "#868E96"
+        },
+        {
+            "type": "text",
+            "text": "{client_name}",
+            "x": 0.50,
+            "y": 0.30,
+            "align": "center",
+            "font": "Helvetica-Bold",
+            "size": 18,
+            "color": "#212529"
+        },
+        {
+            "type": "line",
+            "x1": 0.38,
+            "y1": 0.26,
+            "x2": 0.62,
+            "y2": 0.26,
+            "stroke": "#CED4DA",
+            "stroke_width": 1
+        },
+        {
+            "type": "text",
+            "text": "{date}",
+            "x": 0.50,
+            "y": 0.14,
+            "align": "center",
+            "font": "Helvetica",
+            "size": 11,
+            "color": "#868E96"
+        },
+        {
+            "type": "circle",
+            "x": 0.50,
+            "y": 0.09,
+            "r": 0.004,
+            "color": "#74C0FC",
+            "opacity": 0.5
+        }
+    ]
+}

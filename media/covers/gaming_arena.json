@@ -1,0 +1,262 @@
+{
+    "name": "Gaming Arena",
+    "description": "Diseño gaming con gradientes oscuros, acentos vibrantes sutiles y estética de interfaz de juego",
+    "elements": [
+        {
+            "type": "rect",
+            "rect": [
+                0,
+                0,
+                1,
+                1
+            ],
+            "color": "#13111C"
+        },
+        {
+            "type": "rect",
+            "rect": [
+                0,
+                0.60,
+                1,
+                0.40
+            ],
+            "color": "#1A1726",
+            "opacity": 0.8
+        },
+        {
+            "type": "rect",
+            "rect": [
+                0.08,
+                0.08,
+                0.84,
+                0.84
+            ],
+            "stroke": "#6366F1",
+            "stroke_width": 1,
+            "opacity": 0.3
+        },
+        {
+            "type": "path",
+            "points": [
+                [
+                    0.08,
+                    0.08
+                ],
+                [
+                    0.15,
+                    0.08
+                ],
+                [
+                    0.15,
+                    0.10
+                ],
+                [
+                    0.10,
+                    0.10
+                ],
+                [
+                    0.10,
+                    0.15
+                ],
+                [
+                    0.08,
+                    0.15
+                ]
+            ],
+            "stroke": "#8B5CF6",
+            "stroke_width": 2
+        },
+        {
+            "type": "path",
+            "points": [
+                [
+                    0.92,
+                    0.08
+                ],
+                [
+                    0.85,
+                    0.08
+                ],
+                [
+                    0.85,
+                    0.10
+                ],
+                [
+                    0.90,
+                    0.10
+                ],
+                [
+                    0.90,
+                    0.15
+                ],
+                [
+                    0.92,
+                    0.15
+                ]
+            ],
+            "stroke": "#8B5CF6",
+            "stroke_width": 2
+        },
+        {
+            "type": "path",
+            "points": [
+                [
+                    0.08,
+                    0.92
+                ],
+                [
+                    0.15,
+                    0.92
+                ],
+                [
+                    0.15,
+                    0.90
+                ],
+                [
+                    0.10,
+                    0.90
+                ],
+                [
+                    0.10,
+                    0.85
+                ],
+                [
+                    0.08,
+                    0.85
+                ]
+            ],
+            "stroke": "#8B5CF6",
+            "stroke_width": 2
+        },
+        {
+            "type": "path",
+            "points": [
+                [
+                    0.92,
+                    0.92
+                ],
+                [
+                    0.85,
+                    0.92
+                ],
+                [
+                    0.85,
+                    0.90
+                ],
+                [
+                    0.90,
+                    0.90
+                ],
+                [
+                    0.90,
+                    0.85
+                ],
+                [
+                    0.92,
+                    0.85
+                ]
+            ],
+            "stroke": "#8B5CF6",
+            "stroke_width": 2
+        },
+        {
+            "type": "image",
+            "path_var": "logo_path",
+            "x": 0.50,
+            "y": 0.82,
+            "w": 0.10
+        },
+        {
+            "type": "text",
+            "text": "{company_name}",
+            "x": 0.50,
+            "y": 0.72,
+            "align": "center",
+            "font": "Helvetica-Bold",
+            "size": 11,
+            "color": "#A78BFA"
+        },
+        {
+            "type": "rect",
+            "rect": [
+                0.15,
+                0.45,
+                0.70,
+                0.15
+            ],
+            "color": "#1E1B2E",
+            "opacity": 0.9
+        },
+        {
+            "type": "rect",
+            "rect": [
+                0.15,
+                0.45,
+                0.70,
+                0.003
+            ],
+            "color": "#8B5CF6"
+        },
+        {
+            "type": "rect",
+            "rect": [
+                0.15,
+                0.597,
+                0.70,
+                0.003
+            ],
+            "color": "#6366F1"
+        },
+        {
+            "type": "wrapped_text",
+            "text": "{project_name}",
+            "x": 0.50,
+            "y": 0.55,
+            "width": 0.60,
+            "align": "center",
+            "font": "Helvetica-Bold",
+            "size": 28,
+            "color": "#FFFFFF"
+        },
+        {
+            "type": "text",
+            "text": "► {subtitle}",
+            "x": 0.50,
+            "y": 0.40,
+            "align": "center",
+            "font": "Helvetica",
+            "size": 11,
+            "color": "#A78BFA"
+        },
+        {
+            "type": "text",
+            "text": "PLAYER:",
+            "x": 0.30,
+            "y": 0.30,
+            "align": "right",
+            "font": "Helvetica",
+            "size": 9,
+            "color": "#6366F1"
+        },
+        {
+            "type": "text",
+            "text": "{client_name}",
+            "x": 0.50,
+            "y": 0.30,
+            "align": "center",
+            "font": "Helvetica-Bold",
+            "size": 14,
+            "color": "#E0E7FF"
+        },
+        {
+            "type": "text",
+            "text": "{date}",
+            "x": 0.50,
+            "y": 0.16,
+            "align": "center",
+            "font": "Helvetica",
+            "size": 10,
+            "color": "#6B7280"
+        }
+    ]
+}

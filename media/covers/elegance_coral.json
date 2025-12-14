@@ -1,0 +1,173 @@
+{
+    "name": "Elegance Coral",
+    "description": "Diseño minimalista elegante con tonos coral y rosa, círculos suaves y tipografía refinada",
+    "elements": [
+        {
+            "type": "rect",
+            "rect": [
+                0,
+                0,
+                1,
+                1
+            ],
+            "color": "#FFF5F5"
+        },
+        {
+            "type": "circle",
+            "x": -0.08,
+            "y": 0.95,
+            "r": 0.35,
+            "color": "#FF6B6B",
+            "opacity": 0.08
+        },
+        {
+            "type": "circle",
+            "x": 0.05,
+            "y": 0.85,
+            "r": 0.20,
+            "color": "#FF8787",
+            "opacity": 0.06
+        },
+        {
+            "type": "circle",
+            "x": 1.08,
+            "y": 0.10,
+            "r": 0.30,
+            "color": "#FF6B6B",
+            "opacity": 0.07
+        },
+        {
+            "type": "circle",
+            "x": 0.95,
+            "y": 0.18,
+            "r": 0.15,
+            "color": "#FFA8A8",
+            "opacity": 0.05
+        },
+        {
+            "type": "rect",
+            "rect": [
+                0.08,
+                0.92,
+                0.84,
+                0.003
+            ],
+            "color": "#FF6B6B",
+            "opacity": 0.4
+        },
+        {
+            "type": "rect",
+            "rect": [
+                0.08,
+                0.08,
+                0.84,
+                0.002
+            ],
+            "color": "#FF6B6B",
+            "opacity": 0.3
+        },
+        {
+            "type": "image",
+            "path_var": "logo_path",
+            "x": 0.50,
+            "y": 0.85,
+            "w": 0.12
+        },
+        {
+            "type": "text",
+            "text": "{company_name}",
+            "x": 0.50,
+            "y": 0.74,
+            "align": "center",
+            "font": "Helvetica-Bold",
+            "size": 13,
+            "color": "#C92A2A"
+        },
+        {
+            "type": "line",
+            "x1": 0.35,
+            "y1": 0.70,
+            "x2": 0.65,
+            "y2": 0.70,
+            "stroke": "#FF6B6B",
+            "stroke_width": 1,
+            "opacity": 0.4
+        },
+        {
+            "type": "wrapped_text",
+            "text": "{project_name}",
+            "x": 0.50,
+            "y": 0.58,
+            "width": 0.75,
+            "align": "center",
+            "font": "Helvetica-Bold",
+            "size": 34,
+            "color": "#862E2E"
+        },
+        {
+            "type": "text",
+            "text": "{subtitle}",
+            "x": 0.50,
+            "y": 0.46,
+            "align": "center",
+            "font": "Helvetica",
+            "size": 14,
+            "color": "#FF6B6B"
+        },
+        {
+            "type": "circle",
+            "x": 0.50,
+            "y": 0.42,
+            "r": 0.005,
+            "color": "#FF6B6B"
+        },
+        {
+            "type": "text",
+            "text": "Preparado para",
+            "x": 0.50,
+            "y": 0.35,
+            "align": "center",
+            "font": "Helvetica",
+            "size": 10,
+            "color": "#A0A0A0"
+        },
+        {
+            "type": "text",
+            "text": "{client_name}",
+            "x": 0.50,
+            "y": 0.30,
+            "align": "center",
+            "font": "Helvetica-Bold",
+            "size": 18,
+            "color": "#862E2E"
+        },
+        {
+            "type": "line",
+            "x1": 0.38,
+            "y1": 0.26,
+            "x2": 0.62,
+            "y2": 0.26,
+            "stroke": "#FFA8A8",
+            "stroke_width": 1,
+            "opacity": 0.5
+        },
+        {
+            "type": "text",
+            "text": "{date}",
+            "x": 0.50,
+            "y": 0.15,
+            "align": "center",
+            "font": "Helvetica",
+            "size": 11,
+            "color": "#909090"
+        },
+        {
+            "type": "circle",
+            "x": 0.50,
+            "y": 0.10,
+            "r": 0.004,
+            "color": "#FF6B6B",
+            "opacity": 0.5
+        }
+    ]
+}

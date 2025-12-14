@@ -1,0 +1,375 @@
+{
+    "name": "Code JSON",
+    "description": "Estética de código JSON con sintaxis, llaves, colores de editor y tipografía monospace",
+    "elements": [
+        {
+            "type": "rect",
+            "rect": [
+                0,
+                0,
+                1,
+                1
+            ],
+            "color": "#1E1E1E"
+        },
+        {
+            "type": "rect",
+            "rect": [
+                0,
+                0.94,
+                1,
+                0.06
+            ],
+            "color": "#252526"
+        },
+        {
+            "type": "rect",
+            "rect": [
+                0,
+                0,
+                1,
+                0.04
+            ],
+            "color": "#323233"
+        },
+        {
+            "type": "circle",
+            "x": 0.03,
+            "y": 0.02,
+            "r": 0.008,
+            "color": "#FF5F56"
+        },
+        {
+            "type": "circle",
+            "x": 0.06,
+            "y": 0.02,
+            "r": 0.008,
+            "color": "#FFBD2E"
+        },
+        {
+            "type": "circle",
+            "x": 0.09,
+            "y": 0.02,
+            "r": 0.008,
+            "color": "#27CA40"
+        },
+        {
+            "type": "text",
+            "text": "cotizacion.json",
+            "x": 0.50,
+            "y": 0.018,
+            "align": "center",
+            "font": "Courier",
+            "size": 9,
+            "color": "#CCCCCC"
+        },
+        {
+            "type": "rect",
+            "rect": [
+                0,
+                0.04,
+                0.05,
+                0.90
+            ],
+            "color": "#252526"
+        },
+        {
+            "type": "text",
+            "text": "1",
+            "x": 0.025,
+            "y": 0.88,
+            "align": "center",
+            "font": "Courier",
+            "size": 8,
+            "color": "#858585"
+        },
+        {
+            "type": "text",
+            "text": "2",
+            "x": 0.025,
+            "y": 0.82,
+            "align": "center",
+            "font": "Courier",
+            "size": 8,
+            "color": "#858585"
+        },
+        {
+            "type": "text",
+            "text": "3",
+            "x": 0.025,
+            "y": 0.76,
+            "align": "center",
+            "font": "Courier",
+            "size": 8,
+            "color": "#858585"
+        },
+        {
+            "type": "text",
+            "text": "4",
+            "x": 0.025,
+            "y": 0.70,
+            "align": "center",
+            "font": "Courier",
+            "size": 8,
+            "color": "#858585"
+        },
+        {
+            "type": "text",
+            "text": "5",
+            "x": 0.025,
+            "y": 0.64,
+            "align": "center",
+            "font": "Courier",
+            "size": 8,
+            "color": "#858585"
+        },
+        {
+            "type": "text",
+            "text": "6",
+            "x": 0.025,
+            "y": 0.50,
+            "align": "center",
+            "font": "Courier",
+            "size": 8,
+            "color": "#858585"
+        },
+        {
+            "type": "text",
+            "text": "7",
+            "x": 0.025,
+            "y": 0.36,
+            "align": "center",
+            "font": "Courier",
+            "size": 8,
+            "color": "#858585"
+        },
+        {
+            "type": "text",
+            "text": "8",
+            "x": 0.025,
+            "y": 0.30,
+            "align": "center",
+            "font": "Courier",
+            "size": 8,
+            "color": "#858585"
+        },
+        {
+            "type": "text",
+            "text": "9",
+            "x": 0.025,
+            "y": 0.24,
+            "align": "center",
+            "font": "Courier",
+            "size": 8,
+            "color": "#858585"
+        },
+        {
+            "type": "text",
+            "text": "10",
+            "x": 0.025,
+            "y": 0.18,
+            "align": "center",
+            "font": "Courier",
+            "size": 8,
+            "color": "#858585"
+        },
+        {
+            "type": "text",
+            "text": "11",
+            "x": 0.025,
+            "y": 0.12,
+            "align": "center",
+            "font": "Courier",
+            "size": 8,
+            "color": "#858585"
+        },
+        {
+            "type": "text",
+            "text": "{",
+            "x": 0.08,
+            "y": 0.88,
+            "align": "left",
+            "font": "Courier-Bold",
+            "size": 12,
+            "color": "#FFD700"
+        },
+        {
+            "type": "text",
+            "text": "\"empresa\":",
+            "x": 0.10,
+            "y": 0.82,
+            "align": "left",
+            "font": "Courier",
+            "size": 10,
+            "color": "#9CDCFE"
+        },
+        {
+            "type": "text",
+            "text": "\"{company_name}\",",
+            "x": 0.28,
+            "y": 0.82,
+            "align": "left",
+            "font": "Courier",
+            "size": 10,
+            "color": "#CE9178"
+        },
+        {
+            "type": "text",
+            "text": "\"proyecto\":",
+            "x": 0.10,
+            "y": 0.76,
+            "align": "left",
+            "font": "Courier",
+            "size": 10,
+            "color": "#9CDCFE"
+        },
+        {
+            "type": "text",
+            "text": "{",
+            "x": 0.28,
+            "y": 0.76,
+            "align": "left",
+            "font": "Courier-Bold",
+            "size": 10,
+            "color": "#FFD700"
+        },
+        {
+            "type": "text",
+            "text": "\"nombre\":",
+            "x": 0.12,
+            "y": 0.70,
+            "align": "left",
+            "font": "Courier",
+            "size": 10,
+            "color": "#9CDCFE"
+        },
+        {
+            "type": "text",
+            "text": "\"titulo\":",
+            "x": 0.12,
+            "y": 0.64,
+            "align": "left",
+            "font": "Courier",
+            "size": 10,
+            "color": "#9CDCFE"
+        },
+        {
+            "type": "image",
+            "path_var": "logo_path",
+            "x": 0.85,
+            "y": 0.75,
+            "w": 0.08
+        },
+        {
+            "type": "wrapped_text",
+            "text": "{project_name}",
+            "x": 0.50,
+            "y": 0.52,
+            "width": 0.70,
+            "align": "center",
+            "font": "Courier-Bold",
+            "size": 28,
+            "color": "#4EC9B0"
+        },
+        {
+            "type": "text",
+            "text": "// {subtitle}",
+            "x": 0.50,
+            "y": 0.42,
+            "align": "center",
+            "font": "Courier",
+            "size": 12,
+            "color": "#6A9955"
+        },
+        {
+            "type": "text",
+            "text": "},",
+            "x": 0.28,
+            "y": 0.36,
+            "align": "left",
+            "font": "Courier-Bold",
+            "size": 10,
+            "color": "#FFD700"
+        },
+        {
+            "type": "text",
+            "text": "\"cliente\":",
+            "x": 0.10,
+            "y": 0.30,
+            "align": "left",
+            "font": "Courier",
+            "size": 10,
+            "color": "#9CDCFE"
+        },
+        {
+            "type": "text",
+            "text": "\"{client_name}\",",
+            "x": 0.28,
+            "y": 0.30,
+            "align": "left",
+            "font": "Courier",
+            "size": 10,
+            "color": "#CE9178"
+        },
+        {
+            "type": "text",
+            "text": "\"fecha\":",
+            "x": 0.10,
+            "y": 0.24,
+            "align": "left",
+            "font": "Courier",
+            "size": 10,
+            "color": "#9CDCFE"
+        },
+        {
+            "type": "text",
+            "text": "\"{date}\",",
+            "x": 0.28,
+            "y": 0.24,
+            "align": "left",
+            "font": "Courier",
+            "size": 10,
+            "color": "#CE9178"
+        },
+        {
+            "type": "text",
+            "text": "\"status\":",
+            "x": 0.10,
+            "y": 0.18,
+            "align": "left",
+            "font": "Courier",
+            "size": 10,
+            "color": "#9CDCFE"
+        },
+        {
+            "type": "text",
+            "text": "true",
+            "x": 0.28,
+            "y": 0.18,
+            "align": "left",
+            "font": "Courier-Bold",
+            "size": 10,
+            "color": "#569CD6"
+        },
+        {
+            "type": "text",
+            "text": "}",
+            "x": 0.08,
+            "y": 0.12,
+            "align": "left",
+            "font": "Courier-Bold",
+            "size": 12,
+            "color": "#FFD700"
+        },
+        {
+            "type": "text",
+            "text": "Ln 6, Col 1  |  UTF-8  |  JSON",
+            "x": 0.50,
+            "y": 0.96,
+            "align": "center",
+            "font": "Courier",
+            "size": 8,
+            "color": "#858585"
+        }
+    ]
+}

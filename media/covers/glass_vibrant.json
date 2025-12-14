@@ -1,0 +1,233 @@
+{
+    "name": "Glass Vibrant",
+    "description": "Glassmorphism con colores vibrantes calmados, múltiples capas de transparencia y estética moderna premium",
+    "elements": [
+        {
+            "type": "rect",
+            "rect": [
+                0,
+                0,
+                1,
+                1
+            ],
+            "color": "#F0F4F8"
+        },
+        {
+            "type": "circle",
+            "x": 0.10,
+            "y": 0.90,
+            "r": 0.30,
+            "color": "#818CF8",
+            "opacity": 0.25
+        },
+        {
+            "type": "circle",
+            "x": 0.05,
+            "y": 0.75,
+            "r": 0.18,
+            "color": "#A78BFA",
+            "opacity": 0.20
+        },
+        {
+            "type": "circle",
+            "x": 0.90,
+            "y": 0.85,
+            "r": 0.25,
+            "color": "#34D399",
+            "opacity": 0.22
+        },
+        {
+            "type": "circle",
+            "x": 0.95,
+            "y": 0.70,
+            "r": 0.15,
+            "color": "#6EE7B7",
+            "opacity": 0.18
+        },
+        {
+            "type": "circle",
+            "x": 0.85,
+            "y": 0.15,
+            "r": 0.22,
+            "color": "#F472B6",
+            "opacity": 0.20
+        },
+        {
+            "type": "circle",
+            "x": 0.75,
+            "y": 0.08,
+            "r": 0.12,
+            "color": "#FBCFE8",
+            "opacity": 0.18
+        },
+        {
+            "type": "circle",
+            "x": 0.12,
+            "y": 0.12,
+            "r": 0.18,
+            "color": "#38BDF8",
+            "opacity": 0.18
+        },
+        {
+            "type": "circle",
+            "x": 0.20,
+            "y": 0.20,
+            "r": 0.10,
+            "color": "#7DD3FC",
+            "opacity": 0.15
+        },
+        {
+            "type": "circle",
+            "x": 0.50,
+            "y": 0.50,
+            "r": 0.15,
+            "color": "#C4B5FD",
+            "opacity": 0.12
+        },
+        {
+            "type": "rect",
+            "rect": [
+                0.10,
+                0.38,
+                0.80,
+                0.30
+            ],
+            "color": "#FFFFFF",
+            "opacity": 0.65
+        },
+        {
+            "type": "rect",
+            "rect": [
+                0.10,
+                0.38,
+                0.80,
+                0.30
+            ],
+            "stroke": "#E2E8F0",
+            "stroke_width": 1
+        },
+        {
+            "type": "image",
+            "path_var": "logo_path",
+            "x": 0.50,
+            "y": 0.84,
+            "w": 0.10
+        },
+        {
+            "type": "circle",
+            "x": 0.50,
+            "y": 0.84,
+            "r": 0.065,
+            "stroke": "#818CF8",
+            "stroke_width": 1,
+            "opacity": 0.4
+        },
+        {
+            "type": "text",
+            "text": "{company_name}",
+            "x": 0.50,
+            "y": 0.73,
+            "align": "center",
+            "font": "Helvetica-Bold",
+            "size": 12,
+            "color": "#6366F1"
+        },
+        {
+            "type": "wrapped_text",
+            "text": "{project_name}",
+            "x": 0.50,
+            "y": 0.56,
+            "width": 0.68,
+            "align": "center",
+            "font": "Helvetica-Bold",
+            "size": 30,
+            "color": "#1E293B"
+        },
+        {
+            "type": "line",
+            "x1": 0.30,
+            "y1": 0.48,
+            "x2": 0.70,
+            "y2": 0.48,
+            "stroke": "#818CF8",
+            "stroke_width": 1,
+            "opacity": 0.5
+        },
+        {
+            "type": "text",
+            "text": "{subtitle}",
+            "x": 0.50,
+            "y": 0.44,
+            "align": "center",
+            "font": "Helvetica",
+            "size": 12,
+            "color": "#64748B"
+        },
+        {
+            "type": "rect",
+            "rect": [
+                0.25,
+                0.22,
+                0.50,
+                0.10
+            ],
+            "color": "#FFFFFF",
+            "opacity": 0.70
+        },
+        {
+            "type": "rect",
+            "rect": [
+                0.25,
+                0.22,
+                0.50,
+                0.10
+            ],
+            "stroke": "#E2E8F0",
+            "stroke_width": 1
+        },
+        {
+            "type": "text",
+            "text": "{client_name}",
+            "x": 0.50,
+            "y": 0.26,
+            "align": "center",
+            "font": "Helvetica-Bold",
+            "size": 14,
+            "color": "#334155"
+        },
+        {
+            "type": "text",
+            "text": "{date}",
+            "x": 0.50,
+            "y": 0.12,
+            "align": "center",
+            "font": "Helvetica",
+            "size": 10,
+            "color": "#94A3B8"
+        },
+        {
+            "type": "circle",
+            "x": 0.45,
+            "y": 0.07,
+            "r": 0.006,
+            "color": "#818CF8",
+            "opacity": 0.6
+        },
+        {
+            "type": "circle",
+            "x": 0.50,
+            "y": 0.07,
+            "r": 0.006,
+            "color": "#34D399",
+            "opacity": 0.6
+        },
+        {
+            "type": "circle",
+            "x": 0.55,
+            "y": 0.07,
+            "r": 0.006,
+            "color": "#F472B6",
+            "opacity": 0.6
+        }
+    ]
+}

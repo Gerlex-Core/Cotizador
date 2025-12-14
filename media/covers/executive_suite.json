@@ -1,0 +1,159 @@
+{
+    "name": "Executive Suite",
+    "description": "Diseño ejecutivo corporativo con líneas verticales elegantes, paleta sobria y jerarquía visual clara",
+    "elements": [
+        {
+            "type": "rect",
+            "rect": [
+                0,
+                0,
+                1,
+                1
+            ],
+            "color": "#FFFFFF"
+        },
+        {
+            "type": "rect",
+            "rect": [
+                0,
+                0,
+                0.35,
+                1
+            ],
+            "color": "#1A1A2E"
+        },
+        {
+            "type": "line",
+            "x1": 0.35,
+            "y1": 0,
+            "x2": 0.35,
+            "y2": 1,
+            "stroke": "#C9A227",
+            "stroke_width": 3
+        },
+        {
+            "type": "rect",
+            "rect": [
+                0.04,
+                0.88,
+                0.27,
+                0.003
+            ],
+            "color": "#C9A227",
+            "opacity": 0.6
+        },
+        {
+            "type": "rect",
+            "rect": [
+                0.04,
+                0.12,
+                0.27,
+                0.002
+            ],
+            "color": "#C9A227",
+            "opacity": 0.4
+        },
+        {
+            "type": "image",
+            "path_var": "logo_path",
+            "x": 0.175,
+            "y": 0.82,
+            "w": 0.14
+        },
+        {
+            "type": "text",
+            "text": "{company_name}",
+            "x": 0.175,
+            "y": 0.68,
+            "align": "center",
+            "font": "Helvetica-Bold",
+            "size": 11,
+            "color": "#FFFFFF"
+        },
+        {
+            "type": "text",
+            "text": "{date}",
+            "x": 0.175,
+            "y": 0.18,
+            "align": "center",
+            "font": "Helvetica",
+            "size": 10,
+            "color": "#888888"
+        },
+        {
+            "type": "wrapped_text",
+            "text": "{project_name}",
+            "x": 0.66,
+            "y": 0.58,
+            "width": 0.50,
+            "align": "center",
+            "font": "Helvetica-Bold",
+            "size": 32,
+            "color": "#1A1A2E"
+        },
+        {
+            "type": "line",
+            "x1": 0.45,
+            "y1": 0.50,
+            "x2": 0.87,
+            "y2": 0.50,
+            "stroke": "#C9A227",
+            "stroke_width": 1
+        },
+        {
+            "type": "text",
+            "text": "{subtitle}",
+            "x": 0.66,
+            "y": 0.45,
+            "align": "center",
+            "font": "Helvetica",
+            "size": 13,
+            "color": "#555555"
+        },
+        {
+            "type": "rect",
+            "rect": [
+                0.45,
+                0.28,
+                0.42,
+                0.08
+            ],
+            "stroke": "#E8E8E8",
+            "stroke_width": 1
+        },
+        {
+            "type": "text",
+            "text": "CLIENTE",
+            "x": 0.66,
+            "y": 0.34,
+            "align": "center",
+            "font": "Helvetica",
+            "size": 8,
+            "color": "#999999"
+        },
+        {
+            "type": "text",
+            "text": "{client_name}",
+            "x": 0.66,
+            "y": 0.30,
+            "align": "center",
+            "font": "Helvetica-Bold",
+            "size": 14,
+            "color": "#1A1A2E"
+        },
+        {
+            "type": "circle",
+            "x": 0.45,
+            "y": 0.32,
+            "r": 0.004,
+            "color": "#C9A227"
+        },
+        {
+            "type": "circle",
+            "x": 0.87,
+            "y": 0.32,
+            "r": 0.004,
+            "color": "#C9A227"
+        }
+    ]
+}

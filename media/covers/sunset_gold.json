@@ -1,0 +1,185 @@
+{
+    "name": "Sunset Gold",
+    "description": "Diseño minimalista con dorados cálidos del atardecer, elegancia premium y calidez visual",
+    "elements": [
+        {
+            "type": "rect",
+            "rect": [
+                0,
+                0,
+                1,
+                1
+            ],
+            "color": "#FFFBF5"
+        },
+        {
+            "type": "circle",
+            "x": -0.05,
+            "y": 0.88,
+            "r": 0.35,
+            "color": "#F59F00",
+            "opacity": 0.06
+        },
+        {
+            "type": "circle",
+            "x": 0.10,
+            "y": 0.78,
+            "r": 0.18,
+            "color": "#FCC419",
+            "opacity": 0.05
+        },
+        {
+            "type": "circle",
+            "x": 1.05,
+            "y": 0.15,
+            "r": 0.30,
+            "color": "#F59F00",
+            "opacity": 0.05
+        },
+        {
+            "type": "circle",
+            "x": 0.88,
+            "y": 0.22,
+            "r": 0.14,
+            "color": "#FFE066",
+            "opacity": 0.04
+        },
+        {
+            "type": "line",
+            "x1": 0.10,
+            "y1": 0.92,
+            "x2": 0.90,
+            "y2": 0.92,
+            "stroke": "#F59F00",
+            "stroke_width": 1,
+            "opacity": 0.3
+        },
+        {
+            "type": "line",
+            "x1": 0.15,
+            "y1": 0.08,
+            "x2": 0.85,
+            "y2": 0.08,
+            "stroke": "#F59F00",
+            "stroke_width": 1,
+            "opacity": 0.25
+        },
+        {
+            "type": "image",
+            "path_var": "logo_path",
+            "x": 0.50,
+            "y": 0.85,
+            "w": 0.12
+        },
+        {
+            "type": "text",
+            "text": "{company_name}",
+            "x": 0.50,
+            "y": 0.74,
+            "align": "center",
+            "font": "Helvetica-Bold",
+            "size": 13,
+            "color": "#B86E00"
+        },
+        {
+            "type": "line",
+            "x1": 0.33,
+            "y1": 0.70,
+            "x2": 0.67,
+            "y2": 0.70,
+            "stroke": "#F59F00",
+            "stroke_width": 1,
+            "opacity": 0.4
+        },
+        {
+            "type": "circle",
+            "x": 0.33,
+            "y": 0.70,
+            "r": 0.004,
+            "color": "#FCC419"
+        },
+        {
+            "type": "circle",
+            "x": 0.67,
+            "y": 0.70,
+            "r": 0.004,
+            "color": "#FCC419"
+        },
+        {
+            "type": "wrapped_text",
+            "text": "{project_name}",
+            "x": 0.50,
+            "y": 0.58,
+            "width": 0.75,
+            "align": "center",
+            "font": "Helvetica-Bold",
+            "size": 34,
+            "color": "#5C4813"
+        },
+        {
+            "type": "text",
+            "text": "{subtitle}",
+            "x": 0.50,
+            "y": 0.46,
+            "align": "center",
+            "font": "Helvetica",
+            "size": 14,
+            "color": "#E67700"
+        },
+        {
+            "type": "circle",
+            "x": 0.50,
+            "y": 0.42,
+            "r": 0.006,
+            "color": "#F59F00"
+        },
+        {
+            "type": "text",
+            "text": "Preparado para",
+            "x": 0.50,
+            "y": 0.35,
+            "align": "center",
+            "font": "Helvetica",
+            "size": 10,
+            "color": "#909090"
+        },
+        {
+            "type": "text",
+            "text": "{client_name}",
+            "x": 0.50,
+            "y": 0.30,
+            "align": "center",
+            "font": "Helvetica-Bold",
+            "size": 18,
+            "color": "#5C4813"
+        },
+        {
+            "type": "line",
+            "x1": 0.36,
+            "y1": 0.26,
+            "x2": 0.64,
+            "y2": 0.26,
+            "stroke": "#FFE066",
+            "stroke_width": 1,
+            "opacity": 0.5
+        },
+        {
+            "type": "text",
+            "text": "{date}",
+            "x": 0.50,
+            "y": 0.14,
+            "align": "center",
+            "font": "Helvetica",
+            "size": 11,
+            "color": "#909090"
+        },
+        {
+            "type": "circle",
+            "x": 0.50,
+            "y": 0.09,
+            "r": 0.005,
+            "color": "#F59F00",
+            "opacity": 0.4
+        }
+    ]
+}
