@@ -619,11 +619,20 @@ class PDFGenerator:
         logo_height = 0
         import zipfile
         import io
+        import sys
         
-        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        # Get correct base directory (works for both dev and frozen .exe)
+        if getattr(sys, 'frozen', False):
+            # Running as compiled .exe
+            base_dir = os.path.dirname(sys.executable)
+        else:
+            # Running as script
+            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        
         emp_file = os.path.join(base_dir, "media", "companies", f"{empresa}.emp")
         
         print(f"[LOGO] Buscando empresa: {empresa}")
+        print(f"[LOGO] Base dir: {base_dir}")
         print(f"[LOGO] Archivo .emp: {emp_file}")
         
         if os.path.exists(emp_file):

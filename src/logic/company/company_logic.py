@@ -12,13 +12,25 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional
 
 
-# Paths
+# Paths - Use correct base directory for both dev and frozen .exe
+import sys
 
-CONFIG_DIR = os.path.join("media", "config")
-COMPANIES_DIR = os.path.join("media", "companies")  # New directory for .emp files
-MEDIA_DIR = os.path.join("media")
+def _get_base_dir():
+    """Get base directory that works for both dev and frozen .exe."""
+    if getattr(sys, 'frozen', False):
+        # Running as compiled .exe
+        return os.path.dirname(sys.executable)
+    else:
+        # Running as script - go up from src/logic/company to project root
+        return os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
+_BASE_DIR = _get_base_dir()
+
+CONFIG_DIR = os.path.join(_BASE_DIR, "media", "config")
+COMPANIES_DIR = os.path.join(_BASE_DIR, "media", "companies")
+MEDIA_DIR = os.path.join(_BASE_DIR, "media")
 LOGOS_DIR = os.path.join(MEDIA_DIR, "logos")
-LEGACY_COMPANIES_FILE = os.path.join("media", "companies.conf")
+LEGACY_COMPANIES_FILE = os.path.join(_BASE_DIR, "media", "companies.conf")
 
 
 @dataclass
