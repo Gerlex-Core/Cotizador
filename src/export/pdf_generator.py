@@ -111,6 +111,15 @@ class ReportLabHTMLParser(HTMLParser):
                 elif 'courier' in face or 'mono' in face: pdf_font = 'Courier'
                 tags_to_open.append(('font', f'<font face="{pdf_font}">'))
 
+            # Background Color (Highlight) - ReportLab supports backColor in font tag
+            bg_match = re.search(r'background-color\s*:\s*([^;\"]+)', styles)
+            if bg_match:
+                bg_val = bg_match.group(1).strip()
+                # Skip transparent or white backgrounds
+                if bg_val.lower() not in ('transparent', '#ffffff', 'white', 'rgb(255, 255, 255)', 'initial', 'inherit'):
+                    # ReportLab Paragraph supports backColor attribute
+                    tags_to_open.append(('font', f'<font backColor="{bg_val}">'))
+
             for _, full_tag in tags_to_open:
                 self.output.append(full_tag)
             self.tag_stack.append(tags_to_open)
@@ -185,6 +194,9 @@ class ReportLabHTMLParser(HTMLParser):
     def handle_data(self, data):
         if self._ignore_content:
             return
+        # Convert tabs to spaces (4 non-breaking spaces per tab)
+        data = data.replace('\t', '&nbsp;&nbsp;&nbsp;&nbsp;')
+        
         # Only add non-empty content
         if data.strip():
             self.output.append(data)
@@ -206,12 +218,6 @@ class ReportLabHTMLParser(HTMLParser):
             tags_to_close = self.tag_stack.pop()
             for tag_name, _ in reversed(tags_to_close):
                 self.output.append(f'</{tag_name}>')
-        
-        # Also, if we have unclosed standard tags (simple tracking), we can't easily know 
-        # because we don't track them in stack. 
-        # But ReportLab requires valid XML. 
-        # We assume input HTML was reasonably balanced for standard tags.
-        # Adding a root wrapper might help? No.
         
         return "".join(self.output).strip()
 
@@ -249,7 +255,69 @@ class PDFGenerator:
         self.logo_path = None
         self._page_number = 1
         self.title_styles = self._load_title_styles()
-        self._total_pages = 1 # Moved this line to a syntactically correct position within __init__
+        self._total_pages = 1
+        
+        # Load PDF config settings
+        try:
+            from ..logic.config.config_manager import get_config
+            self._config = get_config()
+        except:
+            self._config = None
+    
+    def _draw_watermark(self, c: canvas.Canvas, width: float, height: float):
+        """Draw watermark on the current page if enabled in config."""
+        if not self._config or not self._config.watermark_enabled:
+            return
+        
+        c.saveState()
+        
+        # Get watermark settings
+        text = self._config.watermark_text
+        opacity = self._config.watermark_opacity / 100.0  # Convert to 0-1 range
+        image_path = self._config.watermark_image_path
+        
+        # Draw image watermark if available
+        if image_path and os.path.exists(image_path):
+            try:
+                from reportlab.lib.utils import ImageReader
+                img = ImageReader(image_path)
+                img_width, img_height = img.getSize()
+                
+                # Scale to fit page (max 60% of page width/height)
+                max_w = width * 0.6
+                max_h = height * 0.6
+                ratio = min(max_w / img_width, max_h / img_height)
+                new_w = img_width * ratio
+                new_h = img_height * ratio
+                
+                # Center on page
+                x = (width - new_w) / 2
+                y = (height - new_h) / 2
+                
+                # Draw with opacity using saveState/transparency
+                c.setFillAlpha(opacity)
+                c.drawImage(image_path, x, y, width=new_w, height=new_h, mask='auto')
+            except Exception as e:
+                print(f"[WATERMARK] Error drawing image: {e}")
+        
+        # Draw text watermark if specified (text takes priority if both exist)
+        elif text:
+            c.setFillAlpha(opacity)
+            c.setFillColor(colors.HexColor('#888888'))
+            
+            # Large diagonal text across page
+            c.translate(width / 2, height / 2)
+            c.rotate(45)
+            
+            # Calculate font size based on text length
+            font_size = min(80, width / (len(text) * 0.6))
+            c.setFont("Helvetica-Bold", font_size)
+            
+            # Draw centered
+            text_width = c.stringWidth(text, "Helvetica-Bold", font_size)
+            c.drawString(-text_width / 2, 0, text)
+        
+        c.restoreState()
 
     def _load_title_styles(self):
         import os

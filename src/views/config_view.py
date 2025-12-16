@@ -102,6 +102,9 @@ class ConfigManagerView(QMainWindow):
         # Tab 2: User Profile
         self._create_profile_tab()
         
+        # Tab 3: PDF Settings
+        self._create_pdf_tab()
+        
         layout.addWidget(self.tabs, 1)
         
         # Buttons
@@ -364,6 +367,216 @@ class ConfigManagerView(QMainWindow):
         
         self.tabs.addTab(tab, self.icon_manager.get_icon("user", 18), "Perfil de Usuario")
 
+    def _create_pdf_tab(self):
+        """Create PDF settings tab."""
+        from PyQt6.QtWidgets import QLineEdit, QCheckBox, QSlider, QColorDialog, QPushButton, QFileDialog
+        
+        tab = QWidget()
+        
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setStyleSheet("QScrollArea { border: none; background: transparent; }")
+        
+        content = QWidget()
+        layout = QVBoxLayout(content)
+        layout.setSpacing(20)  # Increased spacing
+        layout.setContentsMargins(25, 25, 25, 25)  # More padding
+        
+        # === MARGINS SECTION ===
+        margin_header = QHBoxLayout()
+        margin_icon = QLabel()
+        margin_icon.setPixmap(self.icon_manager.get_pixmap("note", 18))
+        margin_header.addWidget(margin_icon)
+        margin_label = QLabel("MÁRGENES DE PÁGINA")
+        margin_label.setStyleSheet("font-weight: bold; font-size: 14px; color: #0A84FF;")
+        margin_header.addWidget(margin_label)
+        margin_header.addStretch()
+        layout.addLayout(margin_header)
+        
+        margin_desc = QLabel("Márgenes en milímetros (se aplican a todas las páginas después de la carátula):")
+        margin_desc.setStyleSheet("color: rgba(255,255,255,0.7); margin-bottom: 8px;")
+        margin_desc.setWordWrap(True)
+        layout.addWidget(margin_desc)
+        
+        margin_grid = QGridLayout()
+        margin_grid.setSpacing(15)  # Increased spacing
+        margin_grid.setContentsMargins(10, 10, 10, 10)
+        
+        margin_grid.addWidget(QLabel("Superior:"), 0, 0)
+        self.spin_margin_top = QSpinBox()
+        self.spin_margin_top.setRange(10, 100)
+        self.spin_margin_top.setValue(self.config.pdf_margin_top)
+        self.spin_margin_top.setSuffix(" mm")
+        self.spin_margin_top.setMinimumHeight(45)
+        self.spin_margin_top.setMinimumWidth(100)
+        margin_grid.addWidget(self.spin_margin_top, 0, 1)
+        
+        margin_grid.addWidget(QLabel("Inferior:"), 0, 2)
+        self.spin_margin_bottom = QSpinBox()
+        self.spin_margin_bottom.setRange(10, 100)
+        self.spin_margin_bottom.setValue(self.config.pdf_margin_bottom)
+        self.spin_margin_bottom.setSuffix(" mm")
+        self.spin_margin_bottom.setMinimumHeight(45)
+        self.spin_margin_bottom.setMinimumWidth(100)
+        margin_grid.addWidget(self.spin_margin_bottom, 0, 3)
+        
+        margin_grid.addWidget(QLabel("Izquierdo:"), 1, 0)
+        self.spin_margin_left = QSpinBox()
+        self.spin_margin_left.setRange(10, 100)
+        self.spin_margin_left.setValue(self.config.pdf_margin_left)
+        self.spin_margin_left.setSuffix(" mm")
+        self.spin_margin_left.setMinimumHeight(45)
+        self.spin_margin_left.setMinimumWidth(100)
+        margin_grid.addWidget(self.spin_margin_left, 1, 1)
+        
+        margin_grid.addWidget(QLabel("Derecho:"), 1, 2)
+        self.spin_margin_right = QSpinBox()
+        self.spin_margin_right.setRange(10, 100)
+        self.spin_margin_right.setValue(self.config.pdf_margin_right)
+        self.spin_margin_right.setSuffix(" mm")
+        self.spin_margin_right.setMinimumHeight(45)
+        self.spin_margin_right.setMinimumWidth(100)
+        margin_grid.addWidget(self.spin_margin_right, 1, 3)
+        margin_grid.setColumnStretch(4, 1)  # Add stretch at end
+        
+        layout.addLayout(margin_grid)
+        
+        # Add spacer before separator
+        layout.addSpacing(10)
+        
+        # Separator
+        sep1 = QFrame()
+        sep1.setFrameShape(QFrame.Shape.HLine)
+        sep1.setStyleSheet("background-color: rgba(255,255,255,0.2);")
+        sep1.setFixedHeight(2)
+        layout.addWidget(sep1)
+        
+        # === WATERMARK SECTION ===
+        wm_header = QHBoxLayout()
+        wm_icon = QLabel()
+        wm_icon.setPixmap(self.icon_manager.get_pixmap("image", 18))
+        wm_header.addWidget(wm_icon)
+        wm_label = QLabel("MARCA DE AGUA")
+        wm_label.setStyleSheet("font-weight: bold; font-size: 14px; color: #34C759;")
+        wm_header.addWidget(wm_label)
+        wm_header.addStretch()
+        layout.addLayout(wm_header)
+        
+        self.watermark_check = QCheckBox("Habilitar marca de agua")
+        self.watermark_check.setChecked(self.config.watermark_enabled)
+        self.watermark_check.stateChanged.connect(self._toggle_watermark_controls)
+        layout.addWidget(self.watermark_check)
+        
+        wm_text_layout = QHBoxLayout()
+        wm_text_layout.addWidget(QLabel("Texto:"))
+        self.watermark_text_input = QLineEdit()
+        self.watermark_text_input.setPlaceholderText("Ej: BORRADOR, CONFIDENCIAL, etc.")
+        self.watermark_text_input.setText(self.config.watermark_text)
+        self.watermark_text_input.setMinimumHeight(40)
+        wm_text_layout.addWidget(self.watermark_text_input)
+        layout.addLayout(wm_text_layout)
+        
+        wm_opacity_layout = QHBoxLayout()
+        wm_opacity_layout.addWidget(QLabel("Opacidad:"))
+        self.watermark_opacity_slider = QSlider(Qt.Orientation.Horizontal)
+        self.watermark_opacity_slider.setRange(5, 50)
+        self.watermark_opacity_slider.setValue(self.config.watermark_opacity)
+        wm_opacity_layout.addWidget(self.watermark_opacity_slider)
+        self.watermark_opacity_label = QLabel(f"{self.config.watermark_opacity}%")
+        self.watermark_opacity_label.setMinimumWidth(50)
+        self.watermark_opacity_slider.valueChanged.connect(lambda v: self.watermark_opacity_label.setText(f"{v}%"))
+        wm_opacity_layout.addWidget(self.watermark_opacity_label)
+        layout.addLayout(wm_opacity_layout)
+        
+        wm_image_layout = QHBoxLayout()
+        wm_image_layout.addWidget(QLabel("Imagen (opcional):"))
+        self.watermark_image_input = QLineEdit()
+        self.watermark_image_input.setReadOnly(True)
+        self.watermark_image_input.setPlaceholderText("Seleccione una imagen de marca de agua...")
+        self.watermark_image_input.setText(self.config.watermark_image_path)
+        self.watermark_image_input.setMinimumHeight(40)
+        wm_image_layout.addWidget(self.watermark_image_input)
+        
+        btn_wm_image = AnimatedButton("Seleccionar")
+        btn_wm_image.setMinimumHeight(40)
+        btn_wm_image.clicked.connect(self._select_watermark_image)
+        wm_image_layout.addWidget(btn_wm_image)
+        layout.addLayout(wm_image_layout)
+        
+        # Initial state of watermark controls
+        self._toggle_watermark_controls(self.watermark_check.isChecked())
+        
+        # Separator
+        sep2 = QFrame()
+        sep2.setFrameShape(QFrame.Shape.HLine)
+        sep2.setStyleSheet("background-color: rgba(255,255,255,0.2);")
+        sep2.setFixedHeight(2)
+        layout.addWidget(sep2)
+        
+        # === DESIGN SECTION ===
+        design_header = QHBoxLayout()
+        design_icon = QLabel()
+        design_icon.setPixmap(self.icon_manager.get_pixmap("theme", 18))
+        design_header.addWidget(design_icon)
+        design_label = QLabel("DISEÑO")
+        design_label.setStyleSheet("font-weight: bold; font-size: 14px; color: #FF9500;")
+        design_header.addWidget(design_label)
+        design_header.addStretch()
+        layout.addLayout(design_header)
+        
+        highlight_layout = QHBoxLayout()
+        highlight_layout.addWidget(QLabel("Color de Resaltado por defecto:"))
+        self.highlight_color_btn = QPushButton()
+        self.highlight_color_btn.setMinimumSize(100, 40)
+        self._update_highlight_color_preview(self.config.highlight_color)
+        self.highlight_color_btn.clicked.connect(self._pick_highlight_color)
+        highlight_layout.addWidget(self.highlight_color_btn)
+        highlight_layout.addStretch()
+        layout.addLayout(highlight_layout)
+        
+        layout.addStretch()
+        
+        scroll.setWidget(content)
+        
+        tab_layout = QVBoxLayout(tab)
+        tab_layout.setContentsMargins(0, 0, 0, 0)
+        tab_layout.addWidget(scroll)
+        
+        self.tabs.addTab(tab, self.icon_manager.get_icon("pdf", 18), "PDF")
+
+    def _toggle_watermark_controls(self, enabled):
+        """Enable/disable watermark controls based on checkbox state."""
+        self.watermark_text_input.setEnabled(enabled)
+        self.watermark_opacity_slider.setEnabled(enabled)
+        self.watermark_image_input.setEnabled(enabled)
+
+    def _select_watermark_image(self):
+        """Select watermark image file."""
+        from PyQt6.QtWidgets import QFileDialog
+        file_path, _ = QFileDialog.getOpenFileName(
+            self, "Seleccionar Imagen de Marca de Agua", "", "Images (*.png *.jpg *.jpeg)"
+        )
+        if file_path:
+            self.watermark_image_input.setText(file_path)
+
+    def _update_highlight_color_preview(self, color):
+        """Update the highlight color button preview."""
+        self._current_highlight_color = color
+        self.highlight_color_btn.setStyleSheet(
+            f"background-color: {color}; border: 2px solid white; border-radius: 4px;"
+        )
+        self.highlight_color_btn.setText(color)
+
+    def _pick_highlight_color(self):
+        """Open color picker for highlight color."""
+        from PyQt6.QtWidgets import QColorDialog
+        from PyQt6.QtGui import QColor
+        
+        current = QColor(self._current_highlight_color)
+        color = QColorDialog.getColor(current, self, "Seleccionar Color de Resaltado")
+        if color.isValid():
+            self._update_highlight_color_preview(color.name())
+
     def _upload_signature(self):
         """Upload a signature image."""
         from PyQt6.QtWidgets import QFileDialog
@@ -537,6 +750,18 @@ class ConfigManagerView(QMainWindow):
         self.spin_iva.setValue(13.0)
         self.spin_validity.setValue(15)
         self.spin_delivery.setValue(7)
+        
+        # PDF defaults
+        if hasattr(self, 'spin_margin_top'):
+            self.spin_margin_top.setValue(40)
+            self.spin_margin_bottom.setValue(40)
+            self.spin_margin_left.setValue(40)
+            self.spin_margin_right.setValue(40)
+            self.watermark_check.setChecked(False)
+            self.watermark_text_input.clear()
+            self.watermark_opacity_slider.setValue(15)
+            self.watermark_image_input.clear()
+            self._update_highlight_color_preview('#FFFF00')
     
     def _save_config(self):
         """Save the configuration."""
@@ -556,6 +781,18 @@ class ConfigManagerView(QMainWindow):
             self.config.delivery_default = self.spin_delivery.value()
         except AttributeError:
             pass
+        
+        # Save PDF settings
+        if hasattr(self, 'spin_margin_top'):
+            self.config.pdf_margin_top = self.spin_margin_top.value()
+            self.config.pdf_margin_bottom = self.spin_margin_bottom.value()
+            self.config.pdf_margin_left = self.spin_margin_left.value()
+            self.config.pdf_margin_right = self.spin_margin_right.value()
+            self.config.watermark_enabled = self.watermark_check.isChecked()
+            self.config.watermark_text = self.watermark_text_input.text()
+            self.config.watermark_opacity = self.watermark_opacity_slider.value()
+            self.config.watermark_image_path = self.watermark_image_input.text()
+            self.config.highlight_color = self._current_highlight_color
         
         self.config.save()
         self.config_updated.emit()

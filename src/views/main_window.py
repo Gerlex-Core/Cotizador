@@ -581,6 +581,18 @@ class MainWindow(QMainWindow):
         btn_products.setStyleSheet("QPushButton { background: rgba(94, 92, 230, 0.4); border: 1px solid #5E5CE6; border-radius: 10px; color: white; padding: 12px 24px; font-weight: bold; font-size: 13px; } QPushButton:hover { background: rgba(94, 92, 230, 0.6); }")
         btn_products.clicked.connect(self._open_products_window)
         products_layout.addWidget(btn_products)
+        
+        # Checkbox para incluir Resumen de Condiciones en PDF
+        summary_row = QHBoxLayout()
+        summary_row.setContentsMargins(0, 8, 0, 0)
+        self.include_summary_check = QCheckBox("Incluir Resumen de Condiciones")
+        self.include_summary_check.setChecked(False)  # Desactivado por defecto
+        self.include_summary_check.setToolTip("Muestra validez, tiempo de entrega, envío e IVA en el PDF")
+        self.include_summary_check.setStyleSheet("QCheckBox { font-size: 12px; color: rgba(255,255,255,0.7); } QCheckBox::indicator { width: 18px; height: 18px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.3); } QCheckBox::indicator:checked { background: #5E5CE6; border-color: #5E5CE6; }")
+        summary_row.addWidget(self.include_summary_check)
+        summary_row.addStretch()
+        products_layout.addLayout(summary_row)
+        
         content_layout.addWidget(products_frame)
         
         # === 2. OBSERVATIONS ===
@@ -1226,7 +1238,8 @@ class MainWindow(QMainWindow):
                 "include_bank_details": self.include_bank_details_check.isChecked() if hasattr(self, 'include_bank_details_check') else False,
                 "cover_page_enabled": self.cover_page_check.isChecked() if hasattr(self, 'cover_page_check') else False,
                 "include_signature": self.include_signature_check.isChecked() if hasattr(self, 'include_signature_check') else False,
-                "include_details": self.include_details_check.isChecked() if hasattr(self, 'include_details_check') else True
+                "include_details": self.include_details_check.isChecked() if hasattr(self, 'include_details_check') else True,
+                "include_summary": self.include_summary_check.isChecked() if hasattr(self, 'include_summary_check') else True
             }
         }
 
@@ -1371,6 +1384,11 @@ class MainWindow(QMainWindow):
         if hasattr(self, 'include_details_check'):
             state = flags.get("include_details", data.get("include_details", False))
             self.include_details_check.setChecked(state)
+            
+        # Summary (Resumen de Condiciones)
+        if hasattr(self, 'include_summary_check'):
+            state = flags.get("include_summary", False)  # Default to False
+            self.include_summary_check.setChecked(state)
         
         # Load products_data (includes shipping state - widgets are in ProductsWindow)
         if "products_data" in data:
@@ -1655,7 +1673,8 @@ class MainWindow(QMainWindow):
                     terms_data={k: clean(v) if isinstance(v, str) and k.endswith('_terms') else v for k, v in self._terms_data.items()},
                     prepared_by=prepared_by,
                     signature_image=signature_image,
-                    mostrar_firma=include_signature  # Only show signature if checkbox enabled
+                    mostrar_firma=include_signature,  # Only show signature if checkbox enabled
+                    mostrar_terminos=self.include_summary_check.isChecked() if hasattr(self, 'include_summary_check') else True
                 )
                 QMessageBox.information(self, "Exito", "PDF generado correctamente.")
             except Exception as e:

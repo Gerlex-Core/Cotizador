@@ -34,7 +34,19 @@ DEFAULT_SETTINGS = {
     "PDF": {
         "mostrar_terminos": "true",
         "validez_dias": "30",
-        "mostrar_firma": "true"
+        "mostrar_firma": "true",
+        # Márgenes (en mm)
+        "margin_top": "40",
+        "margin_bottom": "40",
+        "margin_left": "40",
+        "margin_right": "40",
+        # Marca de agua
+        "watermark_enabled": "false",
+        "watermark_text": "",
+        "watermark_opacity": "15",
+        "watermark_image_path": "",
+        # Diseño
+        "highlight_color": "#FFFF00"
     },
     "UserProfile": {
         "prepared_by": "",
@@ -205,6 +217,81 @@ class ConfigManager:
     @property
     def mostrar_firma(self) -> bool:
         return self.get_bool('PDF', 'mostrar_firma', True)
+    
+    # PDF Margins
+    @property
+    def pdf_margin_top(self) -> int:
+        return self.get_int('PDF', 'margin_top', 40)
+    
+    @pdf_margin_top.setter
+    def pdf_margin_top(self, value: int):
+        self.set('PDF', 'margin_top', value)
+    
+    @property
+    def pdf_margin_bottom(self) -> int:
+        return self.get_int('PDF', 'margin_bottom', 40)
+    
+    @pdf_margin_bottom.setter
+    def pdf_margin_bottom(self, value: int):
+        self.set('PDF', 'margin_bottom', value)
+    
+    @property
+    def pdf_margin_left(self) -> int:
+        return self.get_int('PDF', 'margin_left', 40)
+    
+    @pdf_margin_left.setter
+    def pdf_margin_left(self, value: int):
+        self.set('PDF', 'margin_left', value)
+    
+    @property
+    def pdf_margin_right(self) -> int:
+        return self.get_int('PDF', 'margin_right', 40)
+    
+    @pdf_margin_right.setter
+    def pdf_margin_right(self, value: int):
+        self.set('PDF', 'margin_right', value)
+    
+    # Watermark
+    @property
+    def watermark_enabled(self) -> bool:
+        return self.get_bool('PDF', 'watermark_enabled', False)
+    
+    @watermark_enabled.setter
+    def watermark_enabled(self, value: bool):
+        self.set('PDF', 'watermark_enabled', str(value).lower())
+    
+    @property
+    def watermark_text(self) -> str:
+        return self.get('PDF', 'watermark_text', '')
+    
+    @watermark_text.setter
+    def watermark_text(self, value: str):
+        self.set('PDF', 'watermark_text', value)
+    
+    @property
+    def watermark_opacity(self) -> int:
+        return self.get_int('PDF', 'watermark_opacity', 15)
+    
+    @watermark_opacity.setter
+    def watermark_opacity(self, value: int):
+        self.set('PDF', 'watermark_opacity', value)
+    
+    @property
+    def watermark_image_path(self) -> str:
+        return self.get('PDF', 'watermark_image_path', '')
+    
+    @watermark_image_path.setter
+    def watermark_image_path(self, value: str):
+        self.set('PDF', 'watermark_image_path', value)
+    
+    # PDF Design
+    @property
+    def highlight_color(self) -> str:
+        return self.get('PDF', 'highlight_color', '#FFFF00')
+    
+    @highlight_color.setter
+    def highlight_color(self, value: str):
+        self.set('PDF', 'highlight_color', value)
     
     @property
     def prepared_by(self) -> str:
