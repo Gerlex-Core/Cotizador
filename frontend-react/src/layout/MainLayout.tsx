@@ -13,9 +13,26 @@ import TermsView from '../components/cotizaciones/TermsView';
 import PDFEditorView from '../components/cotizaciones/PDFEditorView';
 import StoreView from '../components/store/StoreView';
 import LandingView from '../components/LandingView';
+import { useState, useEffect } from 'react';
+
+const WALLPAPERS = [
+    'https://images.unsplash.com/photo-1493515322954-4fa727e97985?fm=jpg&q=60&w=3000&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1542051842-87b468437d36?fm=jpg&q=80&w=3000&auto=format&fit=crop', // Tokyo neon
+    'https://images.unsplash.com/photo-1513407030348-c9d4a3b76c8c?fm=jpg&q=80&w=3000&auto=format&fit=crop', // Dark city
+    'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?fm=jpg&q=80&w=3000&auto=format&fit=crop', // Paris night
+    'https://images.unsplash.com/photo-1518684079-3c830dcef090?fm=jpg&q=80&w=3000&auto=format&fit=crop' // Dubai night
+];
 
 export default function MainLayout() {
     const { activeTab } = useNavigation();
+    const [currentBg, setCurrentBg] = useState(0);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentBg((prev) => (prev + 1) % WALLPAPERS.length);
+        }, 15000); // Change every 15 seconds
+        return () => clearInterval(interval);
+    }, []);
 
     const renderContent = () => {
         switch (activeTab) {
@@ -38,11 +55,23 @@ export default function MainLayout() {
     };
 
     return (
-        <div className="flex flex-col h-screen w-full theme-bg overflow-hidden relative">
+        <div className="flex flex-col h-screen w-full overflow-hidden relative bg-black">
+            {/* Dynamic Background Slideshow */}
+            {WALLPAPERS.map((url, index) => (
+                <div
+                    key={url}
+                    className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat transition-opacity duration-[2000ms] ease-in-out"
+                    style={{ 
+                        backgroundImage: `url('${url}')`,
+                        opacity: index === currentBg ? 1 : 0
+                    }}
+                />
+            ))}
+
             {/* Animated Background Blobs for Liquid Effect (Only visible if theme allows it) */}
-            <div className="absolute top-[-10%] left-[-10%] w-[40vw] h-[40vw] bg-purple-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-70 animate-[pulse_8s_ease-in-out_infinite]" />
-            <div className="absolute bottom-[-10%] right-[-5%] w-[35vw] h-[35vw] bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-70 animate-[pulse_10s_ease-in-out_infinite_reverse]" />
-            <div className="absolute top-[20%] right-[15%] w-[25vw] h-[25vw] bg-pink-500/20 rounded-full mix-blend-screen filter blur-[80px] opacity-50 animate-[pulse_12s_ease-in-out_infinite]" />
+            <div className="absolute top-[-10%] left-[-10%] w-[40vw] h-[40vw] bg-purple-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-70 animate-[pulse_8s_ease-in-out_infinite] z-0" />
+            <div className="absolute bottom-[-10%] right-[-5%] w-[35vw] h-[35vw] bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-70 animate-[pulse_10s_ease-in-out_infinite_reverse] z-0" />
+            <div className="absolute top-[20%] right-[15%] w-[25vw] h-[25vw] bg-pink-500/20 rounded-full mix-blend-screen filter blur-[80px] opacity-50 animate-[pulse_12s_ease-in-out_infinite] z-0" />
 
             {/* Background Overlay for better contrast on glass theme */}
             <div className="absolute inset-0 theme-bg-overlay z-0 pointer-events-none transition-colors duration-500"></div>
