@@ -12,23 +12,31 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
     const [activeTab, setActiveTab] = useState(() => {
         const path = window.location.pathname;
         if (path.startsWith('/store')) {
-            return 9; // StoreView is tab 9
+            return 9; // StoreView
         }
-        return 0;
+        if (path.startsWith('/Cotizador')) {
+            return 0; // QuotationView
+        }
+        if (path === '/' || path === '') {
+            return 10; // LandingView
+        }
+        return 0; // Default to Cotizador
     });
 
-    // Optionally sync URL back to root if they leave the store
     const handleTabChange = (tab: number) => {
         setActiveTab(tab);
-        if (tab !== 9 && window.location.pathname.includes('/store')) {
-            window.history.pushState({}, "", "/");
-        } else if (tab === 9 && !window.location.pathname.includes('/store')) {
+        const path = window.location.pathname;
+        if (tab === 9 && !path.startsWith('/store')) {
             window.history.pushState({}, "", "/store");
+        } else if (tab === 10 && path !== '/') {
+            window.history.pushState({}, "", "/");
+        } else if (tab >= 0 && tab <= 8 && !path.startsWith('/Cotizador')) {
+            window.history.pushState({}, "", "/Cotizador");
         }
     };
 
     return (
-        <NavigationContext.Provider value={{ activeTab, setActiveTab }}>
+        <NavigationContext.Provider value={{ activeTab, setActiveTab: handleTabChange }}>
             {children}
         </NavigationContext.Provider>
     );

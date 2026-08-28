@@ -12,6 +12,7 @@ import FinanceView from '../components/cotizaciones/FinanceView';
 import TermsView from '../components/cotizaciones/TermsView';
 import PDFEditorView from '../components/cotizaciones/PDFEditorView';
 import StoreView from '../components/store/StoreView';
+import LandingView from '../components/LandingView';
 
 export default function MainLayout() {
     const { activeTab } = useNavigation();
@@ -30,6 +31,7 @@ export default function MainLayout() {
             case 6: return <HistoryView />;
             case 7: return <SettingsHub />;
             case 9: return <StoreView />;
+            case 10: return <LandingView />;
             
             default: return null;
         }
