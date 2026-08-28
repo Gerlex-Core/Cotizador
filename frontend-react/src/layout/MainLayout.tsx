@@ -86,7 +86,7 @@ export default function MainLayout() {
             <div className="absolute inset-0 theme-bg-overlay z-0 pointer-events-none transition-colors duration-500"></div>
 
             {/* Top Menu Strip */}
-            {![9, 10].includes(activeTab) && <MenuStrip />}
+            {activeTab !== 9 && activeTab !== 10 && <MenuStrip />}
             
             {/* Main Application Area */}
             <main className="flex-1 flex flex-col h-full overflow-hidden p-2 md:p-6 space-y-2 md:space-y-4 relative z-10">
