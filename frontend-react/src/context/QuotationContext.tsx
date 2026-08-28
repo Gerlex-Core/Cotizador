@@ -51,8 +51,8 @@ export function QuotationProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         let calcSubtotal = 0;
         products.forEach(p => {
-            const rawAmount = p.quantity * p.price;
-            const discAmount = rawAmount * (p.discount_percent / 100);
+            const rawAmount = (p.quantity || 0) * (p.price || 0);
+            const discAmount = rawAmount * ((p.discount_percent || 0) / 100);
             calcSubtotal += (rawAmount - discAmount);
         });
 

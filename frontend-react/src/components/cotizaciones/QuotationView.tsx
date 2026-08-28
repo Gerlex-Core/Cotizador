@@ -180,13 +180,13 @@ export default function QuotationView() {
                                 </thead>
                                 <tbody>
                                     {products.map(p => {
-                                        const amount = p.quantity * p.price * (1 - p.discount_percent / 100);
+                                        const amount = (p.quantity || 0) * (p.price || 0) * (1 - (p.discount_percent || 0) / 100);
                                         return (
                                             <tr key={p.id} className="border-b border-[var(--border-default)] hover:bg-[var(--bg-secondary)] transition-colors">
                                                 <td className="py-2 px-2">
                                                     <input 
-                                                        className="w-full bg-transparent border-none text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-blue-500 rounded px-2 py-1"
-                                                        value={p.description}
+                                                        className="w-full glass-input !rounded !py-1 !px-2"
+                                                        value={p.description || ''}
                                                         onChange={e => updateProduct(p.id, 'description', e.target.value)}
                                                         placeholder="Descripción del ítem"
                                                     />
@@ -195,18 +195,18 @@ export default function QuotationView() {
                                                     <input 
                                                         type="number"
                                                         min="0"
-                                                        className="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] text-[var(--text-primary)] rounded px-2 py-1 text-center focus:outline-none focus:border-blue-500"
+                                                        className="w-full glass-input !rounded !py-1 !px-2 text-center"
                                                         value={p.quantity}
-                                                        onChange={e => updateProduct(p.id, 'quantity', parseFloat(e.target.value) || 0)}
+                                                        onChange={e => updateProduct(p.id, 'quantity', e.target.value === '' ? '' : (parseFloat(e.target.value) || 0))}
                                                     />
                                                 </td>
                                                 <td className="py-2 px-2">
                                                     <input 
                                                         type="number"
                                                         min="0"
-                                                        className="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] text-[var(--text-primary)] rounded px-2 py-1 text-right focus:outline-none focus:border-blue-500"
+                                                        className="w-full glass-input !rounded !py-1 !px-2 text-right"
                                                         value={p.price}
-                                                        onChange={e => updateProduct(p.id, 'price', parseFloat(e.target.value) || 0)}
+                                                        onChange={e => updateProduct(p.id, 'price', e.target.value === '' ? '' : (parseFloat(e.target.value) || 0))}
                                                     />
                                                 </td>
                                                 <td className="py-2 px-2">
@@ -214,9 +214,9 @@ export default function QuotationView() {
                                                         type="number"
                                                         min="0"
                                                         max="100"
-                                                        className="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] text-[var(--text-primary)] rounded px-2 py-1 text-right focus:outline-none focus:border-blue-500"
-                                                        value={p.discount_percent}
-                                                        onChange={e => updateProduct(p.id, 'discount_percent', parseFloat(e.target.value) || 0)}
+                                                        className="w-full glass-input !rounded !py-1 !px-2 text-right"
+                                                        value={p.discount_percent || ''}
+                                                        onChange={e => updateProduct(p.id, 'discount_percent', e.target.value === '' ? 0 : (parseFloat(e.target.value) || 0))}
                                                     />
                                                 </td>
                                                 <td className="py-2 px-2 text-right font-bold text-[var(--text-primary)]">
