@@ -12,7 +12,7 @@ After=network.target
 [Service]
 User={user}
 WorkingDirectory={cwd}
-ExecStart={python_path} -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000
+ExecStart={python_path} -m uvicorn src.api.app:app --host 0.0.0.0 --port 8000
 Restart=always
 
 [Install]
