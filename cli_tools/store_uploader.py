@@ -3,6 +3,8 @@ import json
 import glob
 import requests
 from rich.console import Console
+from rich.progress import Progress, TextColumn, BarColumn, DownloadColumn, TransferSpeedColumn, TimeRemainingColumn, TaskProgressColumn
+from requests_toolbelt.multipart.encoder import MultipartEncoder, MultipartEncoderMonitor
 
 console = Console()
 
@@ -120,51 +122,81 @@ def process_upload():
     if not api_url:
         api_url = "http://127.0.0.1:8000"
         
+    admin_token = input("Token de Administrador: ").strip()
+    if not admin_token:
+        console.print("[red]Error: El token de administrador es obligatorio para subir aplicaciones.[/red]")
+        input("Presiona Enter para continuar...")
+        return
+        
     endpoint = f"{api_url}/api/store/upload"
     
     console.print(f"\n[cyan]Subiendo a {endpoint}...[/cyan]")
     
     try:
-        with open(files["package"], "rb") as package_file:
-            mime_type = "application/zip" if files["package"].endswith(".zip") else "application/vnd.android.package-archive"
-            files_payload = {
-                "package_file": (os.path.basename(files["package"]), package_file, mime_type)
-            }
+        opened_files = []
+        mime_type = "application/zip" if files["package"].endswith(".zip") else "application/vnd.android.package-archive"
+        
+        fields = {
+            "app_id": str(app_id),
+            "app_name": str(app_name),
+            "app_description": str(app_description),
+            "version_description": str(version_description),
+            "category": str(app_category),
+            "developer": str(app_developer),
+            "release_date": str(app_release_date),
+            "website": str(app_website),
+            "tags": str(app_tags),
+            "content_rating": str(app_content_rating),
+            "version": str(version)
+        }
+        
+        pkg_file = open(files["package"], "rb")
+        opened_files.append(pkg_file)
+        fields["package_file"] = (os.path.basename(files["package"]), pkg_file, mime_type)
+        
+        if files["app_image"]:
+            app_img = open(files["app_image"], "rb")
+            opened_files.append(app_img)
+            fields["app_icon_file"] = (os.path.basename(files["app_image"]), app_img, "image/jpeg" if files["app_image"].endswith("jpg") else "image/png")
             
-            app_icon_file = None
-            if files["app_image"]:
-                app_icon_file = open(files["app_image"], "rb")
-                files_payload["app_icon_file"] = (os.path.basename(files["app_image"]), app_icon_file, "image/jpeg" if files["app_image"].endswith("jpg") else "image/png")
-                
-            version_icon_file = None
-            if files["version_image"]:
-                version_icon_file = open(files["version_image"], "rb")
-                files_payload["version_icon_file"] = (os.path.basename(files["version_image"]), version_icon_file, "image/jpeg" if files["version_image"].endswith("jpg") else "image/png")
+        if files["version_image"]:
+            ver_img = open(files["version_image"], "rb")
+            opened_files.append(ver_img)
+            fields["version_icon_file"] = (os.path.basename(files["version_image"]), ver_img, "image/jpeg" if files["version_image"].endswith("jpg") else "image/png")
 
-            data_payload = {
-                "app_id": app_id,
-                "app_name": app_name,
-                "app_description": app_description,
-                "version_description": version_description,
-                "category": app_category,
-                "developer": app_developer,
-                "release_date": app_release_date,
-                "website": app_website,
-                "tags": app_tags,
-                "content_rating": app_content_rating,
-                "version": version
+        encoder = MultipartEncoder(fields=fields)
+        
+        with Progress(
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            TaskProgressColumn(),
+            DownloadColumn(),
+            TransferSpeedColumn(),
+            TimeRemainingColumn(),
+            console=console
+        ) as progress:
+            task = progress.add_task("[cyan]Subiendo datos...", total=encoder.len)
+            
+            def callback(monitor):
+                progress.update(task, completed=monitor.bytes_read)
+                
+            monitor = MultipartEncoderMonitor(encoder, callback)
+            
+            headers = {
+                "Content-Type": monitor.content_type,
+                "Authorization": f"Bearer {admin_token}"
             }
             
-            response = requests.post(endpoint, data=data_payload, files=files_payload)
+            response = requests.post(endpoint, data=monitor, headers=headers)
             
-            if app_icon_file: app_icon_file.close()
-            if version_icon_file: version_icon_file.close()
-                
-            if response.status_code == 200:
-                console.print(f"[bold green]¡Éxito! {response.json().get('message', '')}[/bold green]")
-            else:
-                console.print(f"[red]Error del servidor HTTP {response.status_code}: {response.text}[/red]")
-                
+        for f in opened_files:
+            f.close()
+            
+        if response.status_code == 200:
+            console.print(f"[bold green]¡Éxito! {response.json().get('message', '')}[/bold green]")
+        else:
+            console.print(f"[red]Error del servidor HTTP {response.status_code}: {response.text}[/red]")
+            
     except requests.exceptions.RequestException as e:
         console.print(f"[red]Error de conexión: {e}[/red]")
         console.print("[yellow]Asegúrate de que la API de Cotizador Pro esté ejecutándose.[/yellow]")
