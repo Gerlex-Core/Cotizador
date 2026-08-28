@@ -4,6 +4,7 @@ import shutil
 import glob
 import json
 import sys
+import re
 from rich.console import Console
 
 console = Console()
@@ -40,12 +41,15 @@ def get_upload_url():
             
     return ip
 
-def upload_apk_to_store(apk_path, version):
-    icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'tauri-app', 'icons', '128x128.png'))
+def upload_apk_to_store(apk_path, version, app_id="cotizador", app_name="Cotizador Pro", description="", icon_path=None):
+    if not icon_path or not os.path.exists(icon_path):
+        # Default icon if none provided
+        icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'tauri-app', 'icons', '128x128.png'))
+        
     base_url = get_upload_url()
     upload_url = f"{base_url.rstrip('/')}/api/store/upload"
     
-    console.print(f"[cyan]Subiendo APK a la Tienda Web ({upload_url})...[/cyan]")
+    console.print(f"[cyan]Subiendo {app_name} V{version} a la Tienda Web ({upload_url})...[/cyan]")
     
     try:
         import requests
@@ -56,10 +60,15 @@ def upload_apk_to_store(apk_path, version):
         
     try:
         files = {
-            'apk_file': ('app-release.apk', open(apk_path, 'rb'), 'application/vnd.android.package-archive'),
-            'icon_file': ('icon.png', open(icon_path, 'rb'), 'image/png')
+            'apk_file': (os.path.basename(apk_path), open(apk_path, 'rb'), 'application/vnd.android.package-archive'),
         }
+        if os.path.exists(icon_path):
+            files['icon_file'] = ('icon.png', open(icon_path, 'rb'), 'image/png')
+            
         data = {
+            'app_id': app_id,
+            'app_name': app_name,
+            'description': description,
             'version': version
         }
         response = requests.post(upload_url, files=files, data=data)
@@ -70,6 +79,39 @@ def upload_apk_to_store(apk_path, version):
     except Exception as e:
         console.print(f"[red]Error de red al subir APK: {e}[/red]")
 
+def manual_apk_upload():
+    console.print("\n[bold blue]--- Subir APK Manualmente ---[/bold blue]")
+    apk_path = input("Ruta del archivo APK: ").strip()
+    
+    # Remove quotes if dragged in windows terminal
+    if apk_path.startswith('"') and apk_path.endswith('"'):
+        apk_path = apk_path[1:-1]
+        
+    if not os.path.exists(apk_path):
+        console.print("[red]El archivo no existe.[/red]")
+        return
+        
+    filename = os.path.basename(apk_path)
+    
+    # Parse Nombre-V1.2.3.apk
+    match = re.match(r"^(.+?)-V([\d\.]+)\.apk$", filename, re.IGNORECASE)
+    if not match:
+        console.print(f"[red]El nombre del archivo '{filename}' no cumple el formato requerido: NombreApp-V1.2.3.apk[/red]")
+        return
+        
+    app_id = match.group(1).lower().replace(" ", "-")
+    app_name = match.group(1)
+    version = match.group(2)
+    
+    console.print(f"[green]App detectada: {app_name} | Versión: {version}[/green]")
+    
+    description = input("Descripción de la App (Opcional): ").strip()
+    icon_path = input("Ruta del icono PNG (Opcional): ").strip()
+    if icon_path.startswith('"') and icon_path.endswith('"'):
+        icon_path = icon_path[1:-1]
+        
+    upload_apk_to_store(apk_path, version, app_id, app_name, description, icon_path)
+
 def build_frontend():
     console.print("[cyan]Compilando Frontend (React)...[/cyan]")
     cwd = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend-react'))
@@ -78,10 +120,21 @@ def build_frontend():
         return
         
     try:
+        if not os.path.exists(os.path.join(cwd, "node_modules")):
+            console.print("[yellow]Falta node_modules. Instalando dependencias (npm install)...[/yellow]")
+            subprocess.run(["npm", "install"], cwd=cwd, check=True, shell=(os.name=='nt'))
+            
         subprocess.run(["npm", "run", "build"], cwd=cwd, check=True, shell=(os.name=='nt'))
         console.print("[green]Frontend compilado exitosamente.[/green]")
     except subprocess.CalledProcessError as e:
-        console.print(f"[red]Error compilando frontend: {e}[/red]")
+        console.print("[yellow]Fallo la compilacion, intentando reparar dependencias (npm install)...[/yellow]")
+        try:
+            subprocess.run(["npm", "install"], cwd=cwd, check=True, shell=(os.name=='nt'))
+            subprocess.run(["npm", "run", "build"], cwd=cwd, check=True, shell=(os.name=='nt'))
+            console.print("[green]Frontend compilado exitosamente.[/green]")
+        except subprocess.CalledProcessError as e2:
+            console.print(f"[red]Error critico compilando frontend: {e2}[/red]")
+            console.print("[yellow]Intenta ejecutar 'npm install' manualmente en la carpeta frontend-react.[/yellow]")
 
 def build_tauri(target="desktop"):
     if target == "android":
@@ -119,7 +172,7 @@ def build_tauri(target="desktop"):
                 
                 # Upload to store
                 version = get_tauri_version()
-                upload_apk_to_store(apk_path, version)
+                upload_apk_to_store(apk_path, version, app_id="cotizador", app_name="Cotizador Pro", description="App oficial de Cotizador Pro para dispositivos móviles.")
             else:
                 console.print("[yellow]Advertencia: No se encontro el archivo APK compilado en las rutas esperadas.[/yellow]")
 
@@ -133,6 +186,7 @@ def menu():
         console.print("2. Compilar App Escritorio (Tauri Windows/PC)")
         console.print("3. Compilar App Movil (Android APK)")
         console.print("4. Compilar Todo (Web + PC + Android)")
+        console.print("5. Subir APK manualmente a la Tienda")
         console.print("0. Volver")
         
         choice = input("Opcion: ")
@@ -146,6 +200,8 @@ def menu():
             build_frontend()
             build_tauri(target="desktop")
             build_tauri(target="android")
+        elif choice == '5':
+            manual_apk_upload()
         elif choice == '0':
             break
         else:

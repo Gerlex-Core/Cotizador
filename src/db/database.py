@@ -275,3 +275,64 @@ def load_system_config_from_db() -> Dict[str, str]:
     rows = cursor.fetchall()
     conn.close()
     return {r["key"]: r["value"] for r in rows}
+
+
+def save_store_app(app_id: str, name: str, description: str, icon_url: str):
+    init_db()
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+    INSERT INTO store_apps (id, name, description, icon_url)
+    VALUES (?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET
+        name=excluded.name,
+        description=excluded.description,
+        icon_url=excluded.icon_url,
+        updated_at=CURRENT_TIMESTAMP;
+    """, (app_id, name, description, icon_url))
+    conn.commit()
+    conn.close()
+
+def save_store_app_version(app_id: str, version: str, apk_url: str, size_bytes: int):
+    init_db()
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+    INSERT INTO store_app_versions (app_id, version, apk_url, size_bytes)
+    VALUES (?, ?, ?, ?)
+    ON CONFLICT(app_id, version) DO UPDATE SET
+        apk_url=excluded.apk_url,
+        size_bytes=excluded.size_bytes,
+        published_at=CURRENT_TIMESTAMP;
+    """, (app_id, version, apk_url, size_bytes))
+    conn.commit()
+    conn.close()
+
+def get_store_apps_with_versions() -> Dict[str, Any]:
+    init_db()
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT * FROM store_apps;")
+    apps_rows = cursor.fetchall()
+    
+    result = {}
+    for app_r in apps_rows:
+        app_id = app_r["id"]
+        cursor.execute("SELECT version, apk_url, size_bytes, published_at FROM store_app_versions WHERE app_id = ? ORDER BY published_at DESC;", (app_id,))
+        versions_rows = cursor.fetchall()
+        
+        versions = [dict(v) for v in versions_rows]
+        
+        result[app_id] = {
+            "id": app_id,
+            "name": app_r["name"],
+            "description": app_r["description"],
+            "icon_url": app_r["icon_url"],
+            "created_at": app_r["created_at"],
+            "latest_version": versions[0]["version"] if versions else "1.0.0",
+            "versions": versions
+        }
+        
+    conn.close()
+    return result

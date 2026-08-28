@@ -44,7 +44,8 @@ export default function MenuStrip() {
             id: 'sistema',
             label: 'Sistema',
             items: [
-                { id: 7, icon: 'settings', label: 'Configuraciones', type: 'item' }
+                { id: 7, icon: 'settings', label: 'Configuraciones', type: 'item' },
+                { id: 9, icon: 'shop', label: 'Tienda de Apps', type: 'item' }
             ]
         }
     ];

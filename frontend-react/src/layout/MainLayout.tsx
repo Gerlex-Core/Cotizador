@@ -11,6 +11,7 @@ import DigicorpView from '../components/cotizaciones/DigicorpView';
 import FinanceView from '../components/cotizaciones/FinanceView';
 import TermsView from '../components/cotizaciones/TermsView';
 import PDFEditorView from '../components/cotizaciones/PDFEditorView';
+import StoreView from '../components/store/StoreView';
 
 export default function MainLayout() {
     const { activeTab } = useNavigation();
@@ -28,6 +29,7 @@ export default function MainLayout() {
             // System Tabs
             case 6: return <HistoryView />;
             case 7: return <SettingsHub />;
+            case 9: return <StoreView />;
             
             default: return null;
         }
