@@ -97,9 +97,6 @@
     box-shadow: var(--glass-shadow);
     transition: background 0.4s ease, box-shadow 0.4s ease, transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     overflow: hidden; 
-    /* Fix for Tauri/WebView2 blur not rendering */
-    transform: translateZ(0);
-    will-change: transform, backdrop-filter;
     isolation: isolate;
   }
 
@@ -131,8 +128,6 @@
     color: var(--text-primary);
     position: relative;
     border: 1px solid rgba(255,255,255,0.1);
-    transform: translateZ(0);
-    will-change: transform, backdrop-filter;
   }
   
   .glass-button:hover {
@@ -161,8 +156,6 @@
     border-radius: 1rem;
     padding: 0.6rem 1rem;
     width: 100%;
-    transform: translateZ(0);
-    will-change: transform, backdrop-filter;
   }
   
   .theme-material-neo .glass-input {
