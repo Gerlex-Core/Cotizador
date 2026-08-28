@@ -20,6 +20,7 @@ from .routers.catalog import router as catalog_router
 from .routers.digicorp import router as digicorp_router
 from .routers.bcb import router as bcb_router
 from .routers.pdf_editor import router as pdf_editor_router
+from .routers.store import router as store_router
 
 app = FastAPI(
     title="Cotizador Pro API",
@@ -57,11 +58,16 @@ app.include_router(catalog_router)
 app.include_router(digicorp_router)
 app.include_router(bcb_router)
 app.include_router(pdf_editor_router)
+app.include_router(store_router)
 
 # --- STATIC FILES (REMOVED) ---
 # Se elimina el montaje de web/UI y la renderizacion de HTML 
 # a peticion del usuario para evitar duplicados con el frontend React/Tauri.
 
+# Expose media/release for APK downloads
+release_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "media", "release"))
+os.makedirs(release_dir, exist_ok=True)
+app.mount("/release", StaticFiles(directory=release_dir), name="release")
 @app.get("/")
 def read_root():
     """Servidor Backend de la API."""

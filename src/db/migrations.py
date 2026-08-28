@@ -121,4 +121,33 @@ def run_migrations(conn: sqlite3.Connection):
         cursor.execute("INSERT INTO schema_migrations (version) VALUES (3);")
         conn.commit()
 
+    # Migration 4: App Store Tables
+    if current_version < 4:
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS store_apps (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            description TEXT,
+            icon_url TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        """)
+
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS store_app_versions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            app_id TEXT NOT NULL,
+            version TEXT NOT NULL,
+            apk_url TEXT NOT NULL,
+            size_bytes INTEGER DEFAULT 0,
+            published_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(app_id) REFERENCES store_apps(id) ON DELETE CASCADE,
+            UNIQUE(app_id, version)
+        );
+        """)
+        
+        cursor.execute("INSERT INTO schema_migrations (version) VALUES (4);")
+        conn.commit()
+
     conn.commit()
