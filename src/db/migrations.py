@@ -208,4 +208,30 @@ def run_migrations(conn: sqlite3.Connection):
         cursor.execute("INSERT INTO schema_migrations (version) VALUES (6);")
         conn.commit()
 
+    # Migration 7: Store App Unique Interactions (device_id)
+    if current_version < 7:
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS store_app_interactions (
+            app_id TEXT NOT NULL,
+            device_id TEXT NOT NULL,
+            interaction_type TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (app_id, device_id, interaction_type),
+            FOREIGN KEY(app_id) REFERENCES store_apps(id) ON DELETE CASCADE
+        );
+        """)
+        
+        # Populate likes and downloads from old raw integers into default device 'legacy_users' if they are > 0
+        cursor.execute("SELECT id, downloads, likes FROM store_apps;")
+        apps = cursor.fetchall()
+        for app in apps:
+            app_id, dl_count, like_count = app[0], app[1], app[2]
+            for i in range(dl_count):
+                cursor.execute("INSERT OR IGNORE INTO store_app_interactions (app_id, device_id, interaction_type) VALUES (?, ?, 'download');", (app_id, f"legacy_dl_{i}"))
+            for i in range(like_count):
+                cursor.execute("INSERT OR IGNORE INTO store_app_interactions (app_id, device_id, interaction_type) VALUES (?, ?, 'like');", (app_id, f"legacy_like_{i}"))
+                
+        cursor.execute("INSERT INTO schema_migrations (version) VALUES (7);")
+        conn.commit()
+
     conn.commit()

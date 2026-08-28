@@ -314,7 +314,7 @@ def save_store_app_version(app_id: str, version: str, apk_url: str, size_bytes: 
     conn.commit()
     conn.close()
 
-def get_store_apps_with_versions() -> Dict[str, Any]:
+def get_store_apps_with_versions(device_id: str = None) -> Dict[str, Any]:
     init_db()
     conn = get_connection()
     cursor = conn.cursor()
@@ -330,14 +330,27 @@ def get_store_apps_with_versions() -> Dict[str, Any]:
         
         versions = [dict(v) for v in versions_rows]
         
+        # Calculate real downloads and likes from the interactions table
+        cursor.execute("SELECT COUNT(*) FROM store_app_interactions WHERE app_id = ? AND interaction_type = 'download';", (app_id,))
+        downloads = cursor.fetchone()[0]
+        
+        cursor.execute("SELECT COUNT(*) FROM store_app_interactions WHERE app_id = ? AND interaction_type = 'like';", (app_id,))
+        likes = cursor.fetchone()[0]
+        
+        liked_by_me = False
+        if device_id:
+            cursor.execute("SELECT 1 FROM store_app_interactions WHERE app_id = ? AND device_id = ? AND interaction_type = 'like';", (app_id, device_id))
+            liked_by_me = cursor.fetchone() is not None
+            
         result[app_id] = {
             "id": app_id,
             "name": app_r["name"],
             "description": app_r["description"],
             "icon_url": app_r["icon_url"],
             "created_at": app_r["created_at"],
-            "downloads": app_r["downloads"] if "downloads" in app_r.keys() else 0,
-            "likes": app_r["likes"] if "likes" in app_r.keys() else 0,
+            "downloads": downloads,
+            "likes": likes,
+            "liked_by_me": liked_by_me,
             "latest_version": versions[0]["version"] if versions else "1.0.0",
             "versions": versions
         }
@@ -345,17 +358,40 @@ def get_store_apps_with_versions() -> Dict[str, Any]:
     conn.close()
     return result
 
-def increment_store_app_metric(app_id: str, metric: str):
-    """Increment either 'downloads' or 'likes' for a store app."""
-    if metric not in ["downloads", "likes"]:
-        return False
+def toggle_store_app_like(app_id: str, device_id: str):
+    """Toggle a like for a store app from a specific device."""
     init_db()
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute(f"UPDATE store_apps SET {metric} = {metric} + 1 WHERE id = ?;", (app_id,))
+    
+    cursor.execute("SELECT 1 FROM store_app_interactions WHERE app_id = ? AND device_id = ? AND interaction_type = 'like';", (app_id, device_id))
+    exists = cursor.fetchone()
+    
+    if exists:
+        cursor.execute("DELETE FROM store_app_interactions WHERE app_id = ? AND device_id = ? AND interaction_type = 'like';", (app_id, device_id))
+        action = "unliked"
+    else:
+        cursor.execute("INSERT INTO store_app_interactions (app_id, device_id, interaction_type) VALUES (?, ?, 'like');", (app_id, device_id))
+        action = "liked"
+        
     conn.commit()
-    success = cursor.rowcount > 0
     conn.close()
+    return action
+
+def record_store_app_download(app_id: str, device_id: str):
+    """Record a unique download for a store app from a specific device."""
+    init_db()
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("INSERT INTO store_app_interactions (app_id, device_id, interaction_type) VALUES (?, ?, 'download');", (app_id, device_id))
+        conn.commit()
+        success = True
+    except Exception:
+        # Ignore if this device already downloaded it
+        success = False
+    finally:
+        conn.close()
     return success
 
 def update_store_app_details(app_id: str, name: str, description: str):

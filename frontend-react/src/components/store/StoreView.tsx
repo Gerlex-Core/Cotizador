@@ -19,6 +19,7 @@ interface StoreApp {
     latest_version: string;
     downloads: number;
     likes: number;
+    liked_by_me: boolean;
     versions: AppVersion[];
 }
 
@@ -27,15 +28,27 @@ export default function StoreView() {
     const [apps, setApps] = useState<StoreApp[]>([]);
     const [loading, setLoading] = useState(true);
     const [apiUrl, setApiUrl] = useState('');
+    const [deviceId, setDeviceId] = useState('');
     const [selectedApp, setSelectedApp] = useState<StoreApp | null>(null);
     const [selectedVersion, setSelectedVersion] = useState<AppVersion | null>(null);
 
     useEffect(() => {
         const fetchApps = async () => {
             try {
+                let dId = localStorage.getItem("store_device_id");
+                if (!dId) {
+                    dId = "dev_" + Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+                    localStorage.setItem("store_device_id", dId);
+                }
+                setDeviceId(dId);
+
                 const { API_BASE_URL } = await import('../../config/apiConfig');
                 setApiUrl(API_BASE_URL);
-                const response = await fetch(`${API_BASE_URL}/api/store/apps`);
+                const response = await fetch(`${API_BASE_URL}/api/store/apps`, {
+                    headers: {
+                        'X-Device-ID': dId
+                    }
+                });
                 if (response.ok) {
                     const data = await response.json();
                     const appsData = data.apps || [];
@@ -108,10 +121,16 @@ export default function StoreView() {
 
     const handleDownload = async (app: StoreApp, apk_url: string) => {
         try {
-            await fetch(`${apiUrl}/api/store/${app.id}/download`, { method: 'POST' });
-            setApps(prev => prev.map(a => a.id === app.id ? { ...a, downloads: a.downloads + 1 } : a));
-            if (selectedApp?.id === app.id) {
-                setSelectedApp(prev => prev ? { ...prev, downloads: prev.downloads + 1 } : null);
+            const res = await fetch(`${apiUrl}/api/store/${app.id}/download`, { 
+                method: 'POST',
+                headers: { 'X-Device-ID': deviceId }
+            });
+            const data = await res.json();
+            if (data.tracked) {
+                setApps(prev => prev.map(a => a.id === app.id ? { ...a, downloads: a.downloads + 1 } : a));
+                if (selectedApp?.id === app.id) {
+                    setSelectedApp(prev => prev ? { ...prev, downloads: prev.downloads + 1 } : null);
+                }
             }
         } catch (err) {
             console.error(err);
@@ -122,10 +141,22 @@ export default function StoreView() {
     const handleLike = async (app: StoreApp, e: React.MouseEvent) => {
         e.stopPropagation();
         try {
-            await fetch(`${apiUrl}/api/store/${app.id}/like`, { method: 'POST' });
-            setApps(prev => prev.map(a => a.id === app.id ? { ...a, likes: a.likes + 1 } : a));
-            if (selectedApp?.id === app.id) {
-                setSelectedApp(prev => prev ? { ...prev, likes: prev.likes + 1 } : null);
+            const res = await fetch(`${apiUrl}/api/store/${app.id}/like`, { 
+                method: 'POST',
+                headers: { 'X-Device-ID': deviceId }
+            });
+            const data = await res.json();
+            
+            if (data.action === "liked") {
+                setApps(prev => prev.map(a => a.id === app.id ? { ...a, likes: a.likes + 1, liked_by_me: true } : a));
+                if (selectedApp?.id === app.id) {
+                    setSelectedApp(prev => prev ? { ...prev, likes: prev.likes + 1, liked_by_me: true } : null);
+                }
+            } else if (data.action === "unliked") {
+                setApps(prev => prev.map(a => a.id === app.id ? { ...a, likes: a.likes - 1, liked_by_me: false } : a));
+                if (selectedApp?.id === app.id) {
+                    setSelectedApp(prev => prev ? { ...prev, likes: prev.likes - 1, liked_by_me: false } : null);
+                }
             }
         } catch (err) {
             console.error(err);
@@ -174,9 +205,9 @@ export default function StoreView() {
                             </div>
                             <button 
                                 onClick={(e) => handleLike(selectedApp, e)}
-                                className="flex items-center space-x-2 text-pink-400 hover:text-pink-300 transition-colors"
+                                className={`flex items-center space-x-2 transition-colors ${selectedApp.liked_by_me ? 'text-pink-500 hover:text-pink-400' : 'text-pink-400/50 hover:text-pink-400'}`}
                             >
-                                <span className="material-symbols-outlined font-bold">favorite</span>
+                                <span className={`material-symbols-outlined font-bold ${selectedApp.liked_by_me ? 'fill-current' : ''}`} style={selectedApp.liked_by_me ? { fontVariationSettings: "'FILL' 1" } : {}}>favorite</span>
                                 <span className="font-bold text-xl">{selectedApp.likes}</span>
                             </button>
                         </div>
@@ -227,9 +258,9 @@ export default function StoreView() {
                             </div>
                             <button 
                                 onClick={(e) => handleLike(selectedApp, e)}
-                                className="flex items-center space-x-2 text-pink-400 hover:text-pink-300 transition-colors"
+                                className={`flex items-center space-x-2 transition-colors ${selectedApp.liked_by_me ? 'text-pink-500 hover:text-pink-400' : 'text-pink-400/50 hover:text-pink-400'}`}
                             >
-                                <span className="material-symbols-outlined font-bold">favorite</span>
+                                <span className={`material-symbols-outlined font-bold ${selectedApp.liked_by_me ? 'fill-current' : ''}`} style={selectedApp.liked_by_me ? { fontVariationSettings: "'FILL' 1" } : {}}>favorite</span>
                                 <span className="font-bold text-xl">{selectedApp.likes}</span>
                             </button>
                         </div>
@@ -357,9 +388,9 @@ export default function StoreView() {
                                             </div>
                                             <button 
                                                 onClick={(e) => handleLike(app, e)}
-                                                className="flex items-center space-x-1 text-pink-400 hover:text-pink-300 transition-colors text-sm font-bold"
+                                                className={`flex items-center space-x-1 transition-colors text-sm font-bold ${app.liked_by_me ? 'text-pink-500 hover:text-pink-400' : 'text-pink-400/50 hover:text-pink-400'}`}
                                             >
-                                                <span className="material-symbols-outlined text-[16px]">favorite</span>
+                                                <span className={`material-symbols-outlined text-[16px] ${app.liked_by_me ? 'fill-current' : ''}`} style={app.liked_by_me ? { fontVariationSettings: "'FILL' 1" } : {}}>favorite</span>
                                                 <span>{app.likes}</span>
                                             </button>
                                         </div>
