@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { apiFetch } from '../utils/apiClient';
+import { API_BASE_URL } from '../config/apiConfig';
 import type { ReactNode } from 'react';
 
 export interface ProductItem {
@@ -157,12 +159,9 @@ export function QuotationProvider({ children }: { children: ReactNode }) {
                 cover_page_enabled: false
             };
 
-            const { API_BASE_URL } = await import('../config/apiConfig');
-            const response = await fetch(`${API_BASE_URL}/api/quotations/pdf`, {
+            const response = await apiFetch(`${API_BASE_URL}/api/quotations/pdf`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
 
@@ -243,12 +242,9 @@ export function QuotationProvider({ children }: { children: ReactNode }) {
         };
 
         try {
-            const { API_BASE_URL } = await import('../config/apiConfig');
-            const response = await fetch(`${API_BASE_URL}/api/quotations/save`, {
+            const response = await apiFetch(`${API_BASE_URL}/api/quotations/save`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
 

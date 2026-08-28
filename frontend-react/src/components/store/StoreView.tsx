@@ -17,6 +17,8 @@ interface StoreApp {
     icon_url: string;
     created_at: string;
     latest_version: string;
+    downloads: number;
+    likes: number;
     versions: AppVersion[];
 }
 
@@ -104,8 +106,30 @@ export default function StoreView() {
         window.history.pushState({}, "", `/store/${selectedApp?.id}`);
     };
 
-    const handleDownload = (apk_url: string) => {
+    const handleDownload = async (app: StoreApp, apk_url: string) => {
+        try {
+            await fetch(`${apiUrl}/api/store/${app.id}/download`, { method: 'POST' });
+            setApps(prev => prev.map(a => a.id === app.id ? { ...a, downloads: a.downloads + 1 } : a));
+            if (selectedApp?.id === app.id) {
+                setSelectedApp(prev => prev ? { ...prev, downloads: prev.downloads + 1 } : null);
+            }
+        } catch (err) {
+            console.error(err);
+        }
         window.open(`${apiUrl}${apk_url}`, '_blank');
+    };
+
+    const handleLike = async (app: StoreApp, e: React.MouseEvent) => {
+        e.stopPropagation();
+        try {
+            await fetch(`${apiUrl}/api/store/${app.id}/like`, { method: 'POST' });
+            setApps(prev => prev.map(a => a.id === app.id ? { ...a, likes: a.likes + 1 } : a));
+            if (selectedApp?.id === app.id) {
+                setSelectedApp(prev => prev ? { ...prev, likes: prev.likes + 1 } : null);
+            }
+        } catch (err) {
+            console.error(err);
+        }
     };
 
     if (loading) {
@@ -143,8 +167,21 @@ export default function StoreView() {
                         <h1 className="text-4xl font-black text-white mb-2">{selectedApp.name} <span className="text-emerald-400">v{selectedVersion.version}</span></h1>
                         <p className="text-gray-400 mb-6 text-lg">{selectedVersion.description || selectedApp.description || "Sin descripción disponible para esta versión."}</p>
                         
+                        <div className="flex items-center space-x-6 mb-6">
+                            <div className="flex items-center space-x-2 text-emerald-400">
+                                <span className="material-symbols-outlined">download</span>
+                                <span className="font-bold text-xl">{selectedApp.downloads}</span>
+                            </div>
+                            <button 
+                                onClick={(e) => handleLike(selectedApp, e)}
+                                className="flex items-center space-x-2 text-pink-400 hover:text-pink-300 transition-colors"
+                            >
+                                <span className="material-symbols-outlined font-bold">favorite</span>
+                                <span className="font-bold text-xl">{selectedApp.likes}</span>
+                            </button>
+                        </div>
                         <button 
-                            onClick={() => handleDownload(selectedVersion.apk_url)}
+                            onClick={() => handleDownload(selectedApp, selectedVersion.apk_url)}
                             className="bg-emerald-500 hover:bg-emerald-400 text-white font-bold py-4 px-8 rounded-2xl shadow-lg hover:shadow-emerald-500/25 transition-all hover:scale-105 active:scale-95 flex items-center space-x-3 text-lg"
                         >
                             <span className="material-symbols-outlined text-2xl">download</span>
@@ -183,8 +220,22 @@ export default function StoreView() {
                         <h1 className="text-4xl font-black text-white mb-2">{selectedApp.name}</h1>
                         <p className="text-gray-400 mb-6 text-lg">{selectedApp.description || "Sin descripción disponible."}</p>
                         
+                        <div className="flex items-center space-x-6 mb-6">
+                            <div className="flex items-center space-x-2 text-emerald-400">
+                                <span className="material-symbols-outlined">download</span>
+                                <span className="font-bold text-xl">{selectedApp.downloads}</span>
+                            </div>
+                            <button 
+                                onClick={(e) => handleLike(selectedApp, e)}
+                                className="flex items-center space-x-2 text-pink-400 hover:text-pink-300 transition-colors"
+                            >
+                                <span className="material-symbols-outlined font-bold">favorite</span>
+                                <span className="font-bold text-xl">{selectedApp.likes}</span>
+                            </button>
+                        </div>
+                        
                         <button 
-                            onClick={() => handleDownload(selectedApp.versions[0].apk_url)}
+                            onClick={() => handleDownload(selectedApp, selectedApp.versions[0].apk_url)}
                             className="bg-emerald-500 hover:bg-emerald-400 text-white font-bold py-4 px-8 rounded-2xl shadow-lg hover:shadow-emerald-500/25 transition-all hover:scale-105 active:scale-95 flex items-center space-x-3 text-lg"
                         >
                             <span className="material-symbols-outlined text-2xl">download</span>
@@ -232,7 +283,7 @@ export default function StoreView() {
                                         </td>
                                         <td className="p-4 text-right">
                                             <button 
-                                                onClick={() => handleDownload(ver.apk_url)}
+                                                onClick={() => handleDownload(selectedApp, ver.apk_url)}
                                                 className="glass-button px-4 py-2 text-sm font-bold text-gray-200 hover:text-white transition-colors flex items-center space-x-2 ml-auto"
                                             >
                                                 <span className="material-symbols-outlined text-sm">download</span>
@@ -298,6 +349,20 @@ export default function StoreView() {
                                         <span className="bg-emerald-500/20 text-emerald-300 text-xs px-3 py-1 rounded-full font-mono font-bold mb-4 z-10 relative border border-emerald-500/30 shadow-[0_0_10px_rgba(16,185,129,0.2)]">
                                             v{app.latest_version}
                                         </span>
+                                        
+                                        <div className="flex items-center space-x-4 mb-2 z-10 relative">
+                                            <div className="flex items-center space-x-1 text-emerald-400 text-sm font-bold">
+                                                <span className="material-symbols-outlined text-[16px]">download</span>
+                                                <span>{app.downloads}</span>
+                                            </div>
+                                            <button 
+                                                onClick={(e) => handleLike(app, e)}
+                                                className="flex items-center space-x-1 text-pink-400 hover:text-pink-300 transition-colors text-sm font-bold"
+                                            >
+                                                <span className="material-symbols-outlined text-[16px]">favorite</span>
+                                                <span>{app.likes}</span>
+                                            </button>
+                                        </div>
                                         <p className="text-sm text-gray-300 line-clamp-2 z-10 relative font-medium">
                                             {app.description || "Haz clic para ver detalles y versiones."}
                                         </p>

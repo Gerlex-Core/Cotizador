@@ -80,7 +80,7 @@ def add_unit_to_db(category: str, code: str, name: str) -> bool:
         conn.close()
 
 
-def save_quotation_to_db(payload: Dict[str, Any]) -> int:
+def save_quotation_to_db(payload: Dict[str, Any], user_id: str = "default") -> int:
     """Save or update quotation record in SQLite DB."""
     init_db()
     conn = get_connection()
@@ -135,14 +135,16 @@ def save_quotation_to_db(payload: Dict[str, Any]) -> int:
         saldo_amount=excluded.saldo_amount,
         terms_data_json=excluded.terms_data_json,
         products_json=excluded.products_json,
-        full_payload_json=excluded.full_payload_json;
+        full_payload_json=excluded.full_payload_json,
+        user_id=excluded.user_id;
     """, (
         q_num, doc_type, date, validity, company,
         client_name, client_contact, client_address, subtotal, disc_amount,
         iva_amount, shipping_amount, total, paid_amount, saldo_amount,
         json.dumps(payload.get("terms_data", {})),
         json.dumps(products),
-        json.dumps(payload)
+        json.dumps(payload),
+        user_id
     ))
 
     conn.commit()
@@ -151,23 +153,23 @@ def save_quotation_to_db(payload: Dict[str, Any]) -> int:
     return row_id
 
 
-def list_quotations_from_db() -> List[Dict[str, Any]]:
-    """Get list of stored quotations."""
+def list_quotations_from_db(user_id: str = "default") -> List[Dict[str, Any]]:
+    """Get list of stored quotations for a specific user."""
     init_db()
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT quotation_number, document_type, date, client_name, company_name, total, paid_amount, saldo_amount, created_at FROM quotations ORDER BY created_at DESC;")
+    cursor.execute("SELECT quotation_number, document_type, date, client_name, company_name, total, paid_amount, saldo_amount, created_at FROM quotations WHERE user_id = ? OR user_id IS NULL ORDER BY created_at DESC;", (user_id,))
     rows = cursor.fetchall()
     conn.close()
     return [dict(r) for r in rows]
 
 
-def get_quotation_from_db(q_num: str) -> Optional[Dict[str, Any]]:
-    """Get full quotation payload by number."""
+def get_quotation_from_db(q_num: str, user_id: str = "default") -> Optional[Dict[str, Any]]:
+    """Get full quotation payload by number and user_id."""
     init_db()
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM quotations WHERE quotation_number = ?;", (q_num,))
+    cursor.execute("SELECT * FROM quotations WHERE quotation_number = ? AND (user_id = ? OR user_id IS NULL);", (q_num, user_id))
     row = cursor.fetchone()
     conn.close()
     
@@ -192,7 +194,7 @@ def get_quotation_from_db(q_num: str) -> Optional[Dict[str, Any]]:
     }
 
 
-def save_company_to_db(comp_dict: Dict[str, Any]):
+def save_company_to_db(comp_dict: Dict[str, Any], user_id: str = "default"):
     """Save or update company profile in SQLite DB."""
     init_db()
     conn = get_connection()
@@ -200,8 +202,8 @@ def save_company_to_db(comp_dict: Dict[str, Any]):
     name = comp_dict.get("nombre") or comp_dict.get("name") or "Empresa"
     
     cursor.execute("""
-    INSERT INTO companies (name, nit, address, phone, email, city, is_default, full_json)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO companies (name, nit, address, phone, email, city, is_default, full_json, user_id)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(name) DO UPDATE SET
         nit=excluded.nit,
         address=excluded.address,
@@ -209,7 +211,8 @@ def save_company_to_db(comp_dict: Dict[str, Any]):
         email=excluded.email,
         city=excluded.city,
         is_default=excluded.is_default,
-        full_json=excluded.full_json;
+        full_json=excluded.full_json,
+        user_id=excluded.user_id;
     """, (
         name,
         comp_dict.get("nit", ""),
@@ -218,18 +221,19 @@ def save_company_to_db(comp_dict: Dict[str, Any]):
         comp_dict.get("correo", ""),
         comp_dict.get("ciudad", ""),
         1 if comp_dict.get("es_predeterminada") else 0,
-        json.dumps(comp_dict)
+        json.dumps(comp_dict),
+        user_id
     ))
     conn.commit()
     conn.close()
 
 
-def list_companies_from_db() -> List[Dict[str, Any]]:
-    """List all companies stored in SQLite DB."""
+def list_companies_from_db(user_id: str = "default") -> List[Dict[str, Any]]:
+    """List all companies stored in SQLite DB for a specific user."""
     init_db()
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT full_json FROM companies ORDER BY is_default DESC, name ASC;")
+    cursor.execute("SELECT full_json FROM companies WHERE user_id = ? OR user_id IS NULL ORDER BY is_default DESC, name ASC;", (user_id,))
     rows = cursor.fetchall()
     conn.close()
     result = []
@@ -242,12 +246,12 @@ def list_companies_from_db() -> List[Dict[str, Any]]:
     return result
 
 
-def delete_company_from_db(name: str):
-    """Delete company from SQLite DB."""
+def delete_company_from_db(name: str, user_id: str = "default"):
+    """Delete company from SQLite DB for a user."""
     init_db()
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM companies WHERE name = ?;", (name,))
+    cursor.execute("DELETE FROM companies WHERE name = ? AND (user_id = ? OR user_id IS NULL);", (name, user_id))
     conn.commit()
     conn.close()
 
@@ -332,9 +336,39 @@ def get_store_apps_with_versions() -> Dict[str, Any]:
             "description": app_r["description"],
             "icon_url": app_r["icon_url"],
             "created_at": app_r["created_at"],
+            "downloads": app_r["downloads"] if "downloads" in app_r.keys() else 0,
+            "likes": app_r["likes"] if "likes" in app_r.keys() else 0,
             "latest_version": versions[0]["version"] if versions else "1.0.0",
             "versions": versions
         }
         
     conn.close()
     return result
+
+def increment_store_app_metric(app_id: str, metric: str):
+    """Increment either 'downloads' or 'likes' for a store app."""
+    if metric not in ["downloads", "likes"]:
+        return False
+    init_db()
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute(f"UPDATE store_apps SET {metric} = {metric} + 1 WHERE id = ?;", (app_id,))
+    conn.commit()
+    success = cursor.rowcount > 0
+    conn.close()
+    return success
+
+def update_store_app_details(app_id: str, name: str, description: str):
+    """Update store app details from Admin dashboard."""
+    init_db()
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE store_apps 
+        SET name = ?, description = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?;
+    """, (name, description, app_id))
+    conn.commit()
+    success = cursor.rowcount > 0
+    conn.close()
+    return success

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { API_BASE_URL } from '../../config/apiConfig';
+import { apiFetch } from '../../utils/apiClient';
 
 export default function GeneralConfigView() {
     const [config, setConfig] = useState<any>({});
@@ -8,7 +9,7 @@ export default function GeneralConfigView() {
     useEffect(() => {
         const loadConfig = async () => {
             try {
-                const res = await fetch(`${API_BASE_URL}/api/config`);
+                const res = await apiFetch(`${API_BASE_URL}/api/config`);
                 if (res.ok) {
                     const data = await res.json();
                     setConfig(data.config || {});
@@ -27,7 +28,7 @@ export default function GeneralConfigView() {
 
     const handleSave = async () => {
         try {
-            const res = await fetch(`${API_BASE_URL}/api/config`, {
+            const res = await apiFetch(`${API_BASE_URL}/api/config`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(config)

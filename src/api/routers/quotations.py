@@ -7,7 +7,7 @@ import tempfile
 import re
 import html
 from typing import Dict, Any, List
-from fastapi import APIRouter, HTTPException, BackgroundTasks, UploadFile, File
+from fastapi import APIRouter, HTTPException, BackgroundTasks, UploadFile, File, Depends
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
@@ -17,6 +17,7 @@ from ...logic.config.config_manager import get_config
 from ...logic.file.cotz_manager import get_cotz_manager
 from ...logic.history.history_manager import HistoryManager
 from ...db.database import save_quotation_to_db, list_quotations_from_db, get_quotation_from_db
+from ..auth_utils import get_current_user
 
 router = APIRouter(prefix="/api/quotations", tags=["Quotations"])
 history_manager = HistoryManager()
@@ -96,7 +97,7 @@ class QuotationPayload(BaseModel):
 
 
 @router.post("/calculate")
-def calculate_quotation(payload: QuotationPayload) -> Dict[str, Any]:
+def calculate_quotation(payload: QuotationPayload, current_user: dict = Depends(get_current_user)) -> Dict[str, Any]:
     """Calculate subtotal, discount, IVA, shipping, total, paid, and saldo with item discounts and exchange rate."""
     subtotal = 0.0
     for p in payload.products:
@@ -151,7 +152,7 @@ def cleanup_file(path: str):
 
 
 @router.post("/pdf")
-def generate_quotation_pdf(payload: QuotationPayload, background_tasks: BackgroundTasks):
+def generate_quotation_pdf(payload: QuotationPayload, background_tasks: BackgroundTasks, current_user: dict = Depends(get_current_user)):
     """Generate PDF document and return it for download/preview."""
     company_logic = get_company_logic()
     config = get_config()
@@ -227,7 +228,7 @@ def generate_quotation_pdf(payload: QuotationPayload, background_tasks: Backgrou
 
     # Save to SQLite DB automatically on PDF generation
     try:
-        save_quotation_to_db(payload.dict())
+        save_quotation_to_db(payload.dict(), current_user["id"])
     except Exception as db_err:
         print("[DB WARNING]", db_err)
 
@@ -296,7 +297,7 @@ def generate_quotation_pdf(payload: QuotationPayload, background_tasks: Backgrou
 
 
 @router.post("/save")
-def save_quotation_file(payload: QuotationPayload) -> Dict[str, Any]:
+def save_quotation_file(payload: QuotationPayload, current_user: dict = Depends(get_current_user)) -> Dict[str, Any]:
     """Save quotation to SQLite DB and .cotz package file."""
     cotz_mgr = get_cotz_manager()
     temp_dir = tempfile.gettempdir()
@@ -307,7 +308,7 @@ def save_quotation_file(payload: QuotationPayload) -> Dict[str, Any]:
     data_dict["total"] = sum(p.quantity * p.price for p in payload.products)
     
     # Save to SQLite DB
-    save_quotation_to_db(data_dict)
+    save_quotation_to_db(data_dict, current_user["id"])
 
     if cotz_mgr.save_quotation(filepath, data_dict):
         history_manager.add_to_history(filepath, {
@@ -322,15 +323,15 @@ def save_quotation_file(payload: QuotationPayload) -> Dict[str, Any]:
 
 
 @router.get("/db/list")
-def get_db_quotations_list() -> List[Dict[str, Any]]:
+def get_db_quotations_list(current_user: dict = Depends(get_current_user)) -> List[Dict[str, Any]]:
     """List stored quotations from SQLite database."""
-    return list_quotations_from_db()
+    return list_quotations_from_db(current_user["id"])
 
 
 @router.get("/db/load/{q_num}")
-def load_quotation_by_number(q_num: str) -> Dict[str, Any]:
+def load_quotation_by_number(q_num: str, current_user: dict = Depends(get_current_user)) -> Dict[str, Any]:
     """Load stored quotation payload from SQLite DB by number."""
-    data = get_quotation_from_db(q_num)
+    data = get_quotation_from_db(q_num, current_user["id"])
     if not data:
         raise HTTPException(status_code=404, detail="Cotización no encontrada en la base de datos.")
     return data

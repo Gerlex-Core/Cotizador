@@ -3,11 +3,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import CompanyView from './CompanyView';
 import GeneralConfigView from './GeneralConfigView';
 import { useTheme } from '../../context/ThemeContext';
+import { useAuth } from '../../context/AuthContext';
 import { cn } from '../../utils/cn';
+import AdminDashboardView from './AdminDashboardView';
 
 export default function SettingsHub() {
-    const [activeTab, setActiveTab] = useState<'empresas' | 'general' | 'apariencia'>('apariencia');
+    const [activeTab, setActiveTab] = useState<'empresas' | 'general' | 'apariencia' | 'admin'>('apariencia');
     const { theme, setTheme } = useTheme();
+    const { user } = useAuth();
+    const isAdmin = user?.role === 'master' || user?.role === 'admin';
 
     return (
         <div className="space-y-6 p-6 h-full flex flex-col">
@@ -41,6 +45,17 @@ export default function SettingsHub() {
                     >
                         Apariencia
                     </button>
+                    {isAdmin && (
+                        <button 
+                            onClick={() => setActiveTab('admin')}
+                            className={cn(
+                                "px-6 py-2 rounded-full text-sm font-bold transition-all",
+                                activeTab === 'admin' ? "bg-red-500 text-white shadow-md" : "text-[var(--text-secondary)] hover:text-white"
+                            )}
+                        >
+                            Admin Dashboard
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -121,6 +136,18 @@ export default function SettingsHub() {
                                     </div>
                                 </div>
                             </div>
+                        </motion.div>
+                    )}
+                    {isAdmin && activeTab === 'admin' && (
+                        <motion.div
+                            key="admin"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                            className="absolute inset-0"
+                        >
+                            <AdminDashboardView />
                         </motion.div>
                     )}
                 </AnimatePresence>

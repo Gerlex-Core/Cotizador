@@ -9,15 +9,18 @@ import App from './App.tsx'
 import { ThemeProvider } from './context/ThemeContext.tsx'
 import { NavigationProvider } from './context/NavigationContext.tsx'
 import { QuotationProvider } from './context/QuotationContext.tsx'
+import { AuthProvider } from './context/AuthContext.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ThemeProvider>
-      <NavigationProvider>
-        <QuotationProvider>
-          <App />
-        </QuotationProvider>
-      </NavigationProvider>
-    </ThemeProvider>
+    <AuthProvider>
+      <ThemeProvider>
+        <NavigationProvider>
+          <QuotationProvider>
+            <App />
+          </QuotationProvider>
+        </NavigationProvider>
+      </ThemeProvider>
+    </AuthProvider>
   </StrictMode>,
 )

@@ -168,4 +168,44 @@ def run_migrations(conn: sqlite3.Connection):
         cursor.execute("INSERT INTO schema_migrations (version) VALUES (5);")
         conn.commit()
 
+    # Migration 6: Users Auth & Store Metrics
+    if current_version < 6:
+        # Users Table
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id TEXT PRIMARY KEY,
+            username TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            role TEXT DEFAULT 'user',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        """)
+
+        # Add user_id to quotations
+        cursor.execute("PRAGMA table_info(quotations);")
+        cols = [r[1] for r in cursor.fetchall()]
+        if "user_id" not in cols:
+            try: cursor.execute("ALTER TABLE quotations ADD COLUMN user_id TEXT;")
+            except Exception: pass
+
+        # Add user_id to companies
+        cursor.execute("PRAGMA table_info(companies);")
+        cols = [r[1] for r in cursor.fetchall()]
+        if "user_id" not in cols:
+            try: cursor.execute("ALTER TABLE companies ADD COLUMN user_id TEXT;")
+            except Exception: pass
+
+        # Add metrics to store_apps
+        cursor.execute("PRAGMA table_info(store_apps);")
+        cols = [r[1] for r in cursor.fetchall()]
+        if "downloads" not in cols:
+            try: cursor.execute("ALTER TABLE store_apps ADD COLUMN downloads INTEGER DEFAULT 0;")
+            except Exception: pass
+        if "likes" not in cols:
+            try: cursor.execute("ALTER TABLE store_apps ADD COLUMN likes INTEGER DEFAULT 0;")
+            except Exception: pass
+
+        cursor.execute("INSERT INTO schema_migrations (version) VALUES (6);")
+        conn.commit()
+
     conn.commit()

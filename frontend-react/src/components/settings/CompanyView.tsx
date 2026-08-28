@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { cleanQtHtml } from '../../utils/sanitize';
 import { API_BASE_URL } from '../../config/apiConfig';
+import { apiFetch } from '../../utils/apiClient';
 
 type Company = {
     nombre: string;
@@ -18,15 +19,17 @@ type Company = {
 export default function CompanyView() {
     const [companies, setCompanies] = useState<Company[]>([]);
     const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+    const [editId, setEditId] = useState<string>('');
 
     const loadCompanies = async () => {
         try {
-            const res = await fetch(`${API_BASE_URL}/api/companies/details`);
+            const res = await apiFetch(`${API_BASE_URL}/api/companies/details`);
             if (res.ok) {
                 const data = await res.json();
                 setCompanies(data);
                 if (data.length > 0 && !selectedCompany) {
                     setSelectedCompany(data[0]);
+                    setEditId(data[0].nombre);
                 }
             }
         } catch (error) {
@@ -50,7 +53,7 @@ export default function CompanyView() {
     const handleSave = async () => {
         if (!selectedCompany) return;
         try {
-            const res = await fetch(`${API_BASE_URL}/api/companies`, {
+            const res = await apiFetch(`${API_BASE_URL}/api/companies`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(selectedCompany)
@@ -61,6 +64,22 @@ export default function CompanyView() {
             }
         } catch (error) {
             console.error("Error saving company:", error);
+        }
+    };
+
+    const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                if (selectedCompany && ev.target?.result) {
+                    setSelectedCompany({
+                        ...selectedCompany,
+                        logo: ev.target.result as string
+                    });
+                }
+            };
+            reader.readAsDataURL(file);
         }
     };
 
@@ -76,6 +95,7 @@ export default function CompanyView() {
             firma: '',
             es_predeterminada: false
         });
+        setEditId('new_' + Math.random());
     };
 
     return (
@@ -98,7 +118,10 @@ export default function CompanyView() {
                         <motion.button
                             key={company.nombre}
                             whileHover={{ x: 4 }}
-                            onClick={() => setSelectedCompany(company)}
+                            onClick={() => {
+                                setSelectedCompany(company);
+                                setEditId(company.nombre);
+                            }}
                             className={`w-full text-left px-4 py-3 rounded-2xl transition-all flex items-center space-x-3 ${selectedCompany?.nombre === company.nombre ? 'bg-[var(--text-primary)] text-[var(--bg-primary)] shadow-md' : 'glass-button'}`}
                         >
                             <span className="material-symbols-outlined">domain</span>
@@ -112,7 +135,7 @@ export default function CompanyView() {
             <div className="flex-1 glass-panel rounded-3xl p-6 overflow-y-auto h-[60vh]">
                 {selectedCompany ? (
                     <motion.div 
-                        key={selectedCompany.nombre}
+                        key={editId}
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         className="space-y-4"
@@ -158,9 +181,19 @@ export default function CompanyView() {
 
                         {/* Dropzones for images would go here, omitting for brevity but maintaining structure */}
                         <div className="pt-4 flex gap-4">
-                            <div className="flex-1 glass-button rounded-2xl p-4 text-center border-dashed border-2 flex flex-col items-center cursor-pointer">
-                                <span className="material-symbols-outlined text-3xl text-[var(--text-secondary)] mb-2">image</span>
-                                <span className="text-xs font-bold">Logo de Empresa</span>
+                            <div 
+                                onClick={() => document.getElementById('logo-upload')?.click()}
+                                className="flex-1 glass-button rounded-2xl p-4 text-center border-dashed border-2 flex flex-col items-center justify-center cursor-pointer relative overflow-hidden min-h-[100px]"
+                            >
+                                <input type="file" id="logo-upload" className="hidden" accept="image/*" onChange={handleLogoUpload} />
+                                {selectedCompany.logo ? (
+                                    <img src={selectedCompany.logo} alt="Logo" className="absolute inset-0 w-full h-full object-contain p-2" />
+                                ) : (
+                                    <>
+                                        <span className="material-symbols-outlined text-3xl text-[var(--text-secondary)] mb-2">image</span>
+                                        <span className="text-xs font-bold">Logo de Empresa</span>
+                                    </>
+                                )}
                             </div>
                             <div className="flex-1 glass-button rounded-2xl p-4 text-center border-dashed border-2 flex flex-col items-center cursor-pointer">
                                 <span className="material-symbols-outlined text-3xl text-[var(--text-secondary)] mb-2">draw</span>

@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useQuotation } from '../../context/QuotationContext';
 import { useNavigation } from '../../context/NavigationContext';
 import { API_BASE_URL } from '../../config/apiConfig';
+import { apiFetch } from '../../utils/apiClient';
 
 type QuotationRecord = {
     quotation_number: string;
@@ -26,7 +27,7 @@ export default function HistoryView() {
         setLoading(true);
         try {
             // Placeholder URL, will be configured via environment
-            const res = await fetch(`${API_BASE_URL}/api/quotations/db/list`);
+            const res = await apiFetch(`${API_BASE_URL}/api/quotations/db/list`);
             if (res.ok) {
                 const data = await res.json();
                 setQuotations(data);
@@ -45,7 +46,7 @@ export default function HistoryView() {
     const handleLoadQuotation = async (q: QuotationRecord) => {
         try {
             setLoading(true);
-            const res = await fetch(`${API_BASE_URL}/api/quotations/db/load/${q.quotation_number}`);
+            const res = await apiFetch(`${API_BASE_URL}/api/quotations/db/load/${q.quotation_number}`);
             if (res.ok) {
                 const data = await res.json();
                 setClient(data.client || { name: q.client_name || '', contact: '', address: '' });
@@ -96,7 +97,7 @@ export default function HistoryView() {
                 const formData = new FormData();
                 formData.append('file', file);
                 
-                const res = await fetch(`${API_BASE_URL}/api/quotations/upload`, {
+                const res = await apiFetch(`${API_BASE_URL}/api/quotations/upload`, {
                     method: 'POST',
                     body: formData
                 });

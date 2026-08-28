@@ -1,8 +1,9 @@
 import os
 import shutil
 from datetime import datetime
-from fastapi import APIRouter, File, UploadFile, Form, HTTPException
-from src.db.database import save_store_app, save_store_app_version, get_store_apps_with_versions
+from fastapi import APIRouter, File, UploadFile, Form, HTTPException, Depends
+from src.db.database import save_store_app, save_store_app_version, get_store_apps_with_versions, increment_store_app_metric
+from src.api.auth_utils import get_current_admin
 
 router = APIRouter(
     prefix="/api/store",
@@ -20,7 +21,8 @@ async def upload_app(
     version: str = Form(...),
     apk_file: UploadFile = File(...),
     app_icon_file: UploadFile = File(None),
-    version_icon_file: UploadFile = File(None)
+    version_icon_file: UploadFile = File(None),
+    admin: dict = Depends(get_current_admin)
 ):
     app_dir = os.path.join(STORE_RELEASE_PATH, app_id)
     os.makedirs(app_dir, exist_ok=True)
@@ -62,3 +64,17 @@ async def upload_app(
 async def list_apps():
     apps = get_store_apps_with_versions()
     return {"apps": list(apps.values())}
+
+@router.post("/{app_id}/like")
+async def like_app(app_id: str):
+    success = increment_store_app_metric(app_id, "likes")
+    if not success:
+        raise HTTPException(status_code=404, detail="App not found")
+    return {"status": "success", "message": "App liked"}
+
+@router.post("/{app_id}/download")
+async def download_app(app_id: str):
+    success = increment_store_app_metric(app_id, "downloads")
+    if not success:
+        raise HTTPException(status_code=404, detail="App not found")
+    return {"status": "success", "message": "Download tracked"}

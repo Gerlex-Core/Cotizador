@@ -13,7 +13,10 @@ import TermsView from '../components/cotizaciones/TermsView';
 import PDFEditorView from '../components/cotizaciones/PDFEditorView';
 import StoreView from '../components/store/StoreView';
 import LandingView from '../components/LandingView';
+import LoginView from '../components/auth/LoginView';
 import { useState, useEffect } from 'react';
+import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 
 const WALLPAPERS = [
     'https://images.unsplash.com/photo-1493515322954-4fa727e97985?fm=jpg&q=60&w=3000&auto=format&fit=crop',
@@ -25,16 +28,22 @@ const WALLPAPERS = [
 
 export default function MainLayout() {
     const { activeTab } = useNavigation();
+    const { theme } = useTheme();
+    const { isAuthenticated } = useAuth();
     const [currentBg, setCurrentBg] = useState(0);
 
     useEffect(() => {
         const interval = setInterval(() => {
             setCurrentBg((prev) => (prev + 1) % WALLPAPERS.length);
-        }, 15000); // Change every 15 seconds
+        }, 60000); // Change every 60 seconds
         return () => clearInterval(interval);
     }, []);
 
     const renderContent = () => {
+        if (!isAuthenticated && ![9, 10].includes(activeTab)) {
+            return <LoginView onSuccess={() => {}} />;
+        }
+        
         switch (activeTab) {
             case 0: return <QuotationView />;
             case 1: return <CatalogView />;
@@ -55,9 +64,9 @@ export default function MainLayout() {
     };
 
     return (
-        <div className="flex flex-col h-screen w-full overflow-hidden relative bg-black">
+        <div className="flex flex-col h-screen w-full theme-bg overflow-hidden relative">
             {/* Dynamic Background Slideshow */}
-            {WALLPAPERS.map((url, index) => (
+            {theme === 'glass-ios' && WALLPAPERS.map((url, index) => (
                 <div
                     key={url}
                     className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat transition-opacity duration-[2000ms] ease-in-out"

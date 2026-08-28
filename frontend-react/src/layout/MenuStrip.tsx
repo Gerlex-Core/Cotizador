@@ -4,6 +4,7 @@ import { cn } from '../utils/cn';
 import { useNavigation } from '../context/NavigationContext';
 import { useQuotation } from '../context/QuotationContext';
 import { motion } from 'framer-motion';
+import { apiFetch } from '../utils/apiClient';
 
 export default function MenuStrip() {
     const { activeTab, setActiveTab } = useNavigation();
@@ -85,7 +86,7 @@ export default function MenuStrip() {
                 formData.append('file', file);
                 
                 const { API_BASE_URL } = await import('../config/apiConfig');
-                const res = await fetch(`${API_BASE_URL}/api/quotations/upload`, {
+                const res = await apiFetch(`${API_BASE_URL}/api/quotations/upload`, {
                     method: 'POST',
                     body: formData
                 });

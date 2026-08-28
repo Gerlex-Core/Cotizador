@@ -21,6 +21,8 @@ from .routers.digicorp import router as digicorp_router
 from .routers.bcb import router as bcb_router
 from .routers.pdf_editor import router as pdf_editor_router
 from .routers.store import router as store_router
+from .routers.auth import router as auth_router
+from .routers.admin import router as admin_router
 
 app = FastAPI(
     title="Cotizador Pro API",
@@ -59,6 +61,8 @@ app.include_router(digicorp_router)
 app.include_router(bcb_router)
 app.include_router(pdf_editor_router)
 app.include_router(store_router)
+app.include_router(auth_router)
+app.include_router(admin_router)
 
 # --- STATIC FILES (REMOVED) ---
 # Se elimina el montaje de web/UI y la renderizacion de HTML 
