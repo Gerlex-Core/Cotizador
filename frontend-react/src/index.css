@@ -86,7 +86,7 @@
   }
   
   .theme-glass-ios .theme-bg-overlay {
-    opacity: 0.6; /* Darken background significantly to improve text readability if blur fails */
+    opacity: 0.25; /* Lighter overlay to show more of the beautiful background */
   }
 
   .glass-panel {

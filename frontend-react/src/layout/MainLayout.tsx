@@ -35,7 +35,7 @@ export default function MainLayout() {
     useEffect(() => {
         const interval = setInterval(() => {
             setCurrentBg((prev) => (prev + 1) % WALLPAPERS.length);
-        }, 60000); // Change every 60 seconds
+        }, 120000); // Change every 2 minutes (120,000 ms)
         return () => clearInterval(interval);
     }, []);
 
@@ -69,7 +69,7 @@ export default function MainLayout() {
             {theme === 'glass-ios' && WALLPAPERS.map((url, index) => (
                 <div
                     key={url}
-                    className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat transition-opacity duration-[2000ms] ease-in-out"
+                    className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat transition-opacity duration-[5000ms] ease-in-out"
                     style={{ 
                         backgroundImage: `url('${url}')`,
                         opacity: index === currentBg ? 1 : 0
@@ -86,7 +86,7 @@ export default function MainLayout() {
             <div className="absolute inset-0 theme-bg-overlay z-0 pointer-events-none transition-colors duration-500"></div>
 
             {/* Top Menu Strip */}
-            {activeTab !== 9 && activeTab !== 10 && <MenuStrip />}
+            {isAuthenticated && activeTab !== 9 && activeTab !== 10 && <MenuStrip />}
             
             {/* Main Application Area */}
             <main className="flex-1 flex flex-col h-full overflow-hidden p-2 md:p-6 space-y-2 md:space-y-4 relative z-10">
