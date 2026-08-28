@@ -17,7 +17,8 @@ const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
   const [loading, setLoading] = useState(false);
   
   const { login } = useAuth();
-  const { isDark } = useTheme();
+  const { theme } = useTheme();
+  const isDark = theme === 'glass-ios';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

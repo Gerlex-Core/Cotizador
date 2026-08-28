@@ -11,6 +11,10 @@ fastapi
 uvicorn
 python-multipart
 rich
+PyJWT
+passlib
+bcrypt
+python-dotenv
 
 # Optional - For creating standalone executables
 # pyinstaller>=5.0     # Uncomment to create .exe files
