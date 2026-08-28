@@ -1,10 +1,14 @@
+import { useRef } from 'react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { cn } from '../utils/cn';
 import { useNavigation } from '../context/NavigationContext';
+import { useQuotation } from '../context/QuotationContext';
 import { motion } from 'framer-motion';
 
 export default function MenuStrip() {
     const { activeTab, setActiveTab } = useNavigation();
+    const { setClient, setProducts, exportCotzFile } = useQuotation();
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const menuGroups = [
         {
@@ -13,7 +17,8 @@ export default function MenuStrip() {
             items: [
                 { id: 0, icon: 'receipt_long', label: 'Cotización Actual', type: 'item' },
                 { id: 6, icon: 'history', label: 'Historial', type: 'item' },
-                { id: 'save', icon: 'save', label: 'Guardar (.cotz)', type: 'action' },
+                { id: 'import', icon: 'file_open', label: 'Importar (.cotz)', type: 'action' },
+                { id: 'save', icon: 'save', label: 'Guardar Local (.cotz)', type: 'action' },
                 { id: 'sep1', type: 'separator' },
                 { id: 8, icon: 'picture_as_pdf', label: 'Exportar PDF', type: 'item' }
             ]
@@ -44,6 +49,69 @@ export default function MenuStrip() {
         }
     ];
 
+    const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (!file.name.endsWith('.cotz') && !file.name.endsWith('.json')) {
+            alert('Solo se permiten archivos .cotz o .json');
+            return;
+        }
+
+        try {
+            // Intentar leer de forma local primero (archivos offline puramente JSON)
+            if (!navigator.onLine) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    try {
+                        const content = ev.target?.result as string;
+                        const data = JSON.parse(content);
+                        setClient(data.client || { name: '', contact: '', address: '' });
+                        setProducts(data.products || []);
+                        setActiveTab(0);
+                    } catch (err) {
+                        alert("El archivo no pudo ser leído offline.");
+                    }
+                };
+                reader.readAsText(file);
+                return;
+            }
+
+            let data;
+            try {
+                // Si hay internet, mandarlo al backend para que lo extraiga en caso de ser ZIP legacy
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                const { API_BASE_URL } = await import('../config/apiConfig');
+                const res = await fetch(`${API_BASE_URL}/api/quotations/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (res.ok) {
+                    data = await res.json();
+                } else {
+                    throw new Error("Backend devolvió error");
+                }
+            } catch (networkError) {
+                // Fallback a lectura local si falla el backend o no es alcanzable
+                const textContent = await file.text();
+                data = JSON.parse(textContent);
+            }
+
+            setClient(data.client || { name: '', contact: '', address: '' });
+            setProducts(data.products || []);
+            setActiveTab(0);
+        } catch (error) {
+            console.error(error);
+            alert("Error al procesar el archivo. Asegúrate que sea un archivo válido.");
+        }
+        
+        // Reset input
+        if (fileInputRef.current) fileInputRef.current.value = '';
+    };
+
     const MenuTrigger = ({ label }: { label: string }) => (
         <DropdownMenu.Trigger asChild>
             <button className="px-4 py-1.5 rounded-lg text-sm font-semibold text-[var(--text-primary)] hover:bg-white/10 transition-colors focus:outline-none focus:bg-white/10">
@@ -69,7 +137,8 @@ export default function MenuStrip() {
                             key={item.id}
                             onSelect={() => {
                                 if (item.type === 'item') setActiveTab(item.id as number);
-                                if (item.type === 'action' && item.id === 'save') alert('Guardando...');
+                                if (item.type === 'action' && item.id === 'save') exportCotzFile();
+                                if (item.type === 'action' && item.id === 'import') fileInputRef.current?.click();
                             }}
                             className={cn(
                                 "flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm cursor-pointer outline-none transition-colors select-none text-[var(--text-primary)]",
@@ -93,6 +162,7 @@ export default function MenuStrip() {
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
             className="flex items-center justify-between px-2 md:px-4 py-1.5 glass-panel border-b border-[var(--border-default)] select-none shrink-0 relative z-50"
         >
+            <input type="file" ref={fileInputRef} className="hidden" accept=".cotz,.json" onChange={handleImportFile} />
             <div className="flex items-center overflow-x-auto no-scrollbar max-w-full">
                 {/* Logo/Brand Mini */}
                 <div className="flex items-center space-x-2 mr-4 cursor-default shrink-0">

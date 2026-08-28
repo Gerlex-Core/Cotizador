@@ -5,7 +5,7 @@ from rich.panel import Panel
 
 console = Console()
 
-SERVICE_TEMPLATE = """[Unit]
+BACKEND_SERVICE = """[Unit]
 Description=Cotizador Pro Backend Service
 After=network.target
 
@@ -19,11 +19,22 @@ Restart=always
 WantedBy=multi-user.target
 """
 
+FRONTEND_SERVICE = """[Unit]
+Description=Cotizador Pro Frontend Service
+After=network.target
+
+[Service]
+User={user}
+WorkingDirectory={cwd}/frontend-react
+ExecStart=/usr/bin/env npx serve -s dist -l 5173
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+"""
+
 def generate_service():
-    """Genera archivo de systemd cotizador.service"""
-    if os.name != 'posix':
-        console.print("[yellow]Advertencia: Generación de servicios Linux en Windows. Solo se creará el archivo localmente.[/yellow]")
-    
+    """Genera e instala archivos de systemd para backend y frontend"""
     cwd = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     user = os.environ.get("USER", "root")
     python_path = os.path.join(cwd, "venv", "bin", "python")
@@ -31,32 +42,49 @@ def generate_service():
     if os.name == 'nt':
         python_path = os.path.join(cwd, "venv", "Scripts", "python.exe")
 
-    service_content = SERVICE_TEMPLATE.format(user=user, cwd=cwd, python_path=python_path)
+    back_content = BACKEND_SERVICE.format(user=user, cwd=cwd, python_path=python_path)
+    front_content = FRONTEND_SERVICE.format(user=user, cwd=cwd)
     
-    output_path = os.path.join(cwd, "cotizador.service")
-    with open(output_path, "w") as f:
-        f.write(service_content)
+    back_path = os.path.join(cwd, "cotizador-backend.service")
+    front_path = os.path.join(cwd, "cotizador-frontend.service")
+    
+    with open(back_path, "w") as f:
+        f.write(back_content)
+    with open(front_path, "w") as f:
+        f.write(front_content)
         
-    console.print(Panel(f"Archivo de servicio generado en:\n{output_path}\n\nPara instalar en Linux:\nsudo cp cotizador.service /etc/systemd/system/\nsudo systemctl daemon-reload\nsudo systemctl enable cotizador\nsudo systemctl start cotizador", title="Servicio Generado", border_style="green"))
+    if os.name == 'posix':
+        console.print("[cyan]Instalando servicios automáticamente en Linux...[/cyan]")
+        try:
+            subprocess.run(["sudo", "cp", back_path, "/etc/systemd/system/"], check=True)
+            subprocess.run(["sudo", "cp", front_path, "/etc/systemd/system/"], check=True)
+            subprocess.run(["sudo", "systemctl", "daemon-reload"], check=True)
+            subprocess.run(["sudo", "systemctl", "enable", "cotizador-backend"], check=True)
+            subprocess.run(["sudo", "systemctl", "enable", "cotizador-frontend"], check=True)
+            console.print("[green]Servicios (backend y frontend) instalados y habilitados exitosamente.[/green]")
+        except subprocess.CalledProcessError as e:
+            console.print(f"[red]Error al instalar servicios. Asegúrate de tener permisos sudo: {e}[/red]")
+    else:
+        console.print(Panel(f"Estás en Windows.\nSe han generado los archivos localmente:\n- {back_path}\n- {front_path}\n\nEn Linux este proceso será 100% automático.", title="Servicios Generados", border_style="yellow"))
 
 def run_systemctl(command):
     if os.name != 'posix':
-        console.print("[red]Este comando solo funciona en sistemas Linux con systemd.[/red]")
+        console.print("[red]Este comando solo funciona de forma automatizada en sistemas Linux con systemd.[/red]")
         return
         
     try:
-        subprocess.run(["sudo", "systemctl", command, "cotizador"], check=True)
-        console.print(f"[green]Comando '{command}' ejecutado exitosamente.[/green]")
+        subprocess.run(["sudo", "systemctl", command, "cotizador-backend", "cotizador-frontend"], check=True)
+        console.print(f"[green]Comando '{command}' ejecutado exitosamente para backend y frontend.[/green]")
     except subprocess.CalledProcessError as e:
         console.print(f"[red]Error al ejecutar systemctl: {e}[/red]")
 
 def menu():
     while True:
         console.print("\n[bold blue]--- Modulo Sistema (Servicios Linux) ---[/bold blue]")
-        console.print("1. Generar cotizador.service")
-        console.print("2. Iniciar Servicio (start)")
-        console.print("3. Detener Servicio (stop)")
-        console.print("4. Reiniciar Servicio (restart)")
+        console.print("1. Generar e Instalar Servicios (Backend y Frontend)")
+        console.print("2. Iniciar Servicios (start)")
+        console.print("3. Detener Servicios (stop)")
+        console.print("4. Reiniciar Servicios (restart)")
         console.print("5. Ver Estado (status)")
         console.print("0. Volver")
         

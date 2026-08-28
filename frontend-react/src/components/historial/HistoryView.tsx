@@ -91,64 +91,37 @@ export default function HistoryView() {
 
         try {
             setLoading(true);
-
-            // Intentar leer de forma local primero si es un archivo exportado offline (JSON puro) o si no hay internet
-            if (!navigator.onLine) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    try {
-                        const content = e.target?.result as string;
-                        const data = JSON.parse(content);
-                        setClient(data.client || { name: '', contact: '', address: '' });
-                        setProducts(data.products || []);
-                        setActiveTab(0);
-                    } catch (err) {
-                        alert("El archivo no pudo ser leído offline. Tal vez es un .cotz comprimido antiguo que requiere internet para procesarse en el servidor.");
-                    } finally {
-                        setLoading(false);
-                    }
-                };
-                reader.readAsText(file);
-                return;
+            let data: any = null;
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                const res = await fetch(`${API_BASE_URL}/api/quotations/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (res.ok) {
+                    data = await res.json();
+                } else {
+                    throw new Error("Backend error");
+                }
+            } catch (networkError) {
+                // Fallback offline
+                const textContent = await file.text();
+                data = JSON.parse(textContent);
             }
 
-            const formData = new FormData();
-            formData.append('file', file);
-            
-            const res = await fetch(`${API_BASE_URL}/api/quotations/upload`, {
-                method: 'POST',
-                body: formData
-            });
-            
-            if (res.ok) {
-                const data = await res.json();
+            if (data) {
                 setClient(data.client || { name: '', contact: '', address: '' });
                 setProducts(data.products || []);
                 setActiveTab(0);
-            } else {
-                const errData = await res.json().catch(() => ({}));
-                alert(`Error al leer archivo .cotz: ${errData.detail || res.statusText}`);
             }
         } catch (error) {
-            // Fallback si el servidor está caído pero tenemos internet (PWA mode)
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const content = e.target?.result as string;
-                    const data = JSON.parse(content);
-                    setClient(data.client || { name: '', contact: '', address: '' });
-                    setProducts(data.products || []);
-                    setActiveTab(0);
-                } catch (err) {
-                    console.error("Error fetching upload:", error);
-                    alert("No hay conexión con el servidor y el archivo no es un formato offline válido.");
-                } finally {
-                    setLoading(false);
-                }
-            };
-            reader.readAsText(file);
+            console.error("Error processing file", error);
+            alert("Error al procesar el archivo. Formato no válido.");
         } finally {
-            if (navigator.onLine) setLoading(false);
+            setLoading(false);
         }
     };
 
