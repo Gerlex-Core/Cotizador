@@ -6,6 +6,7 @@ __pycache__/
 *$py.class
 *.pyo
 *.pyc
+.pytest_cache/
 
 # Byte-compiled / optimized
 .Python
@@ -31,6 +32,21 @@ ENV/
 env/
 .venv/
 
+# Node & Frontend
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+.npm/
+frontend-react/dist/
+tauri-app/dist/
+tauri-app/src-tauri/target/
+
+# Environment Variables
+.env
+.env.local
+.env.*.local
+
 # IDE
 .idea/
 .vscode/
@@ -49,6 +65,12 @@ media/config/
 media/settings.conf
 media/temp_company/
 media/images/download/
+*.db
+*.sqlite3
+
+# Documentos generados y Cotizaciones offline
+*.pdf
+*.cotz
 
 # Logs
 *.log
@@ -70,6 +92,8 @@ CotizadorPro.spec
 version_manager.py
 version.json
 version_pending.json
-build/
-dist/
 *.exe
+
+
+archivocotizacion
+.agents

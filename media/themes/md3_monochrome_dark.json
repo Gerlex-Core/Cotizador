@@ -1,0 +1,41 @@
+{
+    "name": "MD3 Monochrome Dark",
+    "description": "Pure Android 14 Dark Monochrome Material You Theme",
+    "is_dark": true,
+    "colors": {
+        "primary": "#E6E1E5",
+        "on_primary": "#1C1B1F",
+        "primary_container": "#2B2D38",
+        "on_primary_container": "#E6E1E5",
+        "secondary": "#CCC2DC",
+        "on_secondary": "#332D41",
+        "secondary_container": "#4A4458",
+        "surface": "#121318",
+        "on_surface": "#E6E1E5",
+        "surface_variant": "#1E1F25",
+        "on_surface_variant": "#CAC4D0",
+        "surface_container_lowest": "#0E0F14",
+        "surface_container_low": "#16171D",
+        "surface_container": "#1D1E24",
+        "surface_container_high": "#282A31",
+        "surface_container_highest": "#33353E",
+        "outline": "#938F99",
+        "outline_variant": "#49454F",
+        "accent": "#E6E1E5",
+        "accent_hover": "#FFFFFF",
+        "accent_glow": "rgba(230, 225, 229, 0.15)",
+        "badge_bg": "#4A4458",
+        "card_shadow": "0 8px 30px rgba(0, 0, 0, 0.5)"
+    },
+    "shapes": {
+        "corner_full": "9999px",
+        "corner_extra_large": "28px",
+        "corner_large": "24px",
+        "corner_medium": "16px",
+        "corner_small": "12px"
+    },
+    "typography": {
+        "font_family": "Roboto, Segoe UI, sans-serif",
+        "font_size_base": "13px"
+    }
+}

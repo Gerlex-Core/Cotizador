@@ -25,203 +25,7 @@ except ImportError:
     pass
 
 import json
-from html.parser import HTMLParser
-
-class ReportLabHTMLParser(HTMLParser):
-    """Parse Qt HTML to ReportLab XML.
-    
-    Ignores document structure tags (html, head, body, etc.) and only
-    processes content tags like span, p, br for formatting.
-    """
-    # Tags to completely ignore (document structure)
-    IGNORE_TAGS = {'html', 'head', 'body', 'meta', 'style', 'title', '!doctype'}
-    
-    def __init__(self):
-        super().__init__()
-        self.output = []
-        self.tag_stack = []
-        self._ignore_content = False  # Flag to skip content inside style/head tags
-        self.list_depth = 0 # Track list nesting for indentation
-
-    def handle_starttag(self, tag, attrs):
-        tag_lower = tag.lower()
-        
-        # Skip document structure tags
-        if tag_lower in self.IGNORE_TAGS:
-            # If entering style or head, ignore content until we exit
-            if tag_lower in ('style', 'head'):
-                self._ignore_content = True
-            return
-            
-        if self._ignore_content:
-            return
-            
-        if tag_lower == 'br':
-            self.output.append('<br/>')
-        elif tag_lower == 'p':
-            if self.output: 
-                self.output.append('<br/>') 
-        elif tag_lower == 'span':
-            styles = dict(attrs).get('style', '')
-            tags_to_open = [] # List of (tag_name, full_tag)
-            
-            # Formatting
-            if 'font-weight:600' in styles or 'font-weight:bold' in styles:
-                tags_to_open.append(('b', '<b>'))
-            if 'font-style:italic' in styles:
-                tags_to_open.append(('i', '<i>'))
-            if 'text-decoration:underline' in styles:
-                tags_to_open.append(('u', '<u>'))
-            if 'text-decoration:line-through' in styles:
-                tags_to_open.append(('strike', '<strike>'))
-            
-            # Sub/Superscript
-            if 'vertical-align:sub' in styles:
-                tags_to_open.append(('sub', '<sub>'))
-            if 'vertical-align:super' in styles:
-                tags_to_open.append(('sup', '<sup>'))
-                
-            # Color
-            import re
-            color_match = re.search(r'color\s*:\s*([^;"]+)', styles)
-            if color_match:
-                c_val = color_match.group(1).strip()
-                # Skip theme default colors (white/black) usually, but user wants fidelity.
-                # If background is white (PDF), white text is bad.
-                if c_val.lower() not in ('#ffffff', 'white', 'rgb(255, 255, 255)'):
-                     tags_to_open.append(('font', f'<font color="{c_val}">'))
-
-            # Font Size
-            # Qt often gives "8.25pt" or "12px". Map to integers.
-            size_match = re.search(r'font-size\s*:\s*([0-9\.]+)(pt|px)', styles)
-            if size_match:
-                 val = float(size_match.group(1))
-                 unit = size_match.group(2)
-                 if unit == 'px': val = val * 0.75 # Approx conversion
-                 if val > 0:
-                     tags_to_open.append(('font', f'<font size="{int(val)}">'))
-            
-            # Font Family
-            face_match = re.search(r'font-family\s*:\s*\'?([^\'";]+)\'?', styles)
-            if face_match:
-                face = face_match.group(1).lower()
-                # Map to standard PDF fonts
-                pdf_font = 'Helvetica'
-                if 'times' in face or 'serif' in face: pdf_font = 'Times-Roman'
-                elif 'courier' in face or 'mono' in face: pdf_font = 'Courier'
-                tags_to_open.append(('font', f'<font face="{pdf_font}">'))
-
-            # Background Color (Highlight) - ReportLab supports backColor in font tag
-            bg_match = re.search(r'background-color\s*:\s*([^;\"]+)', styles)
-            if bg_match:
-                bg_val = bg_match.group(1).strip()
-                # Skip transparent or white backgrounds
-                if bg_val.lower() not in ('transparent', '#ffffff', 'white', 'rgb(255, 255, 255)', 'initial', 'inherit'):
-                    # ReportLab Paragraph supports backColor attribute
-                    tags_to_open.append(('font', f'<font backColor="{bg_val}">'))
-
-            for _, full_tag in tags_to_open:
-                self.output.append(full_tag)
-            self.tag_stack.append(tags_to_open)
-            
-        # Standard Tags Support
-        elif tag_lower in ('b', 'strong'):
-            self.output.append('<b>')
-        elif tag_lower in ('i', 'em'):
-            self.output.append('<i>')
-        elif tag_lower == 'u':
-            self.output.append('<u>')
-        elif tag_lower in ('s', 'strike', 'del'):
-            self.output.append('<strike>')
-        elif tag_lower == 'sub':
-            self.output.append('<sub>')
-        elif tag_lower == 'sup':
-            self.output.append('<sup>')
-            
-        elif tag_lower in ('ul', 'ol'):
-            self.list_depth += 1
-            # Add break before list starts if not at start
-            if self.output and not self.output[-1].endswith('<br/>'):
-                self.output.append('<br/>')
-                
-        elif tag_lower == 'li':
-            # Calculate indentation
-            indent_spaces = "&nbsp;" * (self.list_depth * 4)
-            bullet = "&bull;" if self.list_depth % 2 != 0 else "&circ;"
-            
-            # Use ReportLab's <bullet> tag if inside ListFlowable? No, we are in Paragraph.
-            # Convert to: <br/>&nbsp;&bull; Content
-            # We precede with break unless it's the very first item? 
-            # Actually standard practice for simple parser:
-            start_marker = f'<br/>{indent_spaces}{bullet} '
-            self.output.append(start_marker)
-            
-        elif tag_lower == 'p':
-             # Only add break if output not empty
-            if self.output: 
-                self.output.append('<br/>') 
-        
-    def handle_endtag(self, tag):
-        tag_lower = tag.lower()
-        
-        # Resume content processing when exiting ignored sections
-        if tag_lower in ('style', 'head'):
-            self._ignore_content = False
-            return
-            
-        if tag_lower in self.IGNORE_TAGS:
-            return
-            
-        if self._ignore_content:
-            return
-            
-        if tag_lower in ('b', 'strong'):
-            self.output.append('</b>')
-        elif tag_lower in ('i', 'em'):
-            self.output.append('</i>')
-        elif tag_lower == 'u':
-            self.output.append('</u>')
-        elif tag_lower == 'strike':
-            self.output.append('</strike>')
-        elif tag_lower in ('ul', 'ol'):
-            self.list_depth = max(0, self.list_depth - 1)
-            # self.output.append('<br/>') # Avoid extra break at end of list
-            
-        elif tag_lower == 'span':
-             # ... existing span close logic handled above ...
-             pass
-
-    def handle_data(self, data):
-        if self._ignore_content:
-            return
-        # Convert tabs to spaces (4 non-breaking spaces per tab)
-        data = data.replace('\t', '&nbsp;&nbsp;&nbsp;&nbsp;')
-        
-        # Only add non-empty content
-        if data.strip():
-            self.output.append(data)
-        elif data and self.output:
-            # Preserve single spaces between words
-            self.output.append(' ')
-    
-    def handle_decl(self, decl):
-        """Handle DOCTYPE declarations - ignore them."""
-        pass
-    
-    def handle_comment(self, data):
-        """Handle HTML comments - ignore them."""
-        pass
-
-    def get_result(self):
-        # Auto-close any remaining tags in stack
-        while self.tag_stack:
-            tags_to_close = self.tag_stack.pop()
-            for tag_name, _ in reversed(tags_to_close):
-                self.output.append(f'</{tag_name}>')
-        
-        return "".join(self.output).strip()
-
-
+from .html_parser import ReportLabHTMLParser
 
 class PDFGenerator:
     """
@@ -433,14 +237,20 @@ class PDFGenerator:
                  mostrar_terminos: bool = True, mostrar_firma: bool = True,
                  validez_dias: int = 30, cliente: dict = None,
                  observaciones_data: dict = None, numero_cotizacion: str = "",
-                 document_type: str = "Cotizacion", shipping: float = 0,
+                 document_type: str = "Cotización", shipping: float = 0,
                  cover_page_data: dict = None, warranty_data: dict = None,
                  estimated_days: int = 7, shipping_type: str = "Sin envío",
                  installation_terms: str = "", payment_method: str = "",
                  bank_details: str = "", payment_type: str = "",
-                 apply_iva: bool = True, include_details: bool = True,
+                 apply_iva: bool = True, apply_payment: bool = False,
+                 paid_amount: float = 0.0, saldo_amount: float = 0.0,
+                 include_details: bool = True,
                  terms_data: dict = None, prepared_by: str = "",
-                 signature_image: str = None):
+                 signature_image: str = None,
+                 purchase_date: str = "",
+                 exchange_rate: float = 12.02,
+                 show_exchange_rate: bool = True,
+                 show_dual_currency: bool = True):
         """
         Generate a professional PDF quotation or receipt.
         
@@ -515,7 +325,11 @@ class PDFGenerator:
         
         # === HEADER ===
         y = self._draw_header(c, width, y, empresa, datos_empresa, fecha, 
-                              cliente, numero_cotizacion, document_type)
+                              cliente, numero_cotizacion, document_type,
+                              purchase_date=purchase_date,
+                              exchange_rate=exchange_rate,
+                              show_exchange_rate=show_exchange_rate,
+                              show_dual_currency=show_dual_currency)
         
         # === PRODUCTS TABLE (Standard) ===
         y = self._draw_table(c, width, y, productos)
@@ -523,21 +337,31 @@ class PDFGenerator:
         # === TOTAL ===
         # Determine if shipping is enabled (has a valid shipping type)
         shipping_enabled = shipping_type and shipping_type != "Sin envío"
-        y = self._draw_total(c, width, y, total, moneda, 
-                             shipping_enabled=shipping_enabled,
-                             shipping_type=shipping_type,
-                             shipping=shipping)
+        if shipping_enabled:
+             y = self._draw_total(c, width, y, total, moneda, 
+                                shipping_enabled=shipping_enabled,
+                                shipping_type=shipping_type,
+                                shipping=shipping,
+                                apply_payment=apply_payment,
+                                paid_amount=paid_amount,
+                                saldo_amount=saldo_amount)
+        else:
+             y = self._draw_total(c, width, y, total, moneda,
+                                shipping_enabled=False,
+                                shipping_type="Sin envío",
+                                shipping=0,
+                                apply_payment=apply_payment,
+                                paid_amount=paid_amount,
+                                saldo_amount=saldo_amount)
         
         # === SUMMARY (Resumen de condiciones) - Below Total on Page 1/2 ===
         if mostrar_terminos:
+            show_delivery = terms_data.get('show_delivery_days', True) if terms_data else True
             y = self._draw_summary(c, width, y, validez_dias, estimated_days, 
-                                   shipping_type, payment_method, shipping, apply_iva, moneda)
+                                   shipping_type, payment_method, shipping, apply_iva, moneda,
+                                   show_delivery_days=show_delivery)
 
         # === PRODUCT MATRIX (Vertical 4/page) - Page 2+ ===
-        # Use simple heuristic: if products have images, show the matrix too? 
-        # Or always show it if the user enabled "include_details"?
-        # User requested "en la lista de imagenes de productos pon 4 por oja".
-        # We'll assume the explicit matrix is desired if there are images.
         products_with_images = [p for p in productos if len(p) > 5 and p[5]]
         if products_with_images:
             # Force new page for Matrix
@@ -675,53 +499,52 @@ class PDFGenerator:
     def _draw_header(self, c: canvas.Canvas, width: float, y: float,
                      empresa: str, datos_empresa: dict, fecha: str,
                      cliente: dict = None, numero_cotizacion: str = "",
-                     document_type: str = "Cotizacion") -> float:
+                     document_type: str = "Cotización", purchase_date: str = "",
+                     exchange_rate: float = 12.02, show_exchange_rate: bool = True, show_dual_currency: bool = True) -> float:
+
         """Draw the header section with company on left, client on right.
         Uses professional formatting with borders, no emojis."""
         left_margin = 40
         right_margin = width - 40
         
+        # === TOP VOLATILITY DISCLAIMER BANNER (for Cotizaciones) ===
+        if show_exchange_rate and "COTIZ" in (document_type or "").upper():
+            banner_text = "NOTA: Precios sujetos a variación según la volatilidad del tipo de cambio oficial/flexible al momento del pago."
+            c.setFillColor(colors.HexColor('#FEF3C7'))
+            c.setStrokeColor(colors.HexColor('#F59E0B'))
+            c.roundRect(left_margin, y - 16, right_margin - left_margin, 16, 4, fill=True, stroke=True)
+            c.setFont("Helvetica-Bold", 7.5)
+            c.setFillColor(colors.HexColor('#92400E'))
+            c.drawCentredString(width / 2, y - 12, banner_text)
+            y -= 24
+
         # === LEFT SIDE: COMPANY INFO ===
-        
-        # Load company logo directly from .emp ZIP file
         logo_height = 0
         import zipfile
         import io
         import sys
         
-        # Get correct base directory (works for both dev and frozen .exe)
         if getattr(sys, 'frozen', False):
-            # Running as compiled .exe
             base_dir = os.path.dirname(sys.executable)
         else:
-            # Running as script
             base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         
         emp_file = os.path.join(base_dir, "media", "companies", f"{empresa}.emp")
         
-        print(f"[LOGO] Buscando empresa: {empresa}")
-        print(f"[LOGO] Base dir: {base_dir}")
-        print(f"[LOGO] Archivo .emp: {emp_file}")
-        
         if os.path.exists(emp_file):
             try:
                 with zipfile.ZipFile(emp_file, 'r') as zf:
-                    # Find logo file in ZIP
                     logo_data = None
                     for name in zf.namelist():
                         if name.startswith("logo."):
                             logo_data = zf.read(name)
-                            print(f"[LOGO] ✓ Encontrado en ZIP: {name} ({len(logo_data)} bytes)")
                             break
                     
                     if logo_data:
-                        # Load from memory
                         logo_stream = io.BytesIO(logo_data)
                         logo = ImageReader(logo_stream)
                         orig_width, orig_height = logo.getSize()
-                        print(f"[LOGO] ✓ Logo cargado: {orig_width}x{orig_height}")
                         
-                        # Scale logo
                         max_logo_width = 80
                         max_logo_height = 50
                         ratio = min(max_logo_width / orig_width, max_logo_height / orig_height)
@@ -732,19 +555,13 @@ class PDFGenerator:
                         c.drawImage(logo, left_margin, y - new_height, 
                                    width=new_width, height=new_height)
                         logo_height = new_height + 10
-                        print(f"[LOGO] ✓ Logo dibujado en PDF")
-                    else:
-                        print(f"[LOGO] ✗ No hay logo en el archivo .emp")
             except Exception as e:
-                print(f"[LOGO] ✗ Error: {e}")
-        else:
-            print(f"[LOGO] ✗ Archivo .emp no existe: {emp_file}")
+                pass
         
-        # Company name
         info_x = left_margin
-        company_y = y - logo_height - 20 if logo_height else y - 15
+        company_y = y - logo_height - 15 if logo_height else y - 10
         
-        c.setFont("Helvetica-Bold", 16)
+        c.setFont("Helvetica-Bold", 15)
         c.setFillColor(self.COLORS['dark'])
         c.drawString(info_x, company_y, empresa)
         
@@ -752,7 +569,7 @@ class PDFGenerator:
         c.setFont("Helvetica", 9)
         c.setFillColor(self.COLORS['gray'])
         
-        details_y = company_y - 16
+        details_y = company_y - 15
         
         if datos_empresa.get('telefono'):
             c.drawString(info_x, details_y, f"Tel: {datos_empresa['telefono']}")
@@ -771,51 +588,59 @@ class PDFGenerator:
             c.drawString(info_x, details_y, datos_empresa['eslogan'])
             details_y -= 12
         
-        # === RIGHT SIDE: CLIENT INFO ===
-        
+        # === RIGHT SIDE: CLIENT & DOCUMENT INFO ===
         right_x = right_margin
-        client_y = y - 15
+        client_y = y - 10
         
-        # Document title (Cotizacion or Recibo)
-        doc_title = "COTIZACION" if document_type == "Cotizacion" else "RECIBO"
+        doc_title = (document_type or "COTIZACIÓN").upper()
         c.setFont("Helvetica-Bold", 14)
         c.setFillColor(self.COLORS['primary'])
         c.drawRightString(right_x, client_y, doc_title)
         client_y -= 18
         
-        c.setFont("Helvetica", 10)
+        c.setFont("Helvetica", 9.5)
         c.setFillColor(self.COLORS['dark'])
         if numero_cotizacion:
             c.drawRightString(right_x, client_y, f"Nº: {numero_cotizacion}")
             client_y -= 14
         
+        c.setFont("Helvetica", 8.5)
         c.setFillColor(self.COLORS['gray'])
-        c.drawRightString(right_x, client_y, f"Fecha: {fecha}")
-        client_y -= 20
+        if fecha:
+            c.drawRightString(right_x, client_y, f"Fecha Emisión: {fecha}")
+            client_y -= 12
+        if purchase_date:
+            c.drawRightString(right_x, client_y, f"Fecha Compra: {purchase_date}")
+            client_y -= 12
+        if show_exchange_rate and show_dual_currency and exchange_rate > 0:
+            c.setFont("Helvetica-Bold", 8.5)
+            c.setFillColor(colors.HexColor('#D97706'))
+            c.drawRightString(right_x, client_y, f"TC Oficial: 1 USD = {exchange_rate:.2f} Bs")
+            client_y -= 14
         
         # Client data
         if cliente:
-            c.setFont("Helvetica-Bold", 10)
+            client_y -= 4
+            c.setFont("Helvetica-Bold", 9.5)
             c.setFillColor(self.COLORS['dark'])
             c.drawRightString(right_x, client_y, "CLIENTE:")
-            client_y -= 14
+            client_y -= 13
             
-            c.setFont("Helvetica", 9)
+            c.setFont("Helvetica", 8.5)
             c.setFillColor(self.COLORS['gray'])
             
             if cliente.get('name'):
                 c.drawRightString(right_x, client_y, cliente['name'])
-                client_y -= 12
+                client_y -= 11
             
             if cliente.get('contact'):
                 c.drawRightString(right_x, client_y, cliente['contact'])
-                client_y -= 12
+                client_y -= 11
             
             if cliente.get('address'):
                 c.drawRightString(right_x, client_y, cliente['address'])
-                client_y -= 12
+                client_y -= 11
         
-        # Calculate lowest point
         lowest_y = min(details_y, client_y)
         
         # Separator line
@@ -847,7 +672,7 @@ class PDFGenerator:
             for ext in ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp']:
                 logo_path = os.path.join(temp_dir, f"logo.{ext}")
                 if os.path.exists(logo_path):
-                    print(f"[LOGO] ✓ Encontrado en temp: {logo_path}")
+                    print(f"[LOGO] âœ“ Encontrado en temp: {logo_path}")
                     print("=" * 50)
                     return logo_path
         
@@ -855,7 +680,7 @@ class PDFGenerator:
         if datos_empresa.get('logo_path'):
             logo_path = datos_empresa['logo_path']
             if os.path.exists(logo_path):
-                print(f"[LOGO] ✓ Encontrado en datos_empresa: {logo_path}")
+                print(f"[LOGO] âœ“ Encontrado en datos_empresa: {logo_path}")
                 print("=" * 50)
                 return logo_path
         
@@ -869,24 +694,24 @@ class PDFGenerator:
                     # Find logo file in ZIP
                     for name in zf.namelist():
                         if name.startswith("logo."):
-                            print(f"[LOGO] ✓ Logo encontrado en ZIP: {name}")
+                            print(f"[LOGO] âœ“ Logo encontrado en ZIP: {name}")
                             
                             # Extract to temp directory
                             os.makedirs(temp_dir, exist_ok=True)
                             zf.extract(name, temp_dir)
                             extracted_path = os.path.join(temp_dir, name)
                             
-                            print(f"[LOGO] ✓ Extraído a: {extracted_path}")
+                            print(f"[LOGO] âœ“ ExtraÃ­do a: {extracted_path}")
                             print("=" * 50)
                             return extracted_path
                             
-                print(f"[LOGO] ✗ No hay logo en el archivo .emp")
+                print(f"[LOGO] âœ— No hay logo en el archivo .emp")
             except Exception as e:
-                print(f"[LOGO] ✗ Error leyendo .emp: {e}")
+                print(f"[LOGO] âœ— Error leyendo .emp: {e}")
         else:
-            print(f"[LOGO] ✗ Archivo .emp no existe")
+            print(f"[LOGO] âœ— Archivo .emp no existe")
         
-        print(f"[LOGO] ✗ NO SE ENCONTRÓ LOGO PARA '{empresa}'")
+        print(f"[LOGO] âœ— NO SE ENCONTRÃ“ LOGO PARA '{empresa}'")
         print("=" * 50)
         return None
     
@@ -1023,8 +848,10 @@ class PDFGenerator:
     
     def _draw_total(self, c: canvas.Canvas, width: float, y: float,
                     total: float, moneda: str, shipping_enabled: bool = False,
-                    shipping_type: str = "", shipping: float = 0) -> float:
-        """Draw the total section with optional shipping info above."""
+                    shipping_type: str = "", shipping: float = 0,
+                    apply_payment: bool = False, paid_amount: float = 0.0,
+                    saldo_amount: float = 0.0) -> float:
+        """Draw the total section with optional shipping info and payment/balance info."""
         left_margin = 40
         
         # === SHIPPING INFO (if enabled) ===
@@ -1046,31 +873,69 @@ class PDFGenerator:
             c.drawString(box_x + 15, y - 10, shipping_text)
             y -= 25
         
-        # === TOTAL BOX ===
+        # === TOTAL & PAYMENT BOX ===
         amount_text = f"{total:.2f} {moneda}"
         est_text_width = len(amount_text) * 9 + 50 
-        box_width = max(250, est_text_width + 80)
-        
+        box_width = max(260, est_text_width + 80)
         box_x = width - 40 - box_width
         
-        # Background
-        c.setFillColor(colors.HexColor('#F0F0F5'))
-        c.roundRect(box_x, y - 35, box_width, 35, 6, fill=True, stroke=False)
-        
-        # Total text (Label)
-        c.setFillColor(self.COLORS['dark'])
-        c.setFont("Helvetica-Bold", 14)
-        c.drawString(box_x + 15, y - 25, "TOTAL:")
-        
-        # Amount
-        c.setFillColor(self.COLORS['primary'])
-        c.drawRightString(box_x + box_width - 15, y - 25, amount_text)
-        
-        return y - 55
+        if apply_payment:
+            box_height = 80
+            box_y = y - box_height
+            
+            # Background box
+            c.setFillColor(colors.HexColor('#F0F0F5'))
+            c.roundRect(box_x, box_y, box_width, box_height, 6, fill=True, stroke=False)
+            
+            # Line 1: TOTAL
+            c.setFillColor(self.COLORS['dark'])
+            c.setFont("Helvetica-Bold", 12)
+            c.drawString(box_x + 15, box_y + 56, "TOTAL:")
+            c.setFillColor(self.COLORS['primary'])
+            c.drawRightString(box_x + box_width - 15, box_y + 56, amount_text)
+            
+            # Line 2: PAGADO
+            c.setFillColor(self.COLORS['dark'])
+            c.setFont("Helvetica", 10)
+            c.drawString(box_x + 15, box_y + 36, "Monto Pagado:")
+            c.setFillColor(colors.HexColor('#2E7D32'))
+            c.drawRightString(box_x + box_width - 15, box_y + 36, f"- {paid_amount:.2f} {moneda}")
+            
+            # Separator inside box
+            c.setStrokeColor(colors.HexColor('#CCCCCC'))
+            c.setLineWidth(0.5)
+            c.line(box_x + 12, box_y + 26, box_x + box_width - 12, box_y + 26)
+            
+            # Line 3: SALDO PENDIENTE
+            c.setFillColor(self.COLORS['dark'])
+            c.setFont("Helvetica-Bold", 11)
+            c.drawString(box_x + 15, box_y + 10, "SALDO PENDIENTE:")
+            saldo_color = colors.HexColor('#D32F2F') if saldo_amount > 0 else colors.HexColor('#2E7D32')
+            c.setFillColor(saldo_color)
+            c.setFont("Helvetica-Bold", 11)
+            c.drawRightString(box_x + box_width - 15, box_y + 10, f"{saldo_amount:.2f} {moneda}")
+            
+            return box_y - 20
+        else:
+            # Standard single-line total box
+            c.setFillColor(colors.HexColor('#F0F0F5'))
+            c.roundRect(box_x, y - 35, box_width, 35, 6, fill=True, stroke=False)
+            
+            # Total text (Label)
+            c.setFillColor(self.COLORS['dark'])
+            c.setFont("Helvetica-Bold", 14)
+            c.drawString(box_x + 15, y - 25, "TOTAL:")
+            
+            # Amount
+            c.setFillColor(self.COLORS['primary'])
+            c.drawRightString(box_x + box_width - 15, y - 25, amount_text)
+            
+            return y - 55
     
     def _draw_summary(self, c: canvas.Canvas, width: float, y: float,
                       validez_dias: int, estimated_days: int, shipping_type: str,
-                      payment_method: str, shipping: float, apply_iva: bool, moneda: str) -> float:
+                      payment_method: str, shipping: float, apply_iva: bool, moneda: str,
+                      show_delivery_days: bool = True) -> float:
         """Draw summary of conditions (Validity, Delivery, Price) below Quotation totals."""
         left_margin = 40
         right_margin = width - 40
@@ -1091,7 +956,7 @@ class PDFGenerator:
         # Build summary terms list
         terms = []
         terms.append(f"Validez de la oferta: {validez_dias} días.")
-        if estimated_days > 0:
+        if show_delivery_days and estimated_days > 0:
             terms.append(f"Tiempo de Entrega estimado: {estimated_days} días.")
         
         # Shipping info
@@ -1114,7 +979,7 @@ class PDFGenerator:
         
         term_y = y - 35
         for term in terms:
-            c.drawString(left_margin + 10, term_y, f"• {term}")
+            c.drawString(left_margin + 10, term_y, f"â€¢ {term}")
             term_y -= 14
         
         return term_y - 15
@@ -1389,12 +1254,18 @@ class PDFGenerator:
                          empresa: str, datos_empresa: dict, cliente: dict,
                          fecha: str, cover_data: dict):
         """Draw a professional cover page using the external renderer."""
+        # Resolve logo path explicitly
+        logo_path = self._get_logo_path(empresa, datos_empresa)
+        
+        # Create a copy so we don't modify the original dict
+        datos_copy = datos_empresa.copy()
+        if logo_path:
+            datos_copy["logo"] = logo_path
+            
         renderer = CoverPageRenderer()
-        renderer.draw_cover(c, width, height, empresa, datos_empresa, cliente, fecha, cover_data)
+        renderer.draw_cover(c, width, height, empresa, datos_copy, cliente, fecha, cover_data)
     
     # helper methods for footer/logos are handled in renderer now or can serve as fallback
-    def _get_logo_path(self, empresa, datos_empresa):
-        return datos_empresa.get("logo", "")
     
     def _draw_cover_classic(self, c: canvas.Canvas, width: float, height: float,
                             empresa: str, datos_empresa: dict, cliente: dict,
@@ -1625,6 +1496,7 @@ class PDFGenerator:
                     ratio = min(logo_size / orig_w, logo_size / orig_h)
                     new_w, new_h = orig_w * ratio, orig_h * ratio
                     logo_x = (width - new_w) / 2
+                    logo_y = height - 40 # Position logo near top of banner
                     # White background for logo
                     c.setFillColor(colors.white)
                     c.roundRect(logo_x - 10, logo_y - new_h - 10, new_w + 20, new_h + 20, 8, fill=True, stroke=False)
@@ -2612,7 +2484,7 @@ class PDFGenerator:
         c.drawCentredString(width / 2, footer_y, message)
         
         # Page indicator
-        c.drawRightString(width - 40, footer_y, f"Página {page_num}")
+        c.drawRightString(width - 40, footer_y, f"PÃ¡gina {page_num}")
     
     def _draw_observations_section(self, c: canvas.Canvas, width: float, height: float,
                                    y: float, obs_data: dict, eslogan: str) -> float:
@@ -3566,7 +3438,7 @@ class PDFGenerator:
         # Note header
         c.setFont("Helvetica-Bold", 10)
         c.setFillColor(self.COLORS['primary'])
-        c.drawString(left_margin + 10, y - 15, "📝 Nota:")
+        c.drawString(left_margin + 10, y - 15, "ðŸ“ Nota:")
         
         # Note text
         c.setFont("Helvetica", 9)
@@ -3628,7 +3500,7 @@ class PDFGenerator:
             
         c.setFont("Courier", 8)
         c.setFillColor(accent_color)
-        c.drawCentredString(width / 2, y, "01011010 • SYSTEM • 11001011")
+        c.drawCentredString(width / 2, y, "01011010 â€¢ SYSTEM â€¢ 11001011")
         y -= 60
         
         self._draw_cover_footer_text(c, width, cover_data)
@@ -3723,18 +3595,21 @@ def generar_pdf(file_path: str, empresa: str, datos_empresa: dict,
                 productos: List[list], total: float, moneda: str, fecha: str,
                 validez_dias: int = 30, observaciones: str = "",
                 observaciones_data: dict = None, cliente: dict = None,
-                numero_cotizacion: str = "", document_type: str = "Cotizacion",
+                numero_cotizacion: str = "", document_type: str = "Cotización",
                 shipping: float = 0, cover_page_data: dict = None,
                 warranty_data: dict = None, estimated_days: int = 7,
                 shipping_type: str = "Sin envío", installation_terms: str = "",
                 payment_method: str = "", bank_details: str = "",
-                 payment_type: str = "", apply_iva: bool = True,
-                 include_details: bool = True, terms_data: dict = None,
-                 prepared_by: str = "", signature_image: str = None,
-                 mostrar_firma: bool = False, mostrar_terminos: bool = True):
+                payment_type: str = "", apply_iva: bool = True,
+                apply_payment: bool = False, paid_amount: float = 0.0,
+                saldo_amount: float = 0.0,
+                include_details: bool = True, terms_data: dict = None,
+                prepared_by: str = "", signature_image: str = None,
+                mostrar_firma: bool = False, mostrar_terminos: bool = True,
+                purchase_date: str = "", exchange_rate: float = 12.02,
+                show_exchange_rate: bool = True, show_dual_currency: bool = True):
     """Legacy compatibility function with extended parameters."""
     
-    # Check if warranty_data is actually empty (all fields blank)
     has_warranty = False
     if warranty_data:
         has_warranty = bool(
@@ -3758,7 +3633,7 @@ def generar_pdf(file_path: str, empresa: str, datos_empresa: dict,
         moneda=moneda,
         fecha=fecha,
         mostrar_terminos=mostrar_terminos,
-        mostrar_firma=mostrar_firma,  # Now properly passed from caller
+        mostrar_firma=mostrar_firma,
         validez_dias=validez_dias,
         cliente=cliente,
         observaciones_data=observaciones_data,
@@ -3766,7 +3641,7 @@ def generar_pdf(file_path: str, empresa: str, datos_empresa: dict,
         document_type=document_type,
         shipping=shipping,
         cover_page_data=cover_page_data,
-        warranty_data=warranty_data if has_warranty else None,  # Only pass if has content
+        warranty_data=warranty_data if has_warranty else None,
         estimated_days=estimated_days,
         shipping_type=shipping_type,
         installation_terms=installation_terms,
@@ -3774,9 +3649,17 @@ def generar_pdf(file_path: str, empresa: str, datos_empresa: dict,
         bank_details=bank_details,
         payment_type=payment_type,
         apply_iva=apply_iva,
+        apply_payment=apply_payment,
+        paid_amount=paid_amount,
+        saldo_amount=saldo_amount,
         include_details=include_details,
         terms_data=terms_data,
         prepared_by=prepared_by,
-        signature_image=signature_image
+        signature_image=signature_image,
+        purchase_date=purchase_date,
+        exchange_rate=exchange_rate,
+        show_exchange_rate=show_exchange_rate,
+        show_dual_currency=show_dual_currency
     )
+
 

@@ -1,0 +1,41 @@
+{
+    "name": "MD3 OLED Pitch Black",
+    "description": "AMOLED Pure Black Android Theme",
+    "is_dark": true,
+    "colors": {
+        "primary": "#FFFFFF",
+        "on_primary": "#000000",
+        "primary_container": "#202020",
+        "on_primary_container": "#FFFFFF",
+        "secondary": "#E0E0E0",
+        "on_secondary": "#000000",
+        "secondary_container": "#303030",
+        "surface": "#000000",
+        "on_surface": "#FFFFFF",
+        "surface_variant": "#121212",
+        "on_surface_variant": "#CCCCCC",
+        "surface_container_lowest": "#000000",
+        "surface_container_low": "#0A0A0A",
+        "surface_container": "#121212",
+        "surface_container_high": "#1C1C1C",
+        "surface_container_highest": "#262626",
+        "outline": "#666666",
+        "outline_variant": "#333333",
+        "accent": "#FFFFFF",
+        "accent_hover": "#E0E0E0",
+        "accent_glow": "rgba(255, 255, 255, 0.2)",
+        "badge_bg": "#262626",
+        "card_shadow": "0 8px 30px rgba(0, 0, 0, 0.9)"
+    },
+    "shapes": {
+        "corner_full": "9999px",
+        "corner_extra_large": "28px",
+        "corner_large": "24px",
+        "corner_medium": "16px",
+        "corner_small": "12px"
+    },
+    "typography": {
+        "font_family": "Roboto, sans-serif",
+        "font_size_base": "13px"
+    }
+}

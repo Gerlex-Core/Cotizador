@@ -1,0 +1,150 @@
+<!-- MODULE: DISENADOR Y PERSONALIZADOR DE PORTADA Y DOCUMENTO (MD3) -->
+<div id="page2_designer" class="workspace-page hidden space-y-4">
+    <div class="grid grid-cols-12 gap-5">
+        
+        <!-- Left Column: Design Controls & Settings -->
+        <div class="col-span-7 bg-[var(--bg-card)] border border-[var(--border-default)] rounded-3xl p-5 space-y-4 shadow-sm">
+            <div class="flex items-center justify-between border-b border-[var(--border-default)] pb-3">
+                <div class="flex items-center space-x-2">
+                    <span class="material-symbols-outlined text-2xl text-[var(--text-primary)]">palette</span>
+                    <div>
+                        <h2 class="text-base font-extrabold text-[var(--text-primary)]">Personalizador de Portada y Estética PDF</h2>
+                        <p class="text-[11px] text-[var(--text-secondary)]">Configura el estilo visual, títulos, marcas de agua y detalles ejecutivos</p>
+                    </div>
+                </div>
+                <label class="flex items-center space-x-2 cursor-pointer bg-[var(--bg-secondary)] px-3 py-1.5 rounded-full border border-[var(--border-default)]">
+                    <input type="checkbox" id="designerCoverEnableCheck" onchange="updateCoverPreview()" class="w-4 h-4 text-[var(--text-primary)] rounded accent-[var(--text-primary)]">
+                    <span class="text-xs font-bold text-[var(--text-primary)]">Habilitar Portada PDF</span>
+                </label>
+            </div>
+
+            <div class="space-y-4 text-xs">
+                <!-- Cover Template Style -->
+                <div class="space-y-1">
+                    <label class="font-bold text-[var(--text-primary)]">Estilo Visual de Portada:</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="setCoverStyle('corporate_modern')" id="coverStyleBtn_corporate_modern" class="cover-style-btn p-3 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-primary)] text-left hover:border-[var(--border-focus)] transition">
+                            <div class="flex items-center space-x-2 font-bold text-[var(--text-primary)]">
+                                <span class="material-symbols-outlined text-lg text-emerald-400">business</span>
+                                <span>Corporativo Moderno</span>
+                            </div>
+                            <p class="text-[10px] text-[var(--text-secondary)] mt-1">Líneas limpias, bloque lateral de acento y tipografía ejecutiva</p>
+                        </button>
+
+                        <button onclick="setCoverStyle('minimal_dark')" id="coverStyleBtn_minimal_dark" class="cover-style-btn p-3 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-primary)] text-left hover:border-[var(--border-focus)] transition">
+                            <div class="flex items-center space-x-2 font-bold text-[var(--text-primary)]">
+                                <span class="material-symbols-outlined text-lg text-purple-400">dark_mode</span>
+                                <span>Minimalista Oscuro</span>
+                            </div>
+                            <p class="text-[10px] text-[var(--text-secondary)] mt-1">Fondo elegante contrastado, ideal para tecnología e ingeniería</p>
+                        </button>
+
+                        <button onclick="setCoverStyle('executive_classic')" id="coverStyleBtn_executive_classic" class="cover-style-btn p-3 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-primary)] text-left hover:border-[var(--border-focus)] transition">
+                            <div class="flex items-center space-x-2 font-bold text-[var(--text-primary)]">
+                                <span class="material-symbols-outlined text-lg text-blue-400">workspace_premium</span>
+                                <span>Ejecutivo Clásico</span>
+                            </div>
+                            <p class="text-[10px] text-[var(--text-secondary)] mt-1">Encabezado formal con marco doble y sello de autenticidad</p>
+                        </button>
+
+                        <button onclick="setCoverStyle('gradient_tech')" id="coverStyleBtn_gradient_tech" class="cover-style-btn p-3 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-primary)] text-left hover:border-[var(--border-focus)] transition">
+                            <div class="flex items-center space-x-2 font-bold text-[var(--text-primary)]">
+                                <span class="material-symbols-outlined text-lg text-amber-400">auto_awesome</span>
+                                <span>Gradiente Premium</span>
+                            </div>
+                            <p class="text-[10px] text-[var(--text-secondary)] mt-1">Bordes decorativos con acentos dinámicos de color</p>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Custom Texts -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="font-medium text-[var(--text-secondary)]">Título de Documento *</label>
+                        <input type="text" id="designerDocTitleInput" value="PROPUESTA ECONÓMICA Y TÉCNICA" oninput="updateCoverPreview()" class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-2 text-[var(--text-primary)] font-bold">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="font-medium text-[var(--text-secondary)]">Subtítulo de Portada</label>
+                        <input type="text" id="designerSubtitleInput" placeholder="Ej. Provisión, Instalación y Configuración..." oninput="updateCoverPreview()" class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-2 text-[var(--text-primary)]">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="font-medium text-[var(--text-secondary)]">Nombre del Proyecto / Obra</label>
+                        <input type="text" id="designerProjectNameInput" placeholder="Ej. Sistema de Videovigilancia Edificio Central" oninput="updateCoverPreview()" class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-2 text-[var(--text-primary)]">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="font-medium text-[var(--text-secondary)]">Ubicación / Ciudad</label>
+                        <input type="text" id="designerLocationInput" placeholder="Ej. Santa Cruz - Bolivia" oninput="updateCoverPreview()" class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-2 text-[var(--text-primary)]">
+                    </div>
+                </div>
+
+                <!-- Watermark & Accent Color -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="font-medium text-[var(--text-secondary)]">Texto Marca de Agua (Opcional)</label>
+                        <input type="text" id="designerWatermarkInput" placeholder="Ej. CONFIDENCIAL / OFICIAL" oninput="updateCoverPreview()" class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-2 text-[var(--text-primary)]">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="font-medium text-[var(--text-secondary)]">Color de Acento Principal</label>
+                        <div class="flex items-center space-x-2">
+                            <input type="color" id="designerAccentColorInput" value="#10B981" oninput="updateCoverPreview()" class="w-10 h-9 bg-transparent border-0 cursor-pointer">
+                            <input type="text" id="designerAccentColorText" value="#10B981" readonly class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-2 text-[var(--text-primary)] font-mono">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Live Cover Preview Mockup -->
+        <div class="col-span-5 bg-[var(--bg-card)] border border-[var(--border-default)] rounded-3xl p-5 flex flex-col justify-between shadow-sm">
+            <div class="flex items-center justify-between border-b border-[var(--border-default)] pb-3">
+                <span class="text-xs font-bold text-[var(--text-primary)] flex items-center space-x-1.5">
+                    <span class="material-symbols-outlined text-lg text-emerald-400">preview</span>
+                    <span>Vista Previa de Portada</span>
+                </span>
+                <span id="previewStyleBadge" class="text-[10px] bg-emerald-500/20 text-emerald-400 font-mono px-2 py-0.5 rounded-full border border-emerald-500/30">Corporativo</span>
+            </div>
+
+            <!-- Interactive Mockup Page -->
+            <div class="flex-1 my-4 bg-slate-900 border border-slate-700 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden text-slate-200 min-h-[380px] shadow-inner">
+                <!-- Decorative Top Bar -->
+                <div id="previewTopBar" class="h-2 w-full bg-emerald-500 rounded-full mb-4"></div>
+
+                <!-- Header Content -->
+                <div class="space-y-2">
+                    <div id="previewCompany" class="text-xs font-bold uppercase tracking-wider text-emerald-400">EMPRESA EMISORA</div>
+                    <h3 id="previewTitle" class="text-lg font-black text-white leading-tight uppercase">PROPUESTA ECONÓMICA Y TÉCNICA</h3>
+                    <p id="previewSubtitle" class="text-xs text-slate-400 italic">Provisión e Instalación de Equipos</p>
+                </div>
+
+                <!-- Watermark Center Text -->
+                <div id="previewWatermark" class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-10 font-black text-4xl text-white tracking-widest rotate-[-30deg]">
+                    CONFIDENCIAL
+                </div>
+
+                <!-- Bottom Metadata -->
+                <div class="border-t border-slate-800 pt-3 space-y-1 text-[11px]">
+                    <div class="flex justify-between text-slate-300">
+                        <span>CLIENTE:</span>
+                        <span id="previewClient" class="font-bold text-white">Nombre Cliente</span>
+                    </div>
+                    <div class="flex justify-between text-slate-300">
+                        <span>PROYECTO:</span>
+                        <span id="previewProject" class="font-bold text-white">Sistema Central</span>
+                    </div>
+                    <div class="flex justify-between text-slate-300">
+                        <span>CÓDIGO:</span>
+                        <span id="previewCode" class="font-mono text-emerald-400">COT-001</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-[11px] text-[var(--text-secondary)] text-center italic">
+                * La vista previa simula la composición visual del PDF final generado.
+            </div>
+        </div>
+
+    </div>
+</div>

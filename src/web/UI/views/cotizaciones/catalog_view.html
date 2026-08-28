@@ -1,0 +1,118 @@
+<!-- MODULE: CATALOGO Y KITS DE PRODUCTOS (MD3) -->
+<div id="page1_catalog" class="workspace-page hidden space-y-4">
+    <!-- Header & Category Filter Bar -->
+    <div class="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-3xl p-5 space-y-4 shadow-sm">
+        <div class="flex items-center justify-between border-b border-[var(--border-default)] pb-3">
+            <div class="flex items-center space-x-2">
+                <span class="material-symbols-outlined text-2xl text-[var(--text-primary)]">storefront</span>
+                <div>
+                    <h2 class="text-base font-extrabold text-[var(--text-primary)]">Catálogo de Productos, Servicios y Combos</h2>
+                    <p class="text-[11px] text-[var(--text-secondary)]">Inserta productos o kits completos a tu cotización activa con un solo click</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button onclick="toggleNewCatalogItemModal()" class="px-4 py-2 bg-[var(--bg-secondary)] border border-[var(--border-default)] hover:bg-white/10 rounded-full text-xs font-bold text-[var(--text-primary)] transition flex items-center space-x-1">
+                    <span class="material-symbols-outlined text-base">add</span>
+                    <span>Nuevo Producto</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Search & Filter Controls -->
+        <div class="grid grid-cols-12 gap-3 text-xs">
+            <div class="col-span-6 relative">
+                <span class="material-symbols-outlined absolute left-3 top-2.5 text-lg text-[var(--text-secondary)]">search</span>
+                <input type="text" id="catalogSearchInput" oninput="filterCatalog()" placeholder="Buscar por descripción, marca o SKU..." class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl pl-9 pr-3 py-2 text-[var(--text-primary)] placeholder-slate-500 focus:border-[var(--border-focus)] focus:outline-none">
+            </div>
+            <div class="col-span-3">
+                <select id="catalogCategoryFilter" onchange="filterCatalog()" class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-2 text-[var(--text-primary)] font-semibold focus:border-[var(--border-focus)] focus:outline-none">
+                    <option value="ALL">Todas las Categorías</option>
+                    <option value="CCTV">CCTV & Videovigilancia</option>
+                    <option value="Redes">Redes & Fibra Óptica</option>
+                    <option value="Energía">Racks & Energía</option>
+                    <option value="Seguridad">Control de Acceso & Alarmas</option>
+                    <option value="Domótica">Domótica & Smart Home</option>
+                    <option value="Servicios">Servicios & Mantenimiento</option>
+                </select>
+            </div>
+            <div class="col-span-3 flex items-center space-x-2">
+                <button onclick="switchCatalogTab('products')" id="catTabProductsBtn" class="flex-1 py-2 bg-[var(--text-primary)] text-[var(--bg-primary)] font-bold rounded-xl text-center shadow-xs transition">
+                    Productos
+                </button>
+                <button onclick="switchCatalogTab('combos')" id="catTabCombosBtn" class="flex-1 py-2 bg-[var(--bg-secondary)] text-[var(--text-secondary)] font-bold rounded-xl text-center hover:bg-white/10 transition">
+                    Combos / Kits
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PRODUCTS TAB GRID -->
+    <div id="catalogProductsContainer" class="grid grid-cols-12 gap-4">
+        <!-- Rendered dynamically by catalog.js -->
+    </div>
+
+    <!-- COMBOS TAB GRID -->
+    <div id="catalogCombosContainer" class="hidden grid grid-cols-12 gap-4">
+        <!-- Rendered dynamically by catalog.js -->
+    </div>
+
+    <!-- MODAL: AGREGAR NUEVO PRODUCTO AL CATALOGO -->
+    <div id="newCatalogItemModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-3xl p-6 w-full max-w-lg space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-[var(--border-default)] pb-3">
+                <h3 class="text-sm font-extrabold text-[var(--text-primary)] flex items-center space-x-2">
+                    <span class="material-symbols-outlined text-xl text-emerald-400">add_box</span>
+                    <span>Registrar Producto en el Catálogo</span>
+                </h3>
+                <button onclick="toggleNewCatalogItemModal()" class="p-1 rounded-xl text-[var(--text-secondary)] hover:bg-white/10">
+                    <span class="material-symbols-outlined text-lg">close</span>
+                </button>
+            </div>
+
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-medium text-[var(--text-secondary)] mb-1">Descripción del Producto / Servicio *</label>
+                    <input type="text" id="newItemDesc" placeholder="Ej. Cámara Bullet IP 4MP..." class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-2 text-[var(--text-primary)]">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-medium text-[var(--text-secondary)] mb-1">Categoría</label>
+                        <select id="newItemCategory" class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-2 text-[var(--text-primary)]">
+                            <option value="CCTV">CCTV & Videovigilancia</option>
+                            <option value="Redes">Redes & Fibra Óptica</option>
+                            <option value="Energía">Racks & Energía</option>
+                            <option value="Seguridad">Control de Acceso & Alarmas</option>
+                            <option value="Domótica">Domótica & Smart Home</option>
+                            <option value="Servicios">Servicios & Mantenimiento</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-medium text-[var(--text-secondary)] mb-1">Marca / Fabricante</label>
+                        <input type="text" id="newItemBrand" placeholder="Dahua, Hikvision, etc." class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-2 text-[var(--text-primary)]">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="block font-medium text-[var(--text-secondary)] mb-1">SKU / Código</label>
+                        <input type="text" id="newItemSku" placeholder="IPC-1234" class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-2 text-[var(--text-primary)]">
+                    </div>
+                    <div>
+                        <label class="block font-medium text-[var(--text-secondary)] mb-1">Precio Unit. (Bs)</label>
+                        <input type="number" id="newItemPrice" step="0.5" value="0.00" class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-2 text-[var(--text-primary)] font-bold text-right">
+                    </div>
+                    <div>
+                        <label class="block font-medium text-[var(--text-secondary)] mb-1">Unidad</label>
+                        <input type="text" id="newItemUnit" value="unidad (u)" class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-2 text-[var(--text-primary)]">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end space-x-2 pt-3 border-t border-[var(--border-default)]">
+                <button onclick="toggleNewCatalogItemModal()" class="px-4 py-2 bg-[var(--bg-secondary)] rounded-full text-xs font-bold text-[var(--text-secondary)]">Cancelar</button>
+                <button onclick="saveNewCatalogItem()" class="px-5 py-2 bg-[var(--text-primary)] text-[var(--bg-primary)] rounded-full text-xs font-extrabold shadow">Guardar en Catálogo</button>
+            </div>
+        </div>
+    </div>
+</div>

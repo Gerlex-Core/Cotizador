@@ -408,12 +408,21 @@ class TermsWindow(QMainWindow):
         validity_spin.valueChanged.connect(self._trigger_preview)
         form_layout.addWidget(validity_spin, 0, 1)
         
-        form_layout.addWidget(QLabel("Tiempo de entrega estimado (días):"), 1, 0)
+        # Tiempo de entrega con checkbox
+        chk_delivery = QCheckBox("Incluir tiempo de entrega:")
+        chk_delivery.stateChanged.connect(self._trigger_preview)
+        form_layout.addWidget(chk_delivery, 1, 0)
+        
         delivery_spin = QSpinBox()
         delivery_spin.setRange(0, 365)
         delivery_spin.setValue(7)
+        delivery_spin.setSuffix(" días")
+        delivery_spin.setEnabled(False)  # Disabled by default
         delivery_spin.valueChanged.connect(self._trigger_preview)
         form_layout.addWidget(delivery_spin, 1, 1)
+        
+        # Connect checkbox to enable/disable spin
+        chk_delivery.stateChanged.connect(lambda state: delivery_spin.setEnabled(state == 2))
         
         layout.addLayout(form_layout)
         
@@ -426,7 +435,8 @@ class TermsWindow(QMainWindow):
         
         return {
             'widget': widget, 'editor': editor, 'check': chk_enable,
-            'validity': validity_spin, 'delivery': delivery_spin
+            'validity': validity_spin, 'delivery': delivery_spin,
+            'delivery_check': chk_delivery
         }
 
     def _create_editor(self):
@@ -471,7 +481,9 @@ class TermsWindow(QMainWindow):
         self.general_tab['editor'].setHtml(d.get('general_terms', ''))
         self.general_tab['check'].setChecked(d.get('show_general', False))
         self.general_tab['validity'].setValue(int(d.get('validez_dias', 15)))
+        self.general_tab['delivery_check'].setChecked(d.get('show_delivery_days', False))
         self.general_tab['delivery'].setValue(int(d.get('estimated_days', 7)))
+        self.general_tab['delivery'].setEnabled(d.get('show_delivery_days', False))
         
         # Acceptance
         self.acceptance_tab['editor'].setHtml(d.get('acceptance_terms', ''))
@@ -507,6 +519,7 @@ class TermsWindow(QMainWindow):
             'general_terms': self.general_tab['editor'].toHtml(),
             'show_general': self.general_tab['check'].isChecked(),
             'validez_dias': self.general_tab['validity'].value(),
+            'show_delivery_days': self.general_tab['delivery_check'].isChecked(),
             'estimated_days': self.general_tab['delivery'].value(),
             
             # Acceptance

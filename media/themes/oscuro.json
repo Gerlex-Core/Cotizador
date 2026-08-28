@@ -6,39 +6,42 @@
     "is_official": true,
     "colors": {
         "background": {
-            "primary": "#1C1C1E",
-            "secondary": "#2C2C2E",
-            "tertiary": "rgba(255, 255, 255, 0.05)"
+            "primary": "#0B0E14",
+            "secondary": "#151C2C",
+            "tertiary": "rgba(255, 255, 255, 0.05)",
+            "sidebar": "#080B10",
+            "card": "rgba(21, 28, 44, 0.85)",
+            "header": "#0D131F"
         },
         "accent": {
-            "primary": "#0A84FF",
-            "secondary": "#5AC8FA",
-            "tertiary": "#34C759",
-            "glow": "rgba(10, 132, 255, 0.4)"
+            "primary": "#2563EB",
+            "secondary": "#3B82F6",
+            "tertiary": "#10B981",
+            "glow": "rgba(37, 99, 235, 0.4)"
         },
         "text": {
-            "primary": "#FFFFFF",
-            "secondary": "#8E8E93",
-            "muted": "rgba(255, 255, 255, 0.5)",
-            "link": "#0A84FF",
-            "highlight": "#5AC8FA"
+            "primary": "#F8FAFC",
+            "secondary": "#94A3B8",
+            "muted": "rgba(248, 250, 252, 0.5)",
+            "link": "#3B82F6",
+            "highlight": "#60A5FA"
         },
         "borders": {
-            "default": "#3A3A3C",
-            "focus": "#0A84FF",
-            "subtle": "rgba(255, 255, 255, 0.1)",
-            "glow": "#0A84FF"
+            "default": "rgba(255, 255, 255, 0.12)",
+            "focus": "#3B82F6",
+            "subtle": "rgba(255, 255, 255, 0.06)",
+            "glow": "#2563EB"
         },
         "shadows": {
-            "small": "0 2px 8px rgba(0, 0, 0, 0.3)",
-            "medium": "0 4px 16px rgba(0, 0, 0, 0.4)",
-            "glow": "0 0 20px rgba(10, 132, 255, 0.3)"
+            "small": "0 2px 8px rgba(0, 0, 0, 0.4)",
+            "medium": "0 8px 24px rgba(0, 0, 0, 0.5)",
+            "glow": "0 0 20px rgba(37, 99, 235, 0.3)"
         },
         "states": {
-            "success": "#34C759",
-            "error": "#FF3B30",
-            "warning": "#FF9500",
-            "info": "#5AC8FA"
+            "success": "#10B981",
+            "error": "#EF4444",
+            "warning": "#F59E0B",
+            "info": "#3B82F6"
         }
     },
     "effects": {

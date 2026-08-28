@@ -1,0 +1,80 @@
+<!-- MATERIAL DESIGN 3 (ANDROID) NAVIGATION RAIL & DRAWER LAYOUT -->
+<aside class="w-64 bg-[var(--bg-sidebar)] border-r border-[var(--border-default)] flex flex-col justify-between p-3 shrink-0 select-none z-20">
+    <div class="space-y-4 overflow-y-auto">
+        <!-- MD3 Header Brand -->
+        <div class="flex items-center space-x-3 px-3 py-2">
+            <div class="w-10 h-10 rounded-2xl bg-[var(--text-primary)] text-[var(--bg-primary)] flex items-center justify-center font-bold shadow-md">
+                <span class="material-symbols-outlined text-xl">description</span>
+            </div>
+            <div>
+                <h1 class="text-sm font-extrabold text-[var(--text-primary)] tracking-wide">Cotizador Pro</h1>
+                <span class="text-[11px] font-medium text-[var(--text-secondary)]">Android MD3 Server</span>
+            </div>
+        </div>
+
+        <div class="h-px bg-[var(--border-default)] mx-2"></div>
+
+        <!-- SECTION 1: HERRAMIENTAS DE LA COTIZACION ACTIVA -->
+        <div class="space-y-1">
+            <div class="px-3.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-[var(--text-secondary)] flex items-center space-x-1.5 opacity-80">
+                <span class="material-symbols-outlined text-sm">edit_document</span>
+                <span>DOCUMENTO ACTIVO</span>
+            </div>
+
+            <button onclick="switchTab(0)" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all duration-200 text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]" data-tab="0">
+                <span class="material-symbols-outlined text-xl">receipt_long</span>
+                <span>Productos & Servicios</span>
+            </button>
+
+            <button onclick="switchTab(1)" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all duration-200 text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]" data-tab="1">
+                <span class="material-symbols-outlined text-xl">storefront</span>
+                <span>Catálogo & Combos</span>
+            </button>
+
+            <button onclick="switchTab(2)" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all duration-200 text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]" data-tab="2">
+                <span class="material-symbols-outlined text-xl">palette</span>
+                <span>Diseñador Portada</span>
+            </button>
+
+            <button onclick="switchTab(3)" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all duration-200 text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]" data-tab="3">
+                <span class="material-symbols-outlined text-xl">travel_explore</span>
+                <span>Importador Digicorp</span>
+            </button>
+
+            <button onclick="switchTab(4)" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all duration-200 text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]" data-tab="4">
+                <span class="material-symbols-outlined text-xl">account_balance_wallet</span>
+                <span>Finanzas & Saldo</span>
+            </button>
+
+            <button onclick="switchTab(5)" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all duration-200 text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]" data-tab="5">
+                <span class="material-symbols-outlined text-xl">gavel</span>
+                <span>Términos & Garantía</span>
+            </button>
+
+            <button onclick="switchTab(8)" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all duration-200 text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]" data-tab="8">
+                <span class="material-symbols-outlined text-xl">picture_as_pdf</span>
+                <span>Edición PDF</span>
+            </button>
+        </div>
+
+        <div class="h-px bg-[var(--border-default)] mx-2"></div>
+
+        <!-- SECTION 2: HISTORIAL Y CONFIGURACION -->
+        <div class="space-y-1">
+            <div class="px-3.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-[var(--text-secondary)] flex items-center space-x-1.5 opacity-80">
+                <span class="material-symbols-outlined text-sm">folder_open</span>
+                <span>HISTORIAL & SISTEMA</span>
+            </div>
+
+            <button onclick="switchTab(6)" class="nav-btn active w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all duration-200 text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]" data-tab="6">
+                <span class="material-symbols-outlined text-xl">history</span>
+                <span>Historial de Cotizaciones</span>
+            </button>
+
+            <button onclick="switchTab(7)" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all duration-200 text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]" data-tab="7">
+                <span class="material-symbols-outlined text-xl">settings</span>
+                <span>Configuraciones</span>
+            </button>
+        </div>
+    </div>
+</aside>

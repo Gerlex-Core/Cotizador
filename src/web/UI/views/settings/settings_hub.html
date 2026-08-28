@@ -1,0 +1,21 @@
+<!-- VIEW 4: CONFIGURACIONES UNIFICADAS (MD3 MASTER HUB WITH SUBCATEGORIES) -->
+<div id="page4" class="workspace-page hidden space-y-4">
+    
+    <!-- Subcategory Navigation Bar (Material 3 Icons Only) -->
+    <div class="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-3xl p-3 shadow-sm flex items-center space-x-2">
+        <button id="subtab-btn-company" onclick="switchSettingsSubTab('company')" class="settings-subtab-btn active px-4 py-2 rounded-2xl text-xs font-bold transition flex items-center space-x-2 bg-[var(--text-primary)] text-[var(--bg-primary)] shadow-sm">
+            <span class="material-symbols-outlined text-lg">domain</span>
+            <span>Empresas Emisoras</span>
+        </button>
+
+        <button id="subtab-btn-general" onclick="switchSettingsSubTab('general')" class="settings-subtab-btn px-4 py-2 rounded-2xl text-xs font-bold transition flex items-center space-x-2 text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]">
+            <span class="material-symbols-outlined text-lg">tune</span>
+            <span>Configuración General & PDF</span>
+        </button>
+    </div>
+
+    <!-- Subviews Slot -->
+    <div id="settings-subviews-slot" class="space-y-4">
+        <!-- Subview contents populated dynamically -->
+    </div>
+</div>

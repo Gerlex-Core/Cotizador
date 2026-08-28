@@ -12,7 +12,8 @@ from PyQt6.QtWidgets import (
     QLabel, QComboBox, QLineEdit, QPushButton, QTextEdit,
     QFileDialog, QMessageBox, QTableWidgetItem, QGroupBox,
     QSpinBox, QDoubleSpinBox, QFrame, QTabWidget, QScrollArea,
-    QSizePolicy, QCheckBox, QApplication
+    QSizePolicy, QCheckBox, QApplication, QStackedWidget,
+    QButtonGroup, QToolButton
 )
 from PyQt6.QtGui import QAction, QFont, QIcon, QKeySequence
 from PyQt6.QtCore import Qt, QSize
@@ -145,6 +146,13 @@ class MainWindow(QMainWindow):
         self.shipping_type_combo.setEnabled(enabled)
         self._calculate_total()
     
+    def _on_payment_toggled(self, state):
+        """Enable/disable payment input based on checkbox."""
+        enabled = (state == Qt.CheckState.Checked.value or state == True or state == 2)
+        if hasattr(self, 'paid_input'):
+            self.paid_input.setEnabled(enabled)
+        self._calculate_total()
+    
     def _create_menu(self):
         """Create the menu bar."""
         menu_bar = self.menuBar()
@@ -204,8 +212,31 @@ class MainWindow(QMainWindow):
         action_company.triggered.connect(self._open_company_manager)
         menu_company.addAction(action_company)
     
+    def _cycle_theme(self):
+        """Cycle through available visual themes."""
+        themes = ["Oscuro", "Liquid Glass", "Midnight Blue", "Claro"]
+        current = self.config.tema
+        next_idx = (themes.index(current) + 1) if current in themes else 0
+        next_theme = themes[next_idx]
+        self.config.tema = next_theme
+        ThemeManager.apply_theme(self, next_theme)
+        icon_color = "#1D1D1F" if "Claro" in next_theme else "#FFFFFF"
+        self.icon_manager.set_theme_color(icon_color)
+        if hasattr(self, 'toast'):
+            self.toast.show_toast("Tema Cambiado", f"Tema aplicado: {next_theme}", self, type="info")
+
+    def _new_quotation(self):
+        """Reset UI to start a new quotation."""
+        self._clear_table()
+        self.client_name_input.clear()
+        self.client_contact_input.clear()
+        self.client_address_input.clear()
+        self._generate_quotation_number()
+        if hasattr(self, 'toast'):
+            self.toast.show_toast("Nueva Cotización", "Se ha reiniciado el formulario.", self, type="info")
+
     def _create_ui(self):
-        """Create the main UI with tabs."""
+        """Create the main UI with Dashboard Sidebar Navigation and Glass Workspace."""
         from .company_view import CompanyManagerView
         from .config_view import ConfigManagerView
         self._CompanyManagerView = CompanyManagerView
@@ -214,159 +245,308 @@ class MainWindow(QMainWindow):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         
-        main_layout = QVBoxLayout(central_widget)
-        main_layout.setSpacing(8)
-        main_layout.setContentsMargins(12, 12, 12, 12)
+        app_layout = QHBoxLayout(central_widget)
+        app_layout.setContentsMargins(0, 0, 0, 0)
+        app_layout.setSpacing(0)
         
-        # === HEADER: Basic Info (Compact) ===
-        header_widget = QWidget()
-        header_layout = QGridLayout(header_widget)
-        header_layout.setSpacing(10)
-        header_layout.setContentsMargins(5, 5, 5, 5)
+        # === SIDEBAR NAVIGATION ===
+        sidebar_frame = QFrame()
+        sidebar_frame.setObjectName("SidebarFrame")
+        sidebar_frame.setStyleSheet("""
+            QFrame#SidebarFrame {
+                background-color: rgba(8, 11, 16, 0.95);
+                border-right: 1px solid rgba(255, 255, 255, 0.08);
+                min-width: 220px;
+                max-width: 220px;
+            }
+        """)
+        sidebar_layout = QVBoxLayout(sidebar_frame)
+        sidebar_layout.setContentsMargins(12, 16, 12, 16)
+        sidebar_layout.setSpacing(8)
         
-        # Row 0: Title, Document Type and Number
-        title = QLabel("Cotizador Pro")
-        title.setStyleSheet("font-size: 18px; font-weight: bold;")
-        header_layout.addWidget(title, 0, 0)
+        # Brand header
+        brand_layout = QHBoxLayout()
+        brand_icon = QLabel()
+        brand_icon.setPixmap(self.icon_manager.get_pixmap("pdf", 28))
+        brand_layout.addWidget(brand_icon)
         
-        # Document type selector
-        header_layout.addWidget(QLabel("Tipo:"), 0, 1)
+        brand_text_layout = QVBoxLayout()
+        brand_title = QLabel("Cotizador Pro")
+        brand_title.setStyleSheet("font-size: 16px; font-weight: bold; color: #FFFFFF;")
+        brand_subtitle = QLabel("Suite v3.1")
+        brand_subtitle.setStyleSheet("font-size: 11px; color: #3B82F6; font-weight: 600;")
+        brand_text_layout.addWidget(brand_title)
+        brand_text_layout.addWidget(brand_subtitle)
+        brand_layout.addLayout(brand_text_layout)
+        brand_layout.addStretch()
+        sidebar_layout.addLayout(brand_layout)
+        
+        sep_side = QFrame()
+        sep_side.setFrameShape(QFrame.Shape.HLine)
+        sep_side.setStyleSheet("background-color: rgba(255,255,255,0.08); margin: 8px 0;")
+        sidebar_layout.addWidget(sep_side)
+        
+        # Nav Buttons Group
+        self.nav_button_group = QButtonGroup(self)
+        self.nav_button_group.setExclusive(True)
+        
+        nav_items = [
+            ("box", " Cotización", 0),
+            ("money", " Finanzas y Saldo", 1),
+            ("termsAndCondition", " Términos", 2),
+            ("image", " Portada & Lienzo", 3),
+            ("company", " Empresa", 4),
+            ("settings", " Configuración", 5),
+            ("history", " Historial", 6)
+        ]
+        
+        self.nav_buttons = []
+        for icon_name, label_text, page_idx in nav_items:
+            btn = QPushButton(f"  {label_text}")
+            btn.setIcon(self.icon_manager.get_icon(icon_name, 20))
+            btn.setCheckable(True)
+            btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn.setStyleSheet("""
+                QPushButton {
+                    text-align: left;
+                    padding: 10px 14px;
+                    border: none;
+                    border-radius: 10px;
+                    color: #94A3B8;
+                    font-size: 13px;
+                    font-weight: 600;
+                    background-color: transparent;
+                }
+                QPushButton:hover {
+                    background-color: rgba(255, 255, 255, 0.06);
+                    color: #F8FAFC;
+                }
+                QPushButton:checked {
+                    background-color: #2563EB;
+                    color: #FFFFFF;
+                    font-weight: bold;
+                }
+            """)
+            btn.clicked.connect(lambda _, idx=page_idx: self.main_stack.setCurrentIndex(idx))
+            sidebar_layout.addWidget(btn)
+            self.nav_button_group.addButton(btn)
+            self.nav_buttons.append(btn)
+        
+        if self.nav_buttons:
+            self.nav_buttons[0].setChecked(True)
+        
+        sidebar_layout.addStretch()
+        
+        # Theme Switcher in Sidebar Footer
+        self.theme_toggle_btn = QPushButton(" 🌙 Cambiar Tema")
+        self.theme_toggle_btn.setIcon(self.icon_manager.get_icon("palette", 18))
+        self.theme_toggle_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.theme_toggle_btn.setStyleSheet("""
+            QPushButton {
+                background: rgba(255,255,255,0.06);
+                border: 1px solid rgba(255,255,255,0.1);
+                border-radius: 10px;
+                color: #F8FAFC;
+                padding: 10px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background: rgba(37, 99, 235, 0.3);
+                border-color: #2563EB;
+            }
+        """)
+        self.theme_toggle_btn.clicked.connect(self._cycle_theme)
+        sidebar_layout.addWidget(self.theme_toggle_btn)
+        
+        app_layout.addWidget(sidebar_frame)
+        
+        # === RIGHT MAIN AREA ===
+        main_right_container = QWidget()
+        main_right_layout = QVBoxLayout(main_right_container)
+        main_right_layout.setContentsMargins(16, 12, 16, 12)
+        main_right_layout.setSpacing(12)
+        
+        # Top Header Bar
+        header_widget = QFrame()
+        header_widget.setStyleSheet("""
+            QFrame {
+                background: rgba(21, 28, 44, 0.7);
+                border: 1px solid rgba(255,255,255,0.08);
+                border-radius: 12px;
+                padding: 6px 12px;
+            }
+        """)
+        header_layout = QHBoxLayout(header_widget)
+        header_layout.setSpacing(12)
+        
+        header_layout.addWidget(QLabel("Tipo:"))
         self.document_type_combo = QComboBox()
         self.document_type_combo.addItems(["Cotizacion", "Recibo"])
         self.document_type_combo.setMinimumHeight(35)
-        self.document_type_combo.setMinimumWidth(120)
+        self.document_type_combo.setMinimumWidth(110)
         self.document_type_combo.currentTextChanged.connect(self._on_document_type_changed)
-        header_layout.addWidget(self.document_type_combo, 0, 2)
+        header_layout.addWidget(self.document_type_combo)
         
-        header_layout.addWidget(QLabel("Numero:"), 0, 4)
+        header_layout.addWidget(QLabel("Número:"))
         self.quotation_number_input = QLineEdit()
-        self.quotation_number_input.setMaximumWidth(160)
+        self.quotation_number_input.setMaximumWidth(140)
         self.quotation_number_input.setMinimumHeight(35)
-        header_layout.addWidget(self.quotation_number_input, 0, 5)
+        header_layout.addWidget(self.quotation_number_input)
         
-        # Row 1: Company, Date, Validity
-        header_layout.addWidget(QLabel("Empresa:"), 1, 0)
-        self.company_combo = QComboBox()
-        self.company_combo.setMinimumHeight(35)
-        self.company_combo.setMinimumWidth(200)
-        self.company_combo.currentTextChanged.connect(self._on_company_changed)
-        header_layout.addWidget(self.company_combo, 1, 1)
+        btn_regen_num = QPushButton()
+        btn_regen_num.setIcon(self.icon_manager.get_icon("history", 16))
+        btn_regen_num.setToolTip("Generar nuevo número")
+        btn_regen_num.setFixedWidth(35)
+        btn_regen_num.setFixedHeight(35)
+        btn_regen_num.clicked.connect(self._generate_quotation_number)
+        header_layout.addWidget(btn_regen_num)
         
-        header_layout.addWidget(QLabel("Fecha:"), 1, 2)
+        header_layout.addWidget(QLabel("Fecha:"))
         self.date_input = QLineEdit(datetime.today().strftime("%d/%m/%Y"))
-        self.date_input.setMaximumWidth(100)
+        self.date_input.setMaximumWidth(95)
         self.date_input.setMinimumHeight(35)
-        header_layout.addWidget(self.date_input, 1, 3)
+        header_layout.addWidget(self.date_input)
         
-        header_layout.addWidget(QLabel("Validez:"), 1, 4)
+        header_layout.addWidget(QLabel("Validez:"))
         self.validez_input = QSpinBox()
         self.validez_input.setRange(1, 365)
         self.validez_input.setValue(15)
         self.validez_input.setSuffix(" días")
         self.validez_input.setMinimumHeight(35)
-        self.validez_input.setMaximumWidth(100)
+        self.validez_input.setMaximumWidth(95)
         self.validez_input.valueChanged.connect(self._on_header_validez_changed)
-        header_layout.addWidget(self.validez_input, 1, 5)
+        header_layout.addWidget(self.validez_input)
         
-        # Row 2: Client Info (compact)
-        header_layout.addWidget(QLabel("Cliente:"), 2, 0)
-        self.client_name_input = QLineEdit()
-        self.client_name_input.setPlaceholderText("Nombre del cliente")
-        self.client_name_input.setMinimumHeight(35)
-        header_layout.addWidget(self.client_name_input, 2, 1)
+        header_layout.addStretch()
         
-        header_layout.addWidget(QLabel("Contacto:"), 2, 2)
-        self.client_contact_input = QLineEdit()
-        self.client_contact_input.setPlaceholderText("Teléfono/Email")
-        self.client_contact_input.setMinimumHeight(35)
-        header_layout.addWidget(self.client_contact_input, 2, 3)
+        btn_new = AnimatedButton(" Nueva")
+        btn_new.setIcon(self.icon_manager.get_icon("add", 16))
+        btn_new.setMinimumHeight(36)
+        btn_new.clicked.connect(self._new_quotation)
+        header_layout.addWidget(btn_new)
         
-        header_layout.addWidget(QLabel("Dirección:"), 2, 4)
-        self.client_address_input = QLineEdit()
-        self.client_address_input.setPlaceholderText("Dirección")
-        self.client_address_input.setMinimumHeight(35)
-        header_layout.addWidget(self.client_address_input, 2, 5)
+        btn_save = AnimatedButton(" Guardar")
+        btn_save.setIcon(self.icon_manager.get_icon("save", 16))
+        btn_save.setMinimumHeight(36)
+        btn_save.clicked.connect(self._save_file)
+        header_layout.addWidget(btn_save)
         
-        # Company info label
-        self.company_info_label = QLabel("")
-        self.company_info_label.setStyleSheet("color: rgba(255,255,255,0.5); font-size: 11px;")
-        header_layout.addWidget(self.company_info_label, 3, 0, 1, 6)
+        btn_export = PrimaryButton(" Generar PDF")
+        btn_export.setIcon(self.icon_manager.get_icon("pdf", 18))
+        btn_export.setMinimumHeight(36)
+        btn_export.clicked.connect(self._export_pdf)
+        header_layout.addWidget(btn_export)
         
-        main_layout.addWidget(header_widget)
+        main_right_layout.addWidget(header_widget)
         
-        # === TAB WIDGET ===
-        self.tabs = QTabWidget()
-        self.tabs.setStyleSheet("""
-            QTabWidget::pane {
-                border: 1px solid rgba(255,255,255,0.1);
-                border-radius: 8px;
-                background-color: rgba(0,0,0,0.2);
-            }
-            QTabBar::tab {
-                background-color: rgba(255,255,255,0.05);
-                color: white;
-                padding: 10px 20px;
-                margin-right: 4px;
-                border-top-left-radius: 8px;
-                border-top-right-radius: 8px;
-                font-weight: bold;
-            }
-            QTabBar::tab:selected {
-                background-color: rgba(10, 132, 255, 0.4);
-                border-bottom: 2px solid #0A84FF;
-            }
-            QTabBar::tab:hover {
-                background-color: rgba(255,255,255,0.1);
+        # Workspace Stacked Widget
+        self.main_stack = QStackedWidget()
+        
+        # Build views
+        self.main_stack.addWidget(self._build_quote_products_page())
+        self.main_stack.addWidget(self._build_finance_payments_page())
+        self.main_stack.addWidget(self._build_terms_warranty_page())
+        self.main_stack.addWidget(self._build_cover_canvas_page())
+        
+        # Integrated Company Manager
+        self.company_view_widget = CompanyManagerView(self)
+        self.main_stack.addWidget(self.company_view_widget)
+        
+        # Integrated Config Manager
+        self.config_view_widget = ConfigManagerView(self)
+        self.main_stack.addWidget(self.config_view_widget)
+        
+        # Integrated History View
+        self.history_view_widget = QWidget()
+        hist_layout = QVBoxLayout(self.history_view_widget)
+        hist_btn = PrimaryButton("Abrir Historial Completo de Archivos")
+        hist_btn.setIcon(self.icon_manager.get_icon("history", 20))
+        hist_btn.clicked.connect(self._open_history_window)
+        hist_layout.addWidget(hist_btn, 0, Qt.AlignmentFlag.AlignCenter)
+        self.main_stack.addWidget(self.history_view_widget)
+        
+        main_right_layout.addWidget(self.main_stack, 1)
+        
+        # Bottom Bar: Total Display
+        bottom_bar = QWidget()
+        bottom_layout = QHBoxLayout(bottom_bar)
+        bottom_layout.setContentsMargins(4, 4, 4, 4)
+        
+        self.total_display = QLabel("Total: 0.00")
+        self.total_display.setStyleSheet("font-size: 18px; font-weight: bold; color: #2563EB;")
+        bottom_layout.addWidget(self.total_display)
+        bottom_layout.addStretch()
+        
+        main_right_layout.addWidget(bottom_bar)
+        
+        app_layout.addWidget(main_right_container, 1)
+
+    def _build_quote_products_page(self) -> QWidget:
+        """Page 0: Client info card and Products table card."""
+        page = QWidget()
+        layout = QVBoxLayout(page)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(12)
+        
+        # Card 1: Client & Company Info
+        card_client = QFrame()
+        card_client.setStyleSheet("""
+            QFrame {
+                background: rgba(21, 28, 44, 0.85);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                padding: 12px;
             }
         """)
+        client_layout = QGridLayout(card_client)
+        client_layout.setSpacing(10)
         
-        # TAB 1: Details (with Products card)
-        self._create_details_tab()
+        client_layout.addWidget(QLabel("Empresa Emisora:"), 0, 0)
+        self.company_combo = QComboBox()
+        self.company_combo.setMinimumHeight(35)
+        self.company_combo.currentTextChanged.connect(self._on_company_changed)
+        client_layout.addWidget(self.company_combo, 0, 1)
         
-        # TAB 2: Finance
-        self._create_finance_tab()
+        self.company_info_label = QLabel("")
+        self.company_info_label.setStyleSheet("color: rgba(255,255,255,0.5); font-size: 11px;")
+        client_layout.addWidget(self.company_info_label, 0, 2, 1, 2)
         
-        main_layout.addWidget(self.tabs, 1)
+        client_layout.addWidget(QLabel("Cliente:"), 1, 0)
+        self.client_name_input = QLineEdit()
+        self.client_name_input.setPlaceholderText("Nombre del cliente u organización")
+        self.client_name_input.setMinimumHeight(35)
+        client_layout.addWidget(self.client_name_input, 1, 1)
         
-        # === FOOTER: Actions ===
-        footer = QWidget()
-        footer_layout = QHBoxLayout(footer)
-        footer_layout.setContentsMargins(0, 8, 0, 0)
+        client_layout.addWidget(QLabel("Contacto:"), 1, 2)
+        self.client_contact_input = QLineEdit()
+        self.client_contact_input.setPlaceholderText("Teléfono / Email")
+        self.client_contact_input.setMinimumHeight(35)
+        client_layout.addWidget(self.client_contact_input, 1, 3)
         
-        # Total display
-        self.total_display = QLabel("Total: 0.00")
-        self.total_display.setStyleSheet("font-size: 18px; font-weight: bold; color: #0A84FF;")
-        footer_layout.addWidget(self.total_display)
+        client_layout.addWidget(QLabel("Dirección:"), 2, 0)
+        self.client_address_input = QLineEdit()
+        self.client_address_input.setPlaceholderText("Dirección del cliente")
+        self.client_address_input.setMinimumHeight(35)
+        client_layout.addWidget(self.client_address_input, 2, 1, 1, 3)
         
-        footer_layout.addStretch()
+        layout.addWidget(card_client)
         
-        btn_save = AnimatedButton("Guardar")
-        btn_save.setIcon(self.icon_manager.get_icon("save", 20))
-        btn_save.setMinimumWidth(140)
-        btn_save.setMinimumHeight(40)
-        btn_save.clicked.connect(self._save_file)
-        footer_layout.addWidget(btn_save)
-        
-        btn_export = PrimaryButton("Generar PDF")
-        btn_export.setIcon(self.icon_manager.get_icon("pdf", 20))
-        btn_export.setMinimumWidth(160)
-        btn_export.setMinimumHeight(40)
-        btn_export.clicked.connect(self._export_pdf)
-        footer_layout.addWidget(btn_export)
-        
-        main_layout.addWidget(footer)
-    
-    def _create_products_tab(self):
-        """Create the products tab."""
-        tab = QWidget()
-        layout = QVBoxLayout(tab)
-        layout.setSpacing(8)
-        layout.setContentsMargins(10, 10, 10, 10)
+        # Card 2: Products Table & Toolbar
+        card_products = QFrame()
+        card_products.setStyleSheet("""
+            QFrame {
+                background: rgba(21, 28, 44, 0.85);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                padding: 12px;
+            }
+        """)
+        prod_layout = QVBoxLayout(card_products)
+        prod_layout.setSpacing(10)
         
         # Toolbar
         toolbar = QHBoxLayout()
-        
-        products_label = self._create_icon_label("box", "Lista de Productos", 18)
+        products_label = self._create_icon_label("box", "Lista de Productos y Servicios", 18)
         toolbar.addWidget(products_label)
         toolbar.addStretch()
         
@@ -390,37 +570,34 @@ class MainWindow(QMainWindow):
         btn_clear.clicked.connect(self._clear_table)
         toolbar.addWidget(btn_clear)
         
-        layout.addLayout(toolbar)
+        prod_layout.addLayout(toolbar)
         
-        # Table
         self.table = QuotationTable()
         self.table.itemChanged.connect(self._calculate_amount)
-        layout.addWidget(self.table, 1)  # Give table stretch priority
+        prod_layout.addWidget(self.table, 1)
         
-        # === Shipping Section (Visible in Quote) ===
+        # Shipping Box
         shipping_frame = QFrame()
         shipping_frame.setStyleSheet("""
             QFrame {
-                background-color: rgba(10, 132, 255, 0.1);
-                border: 1px solid rgba(10, 132, 255, 0.3);
+                background-color: rgba(37, 99, 235, 0.1);
+                border: 1px solid rgba(37, 99, 235, 0.3);
                 border-radius: 8px;
-                padding: 8px;
+                padding: 6px 12px;
             }
         """)
         shipping_layout = QHBoxLayout(shipping_frame)
         shipping_layout.setSpacing(12)
         
-        # Shipping icon and checkbox
         shipping_icon = QLabel()
-        shipping_icon.setPixmap(self.icon_manager.get_pixmap("delivery", 24))
+        shipping_icon.setPixmap(self.icon_manager.get_pixmap("delivery", 22))
         shipping_layout.addWidget(shipping_icon)
         
-        self.enable_shipping_check = QCheckBox("Envío")
+        self.enable_shipping_check = QCheckBox("Habilitar Envío")
         self.enable_shipping_check.setStyleSheet("font-weight: bold; font-size: 13px;")
         self.enable_shipping_check.stateChanged.connect(self._on_shipping_toggled)
         shipping_layout.addWidget(self.enable_shipping_check)
         
-        # Shipping amount (no prefix - just the number)
         self.shipping_input = QDoubleSpinBox()
         self.shipping_input.setRange(0, 99999)
         self.shipping_input.setDecimals(2)
@@ -431,52 +608,31 @@ class MainWindow(QMainWindow):
         self.shipping_input.valueChanged.connect(self._calculate_total)
         shipping_layout.addWidget(self.shipping_input)
         
-        # Shipping type
         self.shipping_type_combo = QComboBox()
         self.shipping_type_combo.addItems([
-            "Envío Local",
-            "Delivery",
-            "Encomienda",
-            "Express/Urgente",
-            "Pickup (Retiro)",
-            "Courier Nacional",
-            "Courier Internacional",
-            "Flete",
-            "Transporte Especializado"
+            "Envío Local", "Delivery", "Encomienda", "Express/Urgente",
+            "Pickup (Retiro)", "Courier Nacional", "Courier Internacional"
         ])
         self.shipping_type_combo.setMinimumHeight(35)
         self.shipping_type_combo.setEnabled(False)
         shipping_layout.addWidget(self.shipping_type_combo)
         
-        # Shipping display
         self.shipping_display = QLabel("+ 0.00")
-        self.shipping_display.setStyleSheet("color: #0A84FF; font-weight: bold; font-size: 14px;")
+        self.shipping_display.setStyleSheet("color: #3B82F6; font-weight: bold; font-size: 14px;")
         shipping_layout.addWidget(self.shipping_display)
-        
         shipping_layout.addStretch()
         
-        layout.addWidget(shipping_frame)
+        prod_layout.addWidget(shipping_frame)
         
-        # Add tab with icon
-        self.tabs.addTab(tab, self.icon_manager.get_icon("box", 20), "Productos")
-    
-        # Connect table signals
-        if hasattr(self, 'table') and isinstance(self.table, QuotationTable):
-            self.table.resolution_warning.connect(self._show_toast_warning)
+        layout.addWidget(card_products, 1)
+        return page
 
-        # Initialize Toast
-        self.toast = ToastNotification(self)
-
-    def _show_toast_warning(self, title, message):
-        """Show warning toast from table."""
-        self.toast.show_toast(title, message, self, duration=6000, type="warning")
-
-    def _create_details_tab(self):
-        """Create the details/observations tab with cover page option."""
-        tab = QWidget()
-        layout = QVBoxLayout(tab)
-        layout.setSpacing(20)
-        layout.setContentsMargins(24, 24, 24, 24)
+    def _build_finance_payments_page(self) -> QWidget:
+        """Page 1: Finance calculations, payment tracking, and bank details."""
+        page = QWidget()
+        layout = QVBoxLayout(page)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(12)
         
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
@@ -484,309 +640,33 @@ class MainWindow(QMainWindow):
         
         content = QWidget()
         content_layout = QVBoxLayout(content)
-        content_layout.setSpacing(20)
+        content_layout.setSpacing(16)
         
-        # Unified card style
-        card_style = """
+        # Card 1: Totals & Calculations
+        card_calc = QFrame()
+        card_calc.setStyleSheet("""
             QFrame {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-                    stop:0 rgba(30, 30, 35, 0.95), stop:1 rgba(25, 25, 30, 0.9));
-                border: 1px solid rgba(255, 255, 255, 0.08);
-                border-radius: 16px;
+                background: rgba(21, 28, 44, 0.85);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                padding: 16px;
             }
-        """
+        """)
+        calc_grid = QGridLayout(card_calc)
+        calc_grid.setSpacing(12)
         
-        # === 1. COVER PAGE ===
-        cover_frame = QFrame()
-        cover_frame.setStyleSheet(card_style)
-        cover_layout = QVBoxLayout(cover_frame)
-        cover_layout.setContentsMargins(20, 16, 20, 16)
-        cover_layout.setSpacing(12)
+        calc_header = self._create_icon_label("money", "Desglose Financiero", 18)
+        calc_grid.addWidget(calc_header, 0, 0, 1, 4)
         
-        cover_header = QHBoxLayout()
-        cover_header.setSpacing(12)
-        cover_icon = QLabel()
-        cover_icon.setFixedSize(44, 44)
-        cover_icon.setStyleSheet("background: rgba(10, 132, 255, 0.3); border: 2px solid #0A84FF; border-radius: 12px;")
-        cover_icon.setPixmap(self.icon_manager.get_pixmap("pdf", 24))
-        cover_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        cover_header.addWidget(cover_icon)
-        
-        cover_text = QVBoxLayout()
-        cover_text.setSpacing(2)
-        cover_title = QLabel("Carátula del Documento")
-        cover_title.setStyleSheet("font-size: 16px; font-weight: bold; color: #FFFFFF;")
-        cover_text.addWidget(cover_title)
-        cover_desc = QLabel("Portada profesional para tu cotización")
-        cover_desc.setStyleSheet("font-size: 12px; color: rgba(255,255,255,0.5);")
-        cover_text.addWidget(cover_desc)
-        cover_header.addLayout(cover_text)
-        cover_header.addStretch()
-        
-        self.cover_page_check = QCheckBox("Incluir")
-        self.cover_page_check.setStyleSheet("QCheckBox { font-size: 13px; color: #0A84FF; font-weight: bold; } QCheckBox::indicator { width: 20px; height: 20px; border-radius: 4px; border: 2px solid #0A84FF; } QCheckBox::indicator:checked { background: #0A84FF; }")
-        cover_header.addWidget(self.cover_page_check)
-        cover_layout.addLayout(cover_header)
-        
-        self.edit_cover_btn = QPushButton("  Editar Carátula")
-        self.edit_cover_btn.setIcon(self.icon_manager.get_icon("noteAdd", 18))
-        self.edit_cover_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.edit_cover_btn.setStyleSheet("QPushButton { background: rgba(10, 132, 255, 0.4); border: 1px solid #0A84FF; border-radius: 10px; color: white; padding: 12px 24px; font-weight: bold; font-size: 13px; } QPushButton:hover { background: rgba(10, 132, 255, 0.6); }")
-        self.edit_cover_btn.clicked.connect(self._open_cover_page_editor)
-        cover_layout.addWidget(self.edit_cover_btn)
-        content_layout.addWidget(cover_frame)
-        
-        # === 1.5 PRODUCTS ===
-        products_frame = QFrame()
-        products_frame.setStyleSheet(card_style)
-        products_layout = QVBoxLayout(products_frame)
-        products_layout.setContentsMargins(20, 16, 20, 16)
-        products_layout.setSpacing(12)
-        
-        products_header = QHBoxLayout()
-        products_header.setSpacing(12)
-        products_icon = QLabel()
-        products_icon.setFixedSize(44, 44)
-        products_icon.setStyleSheet("background: rgba(94, 92, 230, 0.3); border: 2px solid #5E5CE6; border-radius: 12px;")
-        products_icon.setPixmap(self.icon_manager.get_pixmap("box", 24))
-        products_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        products_header.addWidget(products_icon)
-        
-        products_text = QVBoxLayout()
-        products_text.setSpacing(2)
-        products_title = QLabel("Producto")
-        products_title.setStyleSheet("font-size: 16px; font-weight: bold; color: #FFFFFF;")
-        products_text.addWidget(products_title)
-        products_desc = QLabel("Elige los productos de la cotización + envío si aplica")
-        products_desc.setStyleSheet("font-size: 12px; color: rgba(255,255,255,0.5);")
-        products_text.addWidget(products_desc)
-        products_header.addLayout(products_text)
-        products_header.addStretch()
-        
-        self.include_products_check = QCheckBox("Incluir")
-        self.include_products_check.setChecked(True)
-        self.include_products_check.setStyleSheet("QCheckBox { font-size: 13px; color: #5E5CE6; font-weight: bold; } QCheckBox::indicator { width: 20px; height: 20px; border-radius: 4px; border: 2px solid #5E5CE6; } QCheckBox::indicator:checked { background: #5E5CE6; }")
-        products_header.addWidget(self.include_products_check)
-        products_layout.addLayout(products_header)
-        
-        # Products summary
-        self.products_summary = QLabel("Sin productos agregados")
-        self.products_summary.setStyleSheet("font-size: 12px; color: rgba(255,255,255,0.6); padding: 8px 0;")
-        self.products_summary.setWordWrap(True)
-        products_layout.addWidget(self.products_summary)
-        
-        btn_products = QPushButton("  Gestionar Productos y Envío")
-        btn_products.setIcon(self.icon_manager.get_icon("box", 18))
-        btn_products.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn_products.setStyleSheet("QPushButton { background: rgba(94, 92, 230, 0.4); border: 1px solid #5E5CE6; border-radius: 10px; color: white; padding: 12px 24px; font-weight: bold; font-size: 13px; } QPushButton:hover { background: rgba(94, 92, 230, 0.6); }")
-        btn_products.clicked.connect(self._open_products_window)
-        products_layout.addWidget(btn_products)
-        
-        # Checkbox para incluir Resumen de Condiciones en PDF
-        summary_row = QHBoxLayout()
-        summary_row.setContentsMargins(0, 8, 0, 0)
-        self.include_summary_check = QCheckBox("Incluir Resumen de Condiciones")
-        self.include_summary_check.setChecked(False)  # Desactivado por defecto
-        self.include_summary_check.setToolTip("Muestra validez, tiempo de entrega, envío e IVA en el PDF")
-        self.include_summary_check.setStyleSheet("QCheckBox { font-size: 12px; color: rgba(255,255,255,0.7); } QCheckBox::indicator { width: 18px; height: 18px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.3); } QCheckBox::indicator:checked { background: #5E5CE6; border-color: #5E5CE6; }")
-        summary_row.addWidget(self.include_summary_check)
-        summary_row.addStretch()
-        products_layout.addLayout(summary_row)
-        
-        content_layout.addWidget(products_frame)
-        
-        # === 2. OBSERVATIONS ===
-        obs_frame = QFrame()
-        obs_frame.setStyleSheet(card_style)
-        obs_layout = QVBoxLayout(obs_frame)
-        obs_layout.setContentsMargins(20, 16, 20, 16)
-        obs_layout.setSpacing(12)
-        
-        obs_header = QHBoxLayout()
-        obs_header.setSpacing(12)
-        obs_icon = QLabel()
-        obs_icon.setFixedSize(44, 44)
-        obs_icon.setStyleSheet("background: rgba(52, 199, 89, 0.3); border: 2px solid #34C759; border-radius: 12px;")
-        obs_icon.setPixmap(self.icon_manager.get_pixmap("termsAndCondition", 24))
-        obs_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        obs_header.addWidget(obs_icon)
-        
-        obs_text = QVBoxLayout()
-        obs_text.setSpacing(2)
-        obs_title = QLabel("Observaciones y Notas")
-        obs_title.setStyleSheet("font-size: 16px; font-weight: bold; color: #FFFFFF;")
-        obs_text.addWidget(obs_title)
-        self.observations_summary = QLabel("Sin observaciones añadidas")
-        self.observations_summary.setStyleSheet("font-size: 12px; color: rgba(255,255,255,0.5);")
-        self.observations_summary.setWordWrap(True)
-        obs_text.addWidget(self.observations_summary)
-        obs_header.addLayout(obs_text)
-        obs_header.addStretch()
-        
-        self.include_details_check = QCheckBox("Incluir")
-        self.include_details_check.setChecked(False)
-        self.include_details_check.setStyleSheet("QCheckBox { font-size: 13px; color: #34C759; font-weight: bold; } QCheckBox::indicator { width: 20px; height: 20px; border-radius: 4px; border: 2px solid #34C759; } QCheckBox::indicator:checked { background: #34C759; }")
-        obs_header.addWidget(self.include_details_check)
-        obs_layout.addLayout(obs_header)
-        
-        btn_open = QPushButton("  Abrir Ventana de Observaciones")
-        btn_open.setIcon(self.icon_manager.get_icon("noteAdd", 18))
-        btn_open.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn_open.setStyleSheet("QPushButton { background: rgba(52, 199, 89, 0.4); border: 1px solid #34C759; border-radius: 10px; color: white; padding: 12px 24px; font-weight: bold; font-size: 13px; } QPushButton:hover { background: rgba(52, 199, 89, 0.6); }")
-        btn_open.clicked.connect(self._open_observations_window)
-        obs_layout.addWidget(btn_open)
-        content_layout.addWidget(obs_frame)
-        
-        # === 3. TERMS & CONDITIONS ===
-        terms_frame = QFrame()
-        terms_frame.setStyleSheet(card_style)
-        terms_layout = QVBoxLayout(terms_frame)
-        terms_layout.setContentsMargins(20, 16, 20, 16)
-        terms_layout.setSpacing(12)
-        
-        terms_header = QHBoxLayout()
-        terms_header.setSpacing(12)
-        terms_icon = QLabel()
-        terms_icon.setFixedSize(44, 44)
-        terms_icon.setStyleSheet("background: rgba(255, 149, 0, 0.3); border: 2px solid #FF9500; border-radius: 12px;")
-        terms_icon.setPixmap(self.icon_manager.get_pixmap("maintenance", 24))
-        terms_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        terms_header.addWidget(terms_icon)
-        
-        terms_text = QVBoxLayout()
-        terms_text.setSpacing(2)
-        terms_title = QLabel("Términos, Condiciones y Garantía")
-        terms_title.setStyleSheet("font-size: 16px; font-weight: bold; color: #FFFFFF;")
-        terms_text.addWidget(terms_title)
-        terms_desc = QLabel("Validez, entrega, garantía y formas de pago")
-        terms_desc.setStyleSheet("font-size: 12px; color: rgba(255,255,255,0.5);")
-        terms_text.addWidget(terms_desc)
-        terms_header.addLayout(terms_text)
-        terms_header.addStretch()
-        terms_layout.addLayout(terms_header)
-        
-        btn_terms = QPushButton("  Gestionar Términos y Condiciones")
-        btn_terms.setIcon(self.icon_manager.get_icon("termsAndCondition", 18))
-        btn_terms.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn_terms.setStyleSheet("QPushButton { background: rgba(255, 149, 0, 0.4); border: 1px solid #FF9500; border-radius: 10px; color: white; padding: 12px 24px; font-weight: bold; font-size: 13px; } QPushButton:hover { background: rgba(255, 149, 0, 0.6); }")
-        btn_terms.clicked.connect(self._open_terms_window)
-        terms_layout.addWidget(btn_terms)
-        
-        # Validez row - syncs with _terms_data
-        validez_row = QHBoxLayout()
-        validez_lbl = QLabel("Validez de oferta:")
-        validez_lbl.setStyleSheet("font-size: 13px; color: rgba(255,255,255,0.7);")
-        validez_row.addWidget(validez_lbl)
-        self.validez_dias_spin = QSpinBox()
-        self.validez_dias_spin.setRange(1, 365)
-        self.validez_dias_spin.setValue(self._terms_data.get('validez_dias', 15))
-        self.validez_dias_spin.setSuffix(" días")
-        self.validez_dias_spin.setStyleSheet("QSpinBox { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 6px 12px; color: white; min-width: 100px; }")
-        self.validez_dias_spin.valueChanged.connect(self._on_validez_changed)
-        validez_row.addWidget(self.validez_dias_spin)
-        validez_row.addStretch()
-        terms_layout.addLayout(validez_row)
-        content_layout.addWidget(terms_frame)
-        
-        # === 4. SIGNATURE ===
-        sig_frame = QFrame()
-        sig_frame.setStyleSheet(card_style)
-        sig_layout = QVBoxLayout(sig_frame)
-        sig_layout.setContentsMargins(20, 16, 20, 16)
-        sig_layout.setSpacing(12)
-        
-        sig_header = QHBoxLayout()
-        sig_header.setSpacing(12)
-        sig_icon = QLabel()
-        sig_icon.setFixedSize(44, 44)
-        sig_icon.setStyleSheet("background: rgba(175, 82, 222, 0.3); border: 2px solid #AF52DE; border-radius: 12px;")
-        sig_icon.setPixmap(self.icon_manager.get_pixmap("user", 24))
-        sig_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        sig_header.addWidget(sig_icon)
-        
-        sig_text = QVBoxLayout()
-        sig_text.setSpacing(2)
-        sig_title = QLabel("Firma del Documento")
-        sig_title.setStyleSheet("font-size: 16px; font-weight: bold; color: #FFFFFF;")
-        sig_text.addWidget(sig_title)
-        sig_desc = QLabel("Incluye tu firma profesional en la cotización")
-        sig_desc.setStyleSheet("font-size: 12px; color: rgba(255,255,255,0.5);")
-        sig_text.addWidget(sig_desc)
-        sig_header.addLayout(sig_text)
-        sig_header.addStretch()
-        
-        self.include_signature_check = QCheckBox("Incluir Firma")
-        self.include_signature_check.setStyleSheet("QCheckBox { font-size: 13px; color: #AF52DE; font-weight: bold; } QCheckBox::indicator { width: 20px; height: 20px; border-radius: 4px; border: 2px solid #AF52DE; } QCheckBox::indicator:checked { background: #AF52DE; }")
-        self.include_signature_check.setChecked(False)
-        sig_header.addWidget(self.include_signature_check)
-        sig_layout.addLayout(sig_header)
-        content_layout.addWidget(sig_frame)
-        
-        # Hidden fields
-        self.installation_terms = QTextEdit()
-        self.installation_terms.hide()
-        content_layout.addStretch()
-        
-        scroll.setWidget(content)
-        layout.addWidget(scroll)
-        
-        self.canvas = DropCanvas()
-        self.canvas.hide()
-        
-        # Hidden table for backward compatibility (products now managed via ProductsWindow)
-        self.table = QuotationTable()
-        self.table.hide()
-        
-        # Toast for warnings
-        self.toast = ToastNotification(self)
-        
-        self.tabs.addTab(tab, self.icon_manager.get_icon("note", 20), "Detalles")
-    
-    def _create_finance_tab(self):
-        """Create the finance tab - Simplified."""
-        tab = QWidget()
-        layout = QVBoxLayout(tab)
-        layout.setSpacing(12)
-        layout.setContentsMargins(20, 20, 20, 20)
-        
-        # Create scroll area for finance content
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        scroll.setStyleSheet("QScrollArea { border: none; background: transparent; }")
-        
-        content = QWidget()
-        content_layout = QGridLayout(content)
-        content_layout.setSpacing(12)
-        content_layout.setContentsMargins(10, 10, 10, 10)
-        
-        row = 0
-        
-        # === Calculations Section ===
-        calc_header = QHBoxLayout()
-        calc_icon = QLabel()
-        calc_icon.setPixmap(self.icon_manager.get_pixmap("money", 22))
-        calc_header.addWidget(calc_icon)
-        calc_title = QLabel("Cálculos y Totales")
-        calc_title.setStyleSheet("font-size: 16px; font-weight: bold;")
-        calc_header.addWidget(calc_title)
-        calc_header.addStretch()
-        calc_widget = QWidget()
-        calc_widget.setLayout(calc_header)
-        content_layout.addWidget(calc_widget, row, 0, 1, 4)
-        row += 1
-        
-        # Subtotal
-        content_layout.addWidget(QLabel("Subtotal:"), row, 0)
+        calc_grid.addWidget(QLabel("Subtotal:"), 1, 0)
         self.subtotal_label = QLabel("0.00")
         self.subtotal_label.setStyleSheet("font-weight: bold; font-size: 14px;")
-        content_layout.addWidget(self.subtotal_label, row, 1)
-        row += 1
+        calc_grid.addWidget(self.subtotal_label, 1, 1)
         
-        # Discount with checkbox
         self.apply_discount_check = QCheckBox("Aplicar Descuento:")
         self.apply_discount_check.setChecked(False)
         self.apply_discount_check.stateChanged.connect(self._calculate_total)
-        content_layout.addWidget(self.apply_discount_check, row, 0)
+        calc_grid.addWidget(self.apply_discount_check, 2, 0)
         
         self.discount_input = QDoubleSpinBox()
         self.discount_input.setRange(0, 100)
@@ -795,18 +675,16 @@ class MainWindow(QMainWindow):
         self.discount_input.setMinimumHeight(35)
         self.discount_input.setMaximumWidth(120)
         self.discount_input.valueChanged.connect(self._calculate_total)
-        content_layout.addWidget(self.discount_input, row, 1)
+        calc_grid.addWidget(self.discount_input, 2, 1)
         
         self.discount_amount_label = QLabel("- 0.00")
-        self.discount_amount_label.setStyleSheet("color: #FF453A;")
-        content_layout.addWidget(self.discount_amount_label, row, 2)
-        row += 1
+        self.discount_amount_label.setStyleSheet("color: #EF4444; font-weight: bold;")
+        calc_grid.addWidget(self.discount_amount_label, 2, 2)
         
-        # IVA with checkbox
         self.apply_iva_check = QCheckBox("Aplicar IVA:")
         self.apply_iva_check.setChecked(True)
         self.apply_iva_check.stateChanged.connect(self._calculate_total)
-        content_layout.addWidget(self.apply_iva_check, row, 0)
+        calc_grid.addWidget(self.apply_iva_check, 3, 0)
         
         self.iva_input = QDoubleSpinBox()
         self.iva_input.setRange(0, 50)
@@ -815,122 +693,230 @@ class MainWindow(QMainWindow):
         self.iva_input.setMinimumHeight(35)
         self.iva_input.setMaximumWidth(120)
         self.iva_input.valueChanged.connect(self._calculate_total)
-        content_layout.addWidget(self.iva_input, row, 1)
+        calc_grid.addWidget(self.iva_input, 3, 1)
         
         self.iva_amount_label = QLabel("+ 0.00")
-        self.iva_amount_label.setStyleSheet("color: #34C759;")
-        content_layout.addWidget(self.iva_amount_label, row, 2)
-        row += 1
+        self.iva_amount_label.setStyleSheet("color: #10B981; font-weight: bold;")
+        calc_grid.addWidget(self.iva_amount_label, 3, 2)
         
-        # Shipping Reference
-        shipping_ref = QLabel("Envío:")
-        content_layout.addWidget(shipping_ref, row, 0)
-        self.shipping_label = QLabel("Ver en tab Productos")
-        self.shipping_label.setStyleSheet("color: #0A84FF; font-style: italic;")
-        content_layout.addWidget(self.shipping_label, row, 1, 1, 2)
-        row += 1
+        calc_grid.addWidget(QLabel("Envío:"), 4, 0)
+        self.shipping_label = QLabel("No habilitado")
+        self.shipping_label.setStyleSheet("color: #3B82F6; font-style: italic;")
+        calc_grid.addWidget(self.shipping_label, 4, 1, 1, 2)
         
-        # Separator
-        sep = QFrame()
-        sep.setFrameShape(QFrame.Shape.HLine)
-        sep.setStyleSheet("background-color: rgba(255,255,255,0.2);")
-        content_layout.addWidget(sep, row, 0, 1, 4)
-        row += 1
+        sep_tot = QFrame()
+        sep_tot.setFrameShape(QFrame.Shape.HLine)
+        sep_tot.setStyleSheet("background-color: rgba(255,255,255,0.15);")
+        calc_grid.addWidget(sep_tot, 5, 0, 1, 4)
         
-        # Total
-        total_label = QLabel("TOTAL:")
-        total_label.setStyleSheet("font-size: 18px; font-weight: bold;")
-        content_layout.addWidget(total_label, row, 0)
+        total_lbl = QLabel("TOTAL:")
+        total_lbl.setStyleSheet("font-size: 18px; font-weight: bold;")
+        calc_grid.addWidget(total_lbl, 6, 0)
         
         self.total_label = QLabel(f"0.00 {self.config.moneda}")
-        self.total_label.setStyleSheet("font-size: 20px; font-weight: bold; color: #0A84FF;")
-        content_layout.addWidget(self.total_label, row, 1, 1, 3)
-        row += 1
+        self.total_label.setStyleSheet("font-size: 20px; font-weight: bold; color: #2563EB;")
+        calc_grid.addWidget(self.total_label, 6, 1, 1, 3)
         
-        # === Bank Details Section ===
-        sep4 = QFrame()
-        sep4.setFrameShape(QFrame.Shape.HLine)
-        sep4.setStyleSheet("background-color: rgba(255,255,255,0.1);")
-        content_layout.addWidget(sep4, row, 0, 1, 4)
-        row += 1
+        content_layout.addWidget(card_calc)
         
-        bank_header = QHBoxLayout()
-        bank_icon_lbl = QLabel()
-        bank_icon_lbl.setPixmap(self.icon_manager.get_pixmap("bank", 20))
-        bank_header.addWidget(bank_icon_lbl)
-        bank_title = QLabel("Datos Bancarios")
-        bank_title.setStyleSheet("font-size: 16px; font-weight: bold; margin-top: 10px;")
-        bank_header.addWidget(bank_title)
-        bank_header.addStretch()
+        # Card 2: Control de Pago y Saldo
+        card_pay = QFrame()
+        card_pay.setStyleSheet("""
+            QFrame {
+                background: rgba(21, 28, 44, 0.85);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                padding: 16px;
+            }
+        """)
+        pay_grid = QGridLayout(card_pay)
+        pay_grid.setSpacing(12)
         
-        # Checkbox to include bank details in PDF
+        pay_header = self._create_icon_label("bank", "Control de Pago y Saldo Pendiente", 18)
+        pay_grid.addWidget(pay_header, 0, 0, 1, 4)
+        
+        self.apply_payment_check = QCheckBox("Registrar Pago / Anticipo:")
+        self.apply_payment_check.setChecked(False)
+        self.apply_payment_check.stateChanged.connect(self._on_payment_toggled)
+        pay_grid.addWidget(self.apply_payment_check, 1, 0)
+        
+        self.paid_input = QDoubleSpinBox()
+        self.paid_input.setRange(0, 999999999)
+        self.paid_input.setValue(0)
+        self.paid_input.setSuffix(f" {self.config.moneda}")
+        self.paid_input.setMinimumHeight(35)
+        self.paid_input.setMaximumWidth(160)
+        self.paid_input.setEnabled(False)
+        self.paid_input.valueChanged.connect(self._calculate_total)
+        pay_grid.addWidget(self.paid_input, 1, 1)
+        
+        self.saldo_title_label = QLabel("Saldo Pendiente:")
+        self.saldo_title_label.setStyleSheet("font-weight: bold; font-size: 14px;")
+        pay_grid.addWidget(self.saldo_title_label, 1, 2)
+        
+        self.saldo_label = QLabel(f"0.00 {self.config.moneda}")
+        self.saldo_label.setStyleSheet("font-size: 16px; font-weight: bold; color: #8E8E93;")
+        pay_grid.addWidget(self.saldo_label, 1, 3)
+        
+        content_layout.addWidget(card_pay)
+        
+        # Card 3: Bank Details
+        card_bank = QFrame()
+        card_bank.setStyleSheet("""
+            QFrame {
+                background: rgba(21, 28, 44, 0.85);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                padding: 16px;
+            }
+        """)
+        bank_layout = QVBoxLayout(card_bank)
+        bank_layout.setSpacing(10)
+        
+        bank_head = QHBoxLayout()
+        bank_head.addWidget(self._create_icon_label("bank", "Datos Bancarios y Depósito", 18))
+        bank_head.addStretch()
+        
         self.include_bank_details_check = QCheckBox("Incluir en PDF")
         self.include_bank_details_check.setChecked(False)
-        self.include_bank_details_check.setStyleSheet("font-size: 12px; color: #34C759;")
-        bank_header.addWidget(self.include_bank_details_check)
+        self.include_bank_details_check.setStyleSheet("font-weight: bold; color: #10B981;")
+        bank_head.addWidget(self.include_bank_details_check)
+        bank_layout.addLayout(bank_head)
         
-        bank_widget = QWidget()
-        bank_widget.setLayout(bank_header)
-        content_layout.addWidget(bank_widget, row, 0, 1, 4)
-        row += 1
-        
-        content_layout.addWidget(QLabel("Banco/Cuenta:"), row, 0, Qt.AlignmentFlag.AlignTop)
         self.bank_details = QTextEdit()
-        self.bank_details.setPlaceholderText(
-            "Información bancaria para pagos:\n"
-            "Banco: \n"
-            "Cuenta: \n"
-            "Titular: \n"
-            "CLABE/IBAN: "
-        )
-        self.bank_details.setMaximumHeight(80)
-        self.bank_details.setMinimumHeight(60)
-        content_layout.addWidget(self.bank_details, row, 1, 1, 3)
-        row += 1
+        self.bank_details.setPlaceholderText("Información bancaria para pagos:\nBanco: \nCuenta N°: \nTitular: ")
+        self.bank_details.setMinimumHeight(100)
+        bank_layout.addWidget(self.bank_details)
         
-        # === Internal Notes Section ===
-        sep5 = QFrame()
-        sep5.setFrameShape(QFrame.Shape.HLine)
-        sep5.setStyleSheet("background-color: rgba(255,255,255,0.1);")
-        content_layout.addWidget(sep5, row, 0, 1, 4)
-        row += 1
-        
-        internal_header = QHBoxLayout()
-        internal_icon = QLabel()
-        internal_icon.setPixmap(self.icon_manager.get_pixmap("highPriority", 18))
-        internal_header.addWidget(internal_icon)
-        internal_title = QLabel("Notas Internas")
-        internal_title.setStyleSheet("font-size: 14px; font-weight: bold; color: #FF9500;")
-        internal_header.addWidget(internal_title)
-        internal_header.addStretch()
-        internal_widget = QWidget()
-        internal_widget.setLayout(internal_header)
-        content_layout.addWidget(internal_widget, row, 0, 1, 4)
-        row += 1
-        
-        self.internal_notes = QTextEdit()
-        self.internal_notes.setPlaceholderText(
-            "Notas internas para uso del vendedor (no aparecen en la cotización)..."
-        )
-        self.internal_notes.setMaximumHeight(60)
-        content_layout.addWidget(self.internal_notes, row, 0, 1, 4)
-        row += 1
-        
-        # Reference/PO Number (Moved here from Finance)
-        content_layout.addWidget(QLabel("Referencia/PO:"), row, 0)
-        self.reference_number = QLineEdit()
-        self.reference_number.setPlaceholderText("Número de referencia o PO del cliente")
-        self.reference_number.setMinimumHeight(35)
-        content_layout.addWidget(self.reference_number, row, 1, 1, 3)
-        row += 1
-        
-        # Stretch at end
-        content_layout.setRowStretch(row, 1)
+        content_layout.addWidget(card_bank)
+        content_layout.addStretch()
         
         scroll.setWidget(content)
         layout.addWidget(scroll)
+        return page
+
+    def _build_terms_warranty_page(self) -> QWidget:
+        """Page 2: Terms, cover options, and warranty."""
+        page = QWidget()
+        layout = QVBoxLayout(page)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(12)
         
-        self.tabs.addTab(tab, self.icon_manager.get_icon("money", 20), "Finanzas")
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setStyleSheet("QScrollArea { border: none; background: transparent; }")
+        
+        content = QWidget()
+        content_layout = QVBoxLayout(content)
+        content_layout.setSpacing(16)
+        
+        card_terms = QFrame()
+        card_terms.setStyleSheet("""
+            QFrame {
+                background: rgba(21, 28, 44, 0.85);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                padding: 16px;
+            }
+        """)
+        t_layout = QVBoxLayout(card_terms)
+        t_layout.setSpacing(12)
+        
+        t_layout.addWidget(self._create_icon_label("termsAndCondition", "Términos y Condiciones", 18))
+        
+        btn_manage_terms = PrimaryButton(" Gestionar Términos y Cláusulas")
+        btn_manage_terms.setIcon(self.icon_manager.get_icon("termsAndCondition", 18))
+        btn_manage_terms.clicked.connect(self._open_terms_window)
+        t_layout.addWidget(btn_manage_terms)
+        
+        self.include_summary_check = QCheckBox("Incluir Resumen de Condiciones en PDF")
+        self.include_summary_check.setChecked(False)
+        t_layout.addWidget(self.include_summary_check)
+        
+        self.include_details_check = QCheckBox("Incluir Observaciones e Instrucciones en PDF")
+        self.include_details_check.setChecked(True)
+        t_layout.addWidget(self.include_details_check)
+        
+        content_layout.addWidget(card_terms)
+        
+        card_notes = QFrame()
+        card_notes.setStyleSheet("""
+            QFrame {
+                background: rgba(21, 28, 44, 0.85);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                padding: 16px;
+            }
+        """)
+        n_layout = QVBoxLayout(card_notes)
+        n_layout.setSpacing(10)
+        n_layout.addWidget(self._create_icon_label("note", "Notas Internas & Términos de Instalación", 18))
+        
+        n_layout.addWidget(QLabel("Notas Internas:"))
+        self.internal_notes = QTextEdit()
+        self.internal_notes.setMinimumHeight(80)
+        n_layout.addWidget(self.internal_notes)
+        
+        n_layout.addWidget(QLabel("Términos de Instalación / Servicio:"))
+        self.installation_terms = QTextEdit()
+        self.installation_terms.setMinimumHeight(80)
+        n_layout.addWidget(self.installation_terms)
+        
+        content_layout.addWidget(card_notes)
+        content_layout.addStretch()
+        
+        scroll.setWidget(content)
+        layout.addWidget(scroll)
+        return page
+
+    def _build_cover_canvas_page(self) -> QWidget:
+        """Page 3: Cover page editor & DropCanvas."""
+        page = QWidget()
+        layout = QVBoxLayout(page)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(12)
+        
+        card_cover = QFrame()
+        card_cover.setStyleSheet("""
+            QFrame {
+                background: rgba(21, 28, 44, 0.85);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                padding: 16px;
+            }
+        """)
+        c_layout = QHBoxLayout(card_cover)
+        c_layout.addWidget(self._create_icon_label("pdf", "Carátula del Documento", 18))
+        c_layout.addStretch()
+        
+        self.cover_page_check = QCheckBox("Incluir Carátula")
+        c_layout.addWidget(self.cover_page_check)
+        
+        btn_edit_cover = AnimatedButton(" Editar Carátula")
+        btn_edit_cover.setIcon(self.icon_manager.get_icon("noteAdd", 18))
+        btn_edit_cover.clicked.connect(self._open_cover_page_editor)
+        c_layout.addWidget(btn_edit_cover)
+        
+        layout.addWidget(card_cover)
+        
+        card_canvas = QFrame()
+        card_canvas.setStyleSheet("""
+            QFrame {
+                background: rgba(21, 28, 44, 0.85);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                padding: 12px;
+            }
+        """)
+        canvas_layout = QVBoxLayout(card_canvas)
+        canvas_layout.addWidget(self._create_icon_label("palette", "Lienzo de Diseño Interactivo (Canvas)", 18))
+        
+        self.canvas = DropCanvas()
+        canvas_layout.addWidget(self.canvas, 1)
+        
+        layout.addWidget(card_canvas, 1)
+        return page
+
     
     def _generate_quotation_number(self):
         """Generate automatic quotation/receipt number based on document type."""
@@ -965,6 +951,17 @@ class MainWindow(QMainWindow):
             self.validez_dias_spin.blockSignals(True)
             self.validez_dias_spin.setValue(value)
             self.validez_dias_spin.blockSignals(False)
+    
+    def _on_delivery_check_changed(self, state: int):
+        """Handle delivery days checkbox change."""
+        is_enabled = state == 2  # Qt.CheckState.Checked
+        self._terms_data["show_delivery_days"] = is_enabled
+        if hasattr(self, 'delivery_dias_spin'):
+            self.delivery_dias_spin.setEnabled(is_enabled)
+    
+    def _on_delivery_days_changed(self, value: int):
+        """Sync estimated_days to _terms_data."""
+        self._terms_data["estimated_days"] = value
     
     def _load_companies(self):
         """Load companies into combo box."""
@@ -1164,6 +1161,25 @@ class MainWindow(QMainWindow):
         total = after_discount + iva_amount + shipping_amount
         self.total_label.setText(f"{total:.2f} {self.config.moneda}")
         self.total_display.setText(f"Total: {total:.2f} {self.config.moneda}")
+        
+        # Paid & Saldo calculation
+        paid_amount = 0.0
+        saldo_amount = 0.0
+        if hasattr(self, 'apply_payment_check') and self.apply_payment_check.isChecked():
+            if hasattr(self, 'paid_input'):
+                paid_amount = self.paid_input.value()
+            saldo_amount = max(0.0, total - paid_amount)
+            if hasattr(self, 'saldo_label'):
+                if saldo_amount > 0:
+                    self.saldo_label.setText(f"{saldo_amount:.2f} {self.config.moneda}")
+                    self.saldo_label.setStyleSheet("font-size: 16px; font-weight: bold; color: #FF3B30;")
+                else:
+                    self.saldo_label.setText(f"0.00 {self.config.moneda} (Satisfecho)")
+                    self.saldo_label.setStyleSheet("font-size: 16px; font-weight: bold; color: #34C759;")
+        else:
+            if hasattr(self, 'saldo_label'):
+                self.saldo_label.setText(f"0.00 {self.config.moneda}")
+                self.saldo_label.setStyleSheet("font-size: 16px; font-weight: bold; color: #8E8E93;")
     
     # === FILE OPERATIONS ===
     
@@ -1203,6 +1219,9 @@ class MainWindow(QMainWindow):
             "shipping": self.shipping_input.value() if hasattr(self, 'shipping_input') else 0,
             "shipping_type": self.shipping_type_combo.currentText() if hasattr(self, 'shipping_type_combo') else "Sin envío",
             "total": total,
+            "apply_payment": self.apply_payment_check.isChecked() if hasattr(self, 'apply_payment_check') else False,
+            "paid_amount": self.paid_input.value() if (hasattr(self, 'apply_payment_check') and self.apply_payment_check.isChecked() and hasattr(self, 'paid_input')) else 0.0,
+            "saldo_amount": max(0.0, total - (self.paid_input.value() if hasattr(self, 'paid_input') else 0.0)) if (hasattr(self, 'apply_payment_check') and self.apply_payment_check.isChecked()) else 0.0,
             "currency": self.config.moneda,
             "notes": self.internal_notes.toHtml() if hasattr(self, 'internal_notes') else "",
             "canvas_data": self.canvas.get_all_data(),
@@ -1234,6 +1253,7 @@ class MainWindow(QMainWindow):
             "ui_FLAGS": {
                 "apply_iva": self.apply_iva_check.isChecked() if hasattr(self, 'apply_iva_check') else True,
                 "apply_discount": self.apply_discount_check.isChecked() if hasattr(self, 'apply_discount_check') else False,
+                "apply_payment": self.apply_payment_check.isChecked() if hasattr(self, 'apply_payment_check') else False,
                 "enable_shipping": self.enable_shipping_check.isChecked() if hasattr(self, 'enable_shipping_check') else False,
                 "include_bank_details": self.include_bank_details_check.isChecked() if hasattr(self, 'include_bank_details_check') else False,
                 "cover_page_enabled": self.cover_page_check.isChecked() if hasattr(self, 'cover_page_check') else False,
@@ -1359,6 +1379,14 @@ class MainWindow(QMainWindow):
             state = flags.get("apply_discount", data.get("apply_discount", False))
             self.apply_discount_check.setChecked(state)
             
+        # Payment & Saldo
+        if hasattr(self, 'apply_payment_check'):
+            state = flags.get("apply_payment", data.get("apply_payment", False))
+            self.apply_payment_check.setChecked(state)
+            if hasattr(self, 'paid_input'):
+                self.paid_input.setValue(data.get("paid_amount", 0.0))
+                self.paid_input.setEnabled(state)
+            
         # Shipping
         if hasattr(self, 'enable_shipping_check'):
             # Legacy might implicitly rely on value > 0, but explicit check is better
@@ -1400,66 +1428,6 @@ class MainWindow(QMainWindow):
         
         self._calculate_total()
 
-    def _new_quotation(self):
-        """Reset UI for new quotation."""
-        self.company_combo.setCurrentIndex(0)
-        self.table.setRowCount(0)
-        self.date_input.setText(datetime.today().strftime("%d/%m/%Y"))
-        self.validez_input.setValue(15)
-        self.client_name_input.clear()
-        self.client_contact_input.clear()
-        self.client_address_input.clear()
-        self.discount_input.setValue(0)
-        self.iva_input.setValue(13)
-        if hasattr(self, 'internal_notes'):
-            self.internal_notes.clear()
-        self.canvas._clear_all_silent()
-        
-        # Reset data structures
-        self._terms_data = {}
-        self._cover_page_data = {}
-        self._observations_data = {}
-        
-        # Note: payment_method, delivery_time, warranty are now managed in self._terms_data
-        # and edited via TermsWindow. Defaults will be loaded when TermsWindow opens.
-        
-        # Clear new fields
-        if hasattr(self, 'shipping_input'):
-            self.shipping_input.setValue(0)
-        if hasattr(self, 'shipping_type_combo'):
-            self.shipping_type_combo.setCurrentIndex(0)
-        if hasattr(self, 'estimated_days'):
-            self.estimated_days.setValue(7)
-        if hasattr(self, 'reference_number'):
-            self.reference_number.clear()
-        if hasattr(self, 'warranty_covers'):
-            self.warranty_covers.clear()
-        if hasattr(self, 'warranty_excludes'):
-            self.warranty_excludes.clear()
-        if hasattr(self, 'bank_details'):
-            self.bank_details.clear()
-        if hasattr(self, 'internal_notes'):
-            self.internal_notes.clear()
-        if hasattr(self, 'installation_terms'):
-            self.installation_terms.clear()
-        if hasattr(self, 'cover_page_check'):
-            self.cover_page_check.setChecked(False)
-        
-        self._observations_data = {}  # Clear observations
-        self._cover_page_data = {}  # Clear cover page
-        self._terms_data = {}        # Enhanced terms data
-        
-        # Reset signature fields
-        if hasattr(self, 'prepared_by_input'):
-            self.prepared_by_input.setText(self.config.prepared_by)
-        if hasattr(self, 'signature_source'):
-            self.signature_source.setCurrentIndex(0)  # Default to "Firma de la Empresa" or whatever is first
-        
-        self._update_observations_summary()
-        self._calculate_total()
-        self.cotz_manager.current_file = None
-        self._generate_quotation_number()
-        self.setWindowTitle("Cotizador Pro - Sin Título")
 
     def _save_file(self):
         """Save current file, or Save As if new."""
@@ -1668,6 +1636,9 @@ class MainWindow(QMainWindow):
                     installation_terms=clean(self._terms_data.get('installation_terms', '')),
                     payment_type=str(self._terms_data.get('payment_type', '')),
                     apply_iva=self.apply_iva_check.isChecked() if hasattr(self, 'apply_iva_check') else True,
+                    apply_payment=self.apply_payment_check.isChecked() if hasattr(self, 'apply_payment_check') else False,
+                    paid_amount=self.paid_input.value() if (hasattr(self, 'apply_payment_check') and self.apply_payment_check.isChecked() and hasattr(self, 'paid_input')) else 0.0,
+                    saldo_amount=max(0.0, data["total"] - (self.paid_input.value() if hasattr(self, 'paid_input') else 0.0)) if (hasattr(self, 'apply_payment_check') and self.apply_payment_check.isChecked()) else 0.0,
                     include_details=self.include_details_check.isChecked() if hasattr(self, 'include_details_check') else True,
                     # Sanitize terms_data in place or copy? Copy safest
                     terms_data={k: clean(v) if isinstance(v, str) and k.endswith('_terms') else v for k, v in self._terms_data.items()},
@@ -1692,10 +1663,11 @@ class MainWindow(QMainWindow):
         QMessageBox.information(self, "Términos Actualizados", "Los términos y condiciones se han actualizado correctamente.")
 
     def _open_config(self):
-        """Open configuration window."""
-        self.config_window = self._ConfigManagerView(self)
-        self.config_window.config_updated.connect(self._apply_config_changes)
-        self.config_window.show()
+        """Switch to Config tab in workspace."""
+        if hasattr(self, 'main_stack'):
+            self.main_stack.setCurrentIndex(5)
+            if hasattr(self, 'nav_buttons') and len(self.nav_buttons) > 5:
+                self.nav_buttons[5].setChecked(True)
     
     def _apply_config_changes(self):
         """Apply configuration changes."""
@@ -1708,10 +1680,11 @@ class MainWindow(QMainWindow):
         self._calculate_total()
     
     def _open_company_manager(self):
-        """Open company manager window."""
-        self.company_window = self._CompanyManagerView(self)
-        self.company_window.company_updated.connect(self._load_companies)
-        self.company_window.show()
+        """Switch to Company Manager tab in workspace."""
+        if hasattr(self, 'main_stack'):
+            self.main_stack.setCurrentIndex(4)
+            if hasattr(self, 'nav_buttons') and len(self.nav_buttons) > 4:
+                self.nav_buttons[4].setChecked(True)
     
     def _open_cover_page_editor(self):
         """Open the cover page editor dialog."""
@@ -1730,6 +1703,12 @@ class MainWindow(QMainWindow):
     def _on_cover_page_saved(self, data: dict):
         """Handle cover page data saved from dialog."""
         self._cover_page_data = data
+        print(f"\n[MAIN-DEBUG] ===== COVER DATA RECEIVED =====")
+        print(f"[MAIN-DEBUG] Received {len(data.get('user_elements', []))} elements")
+        for i, elem in enumerate(data.get('user_elements', [])[:3]):  # Show first 3
+            print(f"  [{i}] type={elem.get('type')}, pos=({elem.get('x')}, {elem.get('y')})")
+        print(f"[MAIN-DEBUG] Stored in self._cover_page_data")
+        print(f"[MAIN-DEBUG] ===============================\n")
         # Auto-check the cover page checkbox when data is saved
         if hasattr(self, 'cover_page_check') and data.get("enabled", False):
             self.cover_page_check.setChecked(True)

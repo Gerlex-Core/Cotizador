@@ -62,10 +62,16 @@ class PreviewThumbnail(QFrame):
         self._set_placeholder()
         layout.addWidget(self.preview_label, 1)
         
+        # Guide hint
+        guide_hint = QLabel("⚠️ Vista previa aproximada")
+        guide_hint.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        guide_hint.setStyleSheet("color: rgba(255,200,0,0.8); font-size: 10px; font-weight: bold; background: rgba(0,0,0,0.3); border-radius: 4px; padding: 2px 6px;")
+        layout.addWidget(guide_hint)
+        
         # Click hint
-        hint = QLabel("Click para pantalla completa")
+        hint = QLabel("Click para ver completo")
         hint.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        hint.setStyleSheet("color: rgba(255,255,255,0.6); font-size: 10px;")
+        hint.setStyleSheet("color: rgba(255,255,255,0.5); font-size: 10px;")
         layout.addWidget(hint)
     
     def _set_placeholder(self):

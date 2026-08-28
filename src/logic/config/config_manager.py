@@ -108,10 +108,10 @@ class ConfigManager:
                 self._config.set('Appearance', 'tamaño_fuente', str(legacy['tamaño_fuente']))
             
             self._save_config()
-            print(f"✅ Migrated settings from {LEGACY_OPTIONS_FILE} to {SETTINGS_FILE}")
+            print(f"[OK] Migrated settings from {LEGACY_OPTIONS_FILE} to {SETTINGS_FILE}")
             
         except Exception as e:
-            print(f"⚠️ Migration failed: {e}")
+            print(f"[WARNING] Migration failed: {e}")
             self._create_default_config()
     
     def _create_default_config(self):
@@ -210,13 +210,25 @@ class ConfigManager:
     def mostrar_terminos(self) -> bool:
         return self.get_bool('PDF', 'mostrar_terminos', True)
     
+    @mostrar_terminos.setter
+    def mostrar_terminos(self, value: bool):
+        self.set('PDF', 'mostrar_terminos', str(value).lower())
+    
     @property
     def validez_dias(self) -> int:
         return self.get_int('PDF', 'validez_dias', 30)
     
+    @validez_dias.setter
+    def validez_dias(self, value: int):
+        self.set('PDF', 'validez_dias', value)
+    
     @property
     def mostrar_firma(self) -> bool:
         return self.get_bool('PDF', 'mostrar_firma', True)
+    
+    @mostrar_firma.setter
+    def mostrar_firma(self, value: bool):
+        self.set('PDF', 'mostrar_firma', str(value).lower())
     
     # PDF Margins
     @property

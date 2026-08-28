@@ -1,0 +1,170 @@
+<!-- VIEW 2: TERMINOS, GARANTIA Y CLAUSULAS (MD3) -->
+<div id="page2" class="workspace-page hidden space-y-4">
+    
+    <!-- PDF DISPLAY OPTIONS CARD -->
+    <div class="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-3xl p-5 space-y-3 shadow-sm">
+        <div class="flex items-center space-x-2 border-b border-[var(--border-default)] pb-3">
+            <span class="material-symbols-outlined text-2xl text-[var(--text-primary)]">visibility</span>
+            <span class="text-base font-bold text-[var(--text-primary)]">Opciones de Impresión de Secciones en el PDF</span>
+        </div>
+
+        <div class="grid grid-cols-12 gap-3 text-xs pt-1">
+            <div class="col-span-4 bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-2xl p-3">
+                <label class="flex items-center space-x-2.5 cursor-pointer">
+                    <input type="checkbox" id="includeSummaryCheck" checked onchange="syncTermCheck('includeSummaryCheckHeader', 'includeSummaryCheck', this.checked)" class="w-4 h-4 text-[var(--text-primary)] rounded accent-[var(--text-primary)]">
+                    <div>
+                        <span class="font-bold text-[var(--text-primary)] block">Términos y Condiciones</span>
+                        <span class="text-[11px] text-[var(--text-secondary)]">Imprimir cláusulas comerciales</span>
+                    </div>
+                </label>
+            </div>
+
+            <div class="col-span-4 bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-2xl p-3">
+                <label class="flex items-center space-x-2.5 cursor-pointer">
+                    <input type="checkbox" id="includeBankDetailsCheck" checked onchange="syncTermCheck('includeBankCheckHeader', 'includeBankDetailsCheck', this.checked)" class="w-4 h-4 text-[var(--text-primary)] rounded accent-[var(--text-primary)]">
+                    <div>
+                        <span class="font-bold text-[var(--text-primary)] block">Cuentas Bancarias</span>
+                        <span class="text-[11px] text-[var(--text-secondary)]">Imprimir datos bancarios</span>
+                    </div>
+                </label>
+            </div>
+
+            <div class="col-span-4 bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-2xl p-3">
+                <label class="flex items-center space-x-2.5 cursor-pointer">
+                    <input type="checkbox" id="includeInstallationCheck" checked onchange="syncTermCheck('includeInstallationCheckHeader', 'includeInstallationCheck', this.checked)" class="w-4 h-4 text-[var(--text-primary)] rounded accent-[var(--text-primary)]">
+                    <div>
+                        <span class="font-bold text-[var(--text-primary)] block">Términos de Instalación</span>
+                        <span class="text-[11px] text-[var(--text-secondary)]">Imprimir condiciones de servicio</span>
+                    </div>
+                </label>
+            </div>
+
+            <div class="col-span-4 bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-2xl p-3">
+                <label class="flex items-center space-x-2.5 cursor-pointer">
+                    <input type="checkbox" id="includeWarrantyCheck" checked onchange="syncTermCheck('includeWarrantyCheckHeader', 'includeWarrantyCheck', this.checked)" class="w-4 h-4 text-[var(--text-primary)] rounded accent-[var(--text-primary)]">
+                    <div>
+                        <span class="font-bold text-[var(--text-primary)] block">Garantía & Coberturas</span>
+                        <span class="text-[11px] text-[var(--text-secondary)]">Imprimir garantías y exclusiones</span>
+                    </div>
+                </label>
+            </div>
+
+            <div class="col-span-4 bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-2xl p-3">
+                <label class="flex items-center space-x-2.5 cursor-pointer">
+                    <input type="checkbox" id="includeSignatureCheck" checked class="w-4 h-4 text-[var(--text-primary)] rounded accent-[var(--text-primary)]">
+                    <div>
+                        <span class="font-bold text-[var(--text-primary)] block">Firma Digital del Emisor</span>
+                        <span class="text-[11px] text-[var(--text-secondary)]">Imprimir pie de firma</span>
+                    </div>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Methods & Terms -->
+    <div class="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-3xl p-5 space-y-4 shadow-sm">
+        <div class="flex items-center justify-between border-b border-[var(--border-default)] pb-3">
+            <div class="flex items-center space-x-2">
+                <span class="material-symbols-outlined text-2xl text-[var(--text-primary)]">payments</span>
+                <span class="text-base font-bold text-[var(--text-primary)]">Forma y Método de Pago</span>
+            </div>
+            <label class="flex items-center space-x-2 cursor-pointer font-bold text-xs text-[var(--text-primary)]">
+                <input type="checkbox" id="includeSummaryCheckHeader" checked onchange="syncTermCheck('includeSummaryCheck', 'includeSummaryCheckHeader', this.checked)" class="w-4 h-4 text-[var(--text-primary)] rounded accent-[var(--text-primary)]">
+                <span>Imprimir en PDF</span>
+            </label>
+        </div>
+
+        <div class="grid grid-cols-12 gap-4 text-xs">
+            <div class="col-span-6 space-y-1">
+                <label class="font-medium text-[var(--text-secondary)]">Forma de Pago:</label>
+                <select id="termsPaymentMethodSelect" class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-2 text-[var(--text-primary)] font-semibold focus:border-[var(--border-focus)] focus:outline-none">
+                    <option value="Contado">Contado (100% al pedido)</option>
+                    <option value="50% Anticipo / 50% Entrega">50% Anticipo / 50% a la Entrega</option>
+                    <option value="Crédito 15 días">Crédito 15 días</option>
+                    <option value="Crédito 30 días">Crédito 30 días</option>
+                    <option value="Crédito 60 días">Crédito 60 días</option>
+                </select>
+            </div>
+
+            <div class="col-span-6 space-y-1">
+                <label class="font-medium text-[var(--text-secondary)]">Canal de Pago Aceptado:</label>
+                <select id="termsPaymentTypeSelect" class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-2 text-[var(--text-primary)] font-semibold focus:border-[var(--border-focus)] focus:outline-none">
+                    <option value="Efectivo / Transferencia / QR">Efectivo / Transferencia Bancaria / QR</option>
+                    <option value="Transferencia Bancaria">Transferencia Bancaria Directa</option>
+                    <option value="Cheque">Cheque</option>
+                    <option value="Tarjeta de Crédito/Débito">Tarjeta de Crédito / Débito</option>
+                </select>
+            </div>
+
+            <div class="col-span-6 space-y-1">
+                <label class="font-medium text-[var(--text-secondary)]">Días de Entrega Estimados:</label>
+                <input type="number" id="termsEstimatedDaysInput" value="7" min="1" max="180" class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-2 text-[var(--text-primary)] font-bold text-center">
+            </div>
+
+            <div class="col-span-6 space-y-1">
+                <label class="font-medium text-[var(--text-secondary)]">Número de Referencia / Lote:</label>
+                <input type="text" id="termsReferenceInput" placeholder="N° Referencia o proyecto..." class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-2 text-[var(--text-primary)] font-semibold">
+            </div>
+        </div>
+    </div>
+
+    <!-- Warranty Coverage Card -->
+    <div class="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-3xl p-5 space-y-4 shadow-sm">
+        <div class="flex items-center justify-between border-b border-[var(--border-default)] pb-3">
+            <div class="flex items-center space-x-2">
+                <span class="material-symbols-outlined text-2xl text-[var(--text-primary)]">verified</span>
+                <span class="text-base font-bold text-[var(--text-primary)]">Cobertura y Exclusiones de Garantía</span>
+            </div>
+            <label class="flex items-center space-x-2 cursor-pointer font-bold text-xs text-[var(--text-primary)]">
+                <input type="checkbox" id="includeWarrantyCheckHeader" checked onchange="syncTermCheck('includeWarrantyCheck', 'includeWarrantyCheckHeader', this.checked)" class="w-4 h-4 text-[var(--text-primary)] rounded accent-[var(--text-primary)]">
+                <span>Imprimir en PDF</span>
+            </label>
+        </div>
+
+        <div class="grid grid-cols-12 gap-4 text-xs">
+            <div class="col-span-6 space-y-1">
+                <label class="font-medium text-[var(--text-secondary)]">Garantía Cubre (Defectos, Repuestos):</label>
+                <textarea id="warrantyCoversInput" rows="3" placeholder="Garantía de 1 año contra defectos de fábrica..." class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl p-3 text-[var(--text-primary)] focus:border-[var(--border-focus)] focus:outline-none"></textarea>
+            </div>
+
+            <div class="col-span-6 space-y-1">
+                <label class="font-medium text-[var(--text-secondary)]">Garantía Excluye (Mal uso, Sobrevoltaje):</label>
+                <textarea id="warrantyExcludesInput" rows="3" placeholder="Excluye daños por sobrevoltaje, mal uso o alteración..." class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl p-3 text-[var(--text-primary)] focus:border-[var(--border-focus)] focus:outline-none"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bank Details & Installation Terms Card -->
+    <div class="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-3xl p-5 space-y-4 shadow-sm">
+        <div class="flex items-center justify-between border-b border-[var(--border-default)] pb-3">
+            <div class="flex items-center space-x-2">
+                <span class="material-symbols-outlined text-2xl text-[var(--text-primary)]">account_balance</span>
+                <span class="text-base font-bold text-[var(--text-primary)]">Datos Bancarios e Instalación</span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-12 gap-4 text-xs">
+            <div class="col-span-6 space-y-2">
+                <div class="flex items-center justify-between">
+                    <label class="font-medium text-[var(--text-secondary)]">Cuentas Bancarias / Depósito:</label>
+                    <label class="flex items-center space-x-1.5 cursor-pointer font-bold text-xs text-[var(--text-primary)]">
+                        <input type="checkbox" id="includeBankCheckHeader" checked onchange="syncTermCheck('includeBankDetailsCheck', 'includeBankCheckHeader', this.checked)" class="w-3.5 h-3.5 text-[var(--text-primary)] rounded accent-[var(--text-primary)]">
+                        <span>Imprimir Banco</span>
+                    </label>
+                </div>
+                <textarea id="bankDetailsInput" rows="3" placeholder="Banco Nacional, N° Cuenta 12345678, Titular..." class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl p-3 text-[var(--text-primary)] focus:border-[var(--border-focus)] focus:outline-none"></textarea>
+            </div>
+
+            <div class="col-span-6 space-y-2">
+                <div class="flex items-center justify-between">
+                    <label class="font-medium text-[var(--text-secondary)]">Términos de Instalación & Servicios:</label>
+                    <label class="flex items-center space-x-1.5 cursor-pointer font-bold text-xs text-[var(--text-primary)]">
+                        <input type="checkbox" id="includeInstallationCheckHeader" checked onchange="syncTermCheck('includeInstallationCheck', 'includeInstallationCheckHeader', this.checked)" class="w-3.5 h-3.5 text-[var(--text-primary)] rounded accent-[var(--text-primary)]">
+                        <span>Imprimir Instalación</span>
+                    </label>
+                </div>
+                <textarea id="installationTermsInput" rows="3" placeholder="Condiciones de entrega, instalación e infraestructura..." class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl p-3 text-[var(--text-primary)] focus:border-[var(--border-focus)] focus:outline-none"></textarea>
+            </div>
+        </div>
+    </div>
+</div>

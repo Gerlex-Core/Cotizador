@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es" class="dark h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cotizador Pro Suite v3.5 - Material Design 3 Edition</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- PDF.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+
+    <!-- Google Fonts Roboto & Material Symbols Outlined (Android Material 3) -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+
+    <!-- Global Theme Tokens and Dynamic Theme Engine -->
+    <script src="/UI/js/env.js"></script>
+    <script src="/UI/theme/theme_tokens.js"></script>
+    <script src="/UI/theme/theme_engine.js"></script>
+
+    <style>
+        :root {
+            --bg-primary: #121318;
+            --bg-secondary: #1E1F25;
+            --bg-card: #1D1E24;
+            --bg-sidebar: #16171D;
+            --border-default: rgba(255, 255, 255, 0.12);
+            --border-focus: #E6E1E5;
+            --text-primary: #E6E1E5;
+            --text-secondary: #CAC4D0;
+            --accent-primary: #E6E1E5;
+            --accent-hover: #FFFFFF;
+            --accent-glow: rgba(255, 255, 255, 0.15);
+        }
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Roboto', sans-serif;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+    </style>
+</head>
+<body class="h-full overflow-hidden flex flex-col select-none">
+
+    <!-- MAIN APP CONTAINER -->
+    <div class="flex flex-1 h-full overflow-hidden">
+
+        <!-- SIDEBAR CONTAINER -->
+        <div id="sidebar-slot"></div>
+
+        <!-- RIGHT WORKSPACE AREA -->
+        <main class="flex-1 flex flex-col h-full overflow-hidden p-4 space-y-3">
+
+            <!-- HEADER CONTAINER -->
+            <div id="header-slot"></div>
+
+            <!-- WORKSPACE PAGES STACK CONTAINER -->
+            <div id="workspace-slot" class="flex-1 overflow-y-auto pr-1"></div>
+
+            <!-- FOOTER CONTAINER -->
+            <div id="footer-slot"></div>
+
+        </main>
+    </div>
+
+    <!-- Modular Loader Script -->
+    <script>
+        async function loadModularScripts(scripts) {
+            for (const src of scripts) {
+                await new Promise((resolve, reject) => {
+                    const s = document.createElement('script');
+                    s.src = src;
+                    s.onload = resolve;
+                    s.onerror = reject;
+                    document.body.appendChild(s);
+                });
+            }
+        }
+
+        async function loadModularUI() {
+            try {
+                // Fetch Layout Components
+                const sidebarHtml = await (await fetch('/UI/layout/sidebar.html')).text();
+                const headerHtml = await (await fetch('/UI/layout/header.html')).text();
+                const footerHtml = await (await fetch('/UI/layout/footer.html')).text();
+
+                document.getElementById('sidebar-slot').innerHTML = sidebarHtml;
+                document.getElementById('header-slot').innerHTML = headerHtml;
+                document.getElementById('footer-slot').innerHTML = footerHtml;
+
+                // Fetch Package Views
+                const quotationView = await (await fetch('/UI/views/cotizaciones/quotation_view.html')).text();
+                const catalogView = await (await fetch('/UI/views/cotizaciones/catalog_view.html')).text();
+                const designerView = await (await fetch('/UI/views/cotizaciones/designer_view.html')).text();
+                const digicorpView = await (await fetch('/UI/views/cotizaciones/digicorp_view.html')).text();
+                const workCalcView = await (await fetch('/UI/views/cotizaciones/work_calculator_view.html')).text();
+                const financeView = await (await fetch('/UI/views/cotizaciones/finance_view.html')).text();
+                const termsView = await (await fetch('/UI/views/cotizaciones/terms_view.html')).text();
+                const historyView = await (await fetch('/UI/views/historial/history_view.html')).text();
+                const pdfEditorView = await (await fetch('/UI/views/cotizaciones/pdf_editor_view.html')).text();
+                
+                // Settings Package (Hub + Subviews)
+                const settingsHubView = await (await fetch('/UI/views/settings/settings_hub.html')).text();
+                const companyView = await (await fetch('/UI/views/settings/company_view.html')).text();
+                const generalConfigView = await (await fetch('/UI/views/settings/general_config_view.html')).text();
+
+                const workspace = document.getElementById('workspace-slot');
+                workspace.innerHTML = quotationView + catalogView + designerView + digicorpView + workCalcView + financeView + termsView + historyView + pdfEditorView + settingsHubView;
+
+                const subviewsSlot = document.getElementById('settings-subviews-slot');
+                if (subviewsSlot) {
+                    subviewsSlot.innerHTML = companyView + generalConfigView;
+                }
+
+                // Load Package JS Modules sequentially
+                await loadModularScripts([
+                    '/UI/js/cotizaciones/quotation.js',
+                    '/UI/js/cotizaciones/catalog.js',
+                    '/UI/js/cotizaciones/designer.js',
+                    '/UI/js/cotizaciones/digicorp.js',
+                    '/UI/js/cotizaciones/work_calculator.js',
+                    '/UI/js/cotizaciones/finance.js',
+                    '/UI/js/cotizaciones/terms.js',
+                    '/UI/js/cotizaciones/pdf_editor.js',
+                    '/UI/js/historial/history.js',
+                    '/UI/js/settings/company.js',
+                    '/UI/js/settings/config.js',
+                    '/UI/js/settings/settings.js',
+                    '/UI/js/app.js'
+                ]);
+            } catch (e) {
+                console.error("Error loading MD3 modular UI:", e);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadModularUI);
+    </script>
+</body>
+</html>

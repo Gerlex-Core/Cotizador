@@ -135,14 +135,17 @@ class ImageCellWidget(QWidget):
                 dlg = ImageSearchDialog(self)
                 if dlg.exec():
                     path = dlg.selected_image_path
+                    print(f"[DEBUG IMAGE] Path recibido del dialogo: {path}")
                     if path:
+                        print(f"[DEBUG IMAGE] Path existe: {os.path.exists(path)}")
                         self.image_path = path
                         self._update_thumbnail()
                         self.image_changed.emit(self.row, path)
+                        print(f"[DEBUG IMAGE] Emitido image_changed para row {self.row}")
             except ImportError:
-                 QMessageBox.warning(self, "Error", "No se pudo cargar el módulo de búsqueda.")
+                 QMessageBox.warning(self, "Error", "No se pudo cargar el modulo de busqueda.")
             except Exception as e:
-                 QMessageBox.warning(self, "Error", f"Ocurrió un error: {e}")
+                 QMessageBox.warning(self, "Error", f"Ocurrio un error: {e}")
     
     def _remove_image(self):
         """Remove the current image."""

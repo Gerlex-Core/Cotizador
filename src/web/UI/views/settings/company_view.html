@@ -1,0 +1,130 @@
+<!-- SUB-VIEW: GESTION DE EMPRESA EMISORA (MD3) -->
+<div id="settingsSubCompany" class="settings-subview space-y-4">
+    <!-- Drag & Drop Company Import Zone -->
+    <div class="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-3xl p-5 space-y-3 shadow-sm">
+        <div class="flex items-center justify-between border-b border-[var(--border-default)] pb-3">
+            <div class="flex items-center space-x-2">
+                <span class="material-symbols-outlined text-2xl text-[var(--text-primary)]">domain</span>
+                <span class="text-base font-bold text-[var(--text-primary)]">Empresas Emisoras Registradas (.emp)</span>
+            </div>
+            <button onclick="openCompanyModal()" class="px-4 py-2 bg-[var(--text-primary)] text-[var(--bg-primary)] rounded-full text-xs font-bold flex items-center space-x-1 hover:opacity-90 transition">
+                <span class="material-symbols-outlined text-base">add</span>
+                <span>Nueva Empresa</span>
+            </button>
+        </div>
+
+        <!-- MD3 Company Import Drag & Drop Zone -->
+        <div id="companyEmpDropzone"
+             ondragover="handleDragOver(event, this)"
+             ondragleave="handleDragLeave(event, this)"
+             ondrop="handleDropCompanyFile(event)"
+             onclick="document.getElementById('uploadCompanyFileInput').click()"
+             class="border-2 border-dashed border-[var(--border-default)] hover:border-[var(--border-focus)] bg-[var(--bg-primary)] rounded-3xl p-6 text-center cursor-pointer transition-all duration-200 group flex items-center justify-center space-x-4">
+            <div class="w-12 h-12 rounded-2xl bg-[var(--bg-secondary)] text-[var(--text-primary)] flex items-center justify-center transition-transform group-hover:scale-110 shadow">
+                <span class="material-symbols-outlined text-2xl">upload_file</span>
+            </div>
+            <div class="text-left">
+                <p class="font-bold text-xs text-[var(--text-primary)]">Arrastra tu archivo <code class="bg-[var(--bg-secondary)] px-1.5 py-0.5 rounded border border-[var(--border-default)]">.emp</code> o <code class="bg-[var(--bg-secondary)] px-1.5 py-0.5 rounded border border-[var(--border-default)]">.json</code> aquí</p>
+                <p class="text-[11px] text-[var(--text-secondary)]">o haz clic para explorar y restaurar la empresa emisora</p>
+            </div>
+            <input type="file" id="uploadCompanyFileInput" accept=".emp,.json" onchange="handleUploadCompanyFile(this)" class="hidden">
+        </div>
+
+        <!-- Companies Cards Grid -->
+        <div id="companiesGrid" class="grid grid-cols-12 gap-4 pt-2">
+            <!-- Dynamically populated company cards -->
+        </div>
+    </div>
+</div>
+
+<!-- MD3 COMPANY MODAL DIALOG -->
+<div id="companyModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-3xl w-full max-w-2xl p-6 space-y-4 shadow-2xl">
+        <div class="flex items-center justify-between border-b border-[var(--border-default)] pb-3">
+            <h3 id="companyModalTitle" class="text-base font-bold text-[var(--text-primary)]">Agregar Nueva Empresa Emisora</h3>
+            <button onclick="closeCompanyModal()" class="p-1 hover:bg-white/10 rounded-full text-[var(--text-secondary)]">
+                <span class="material-symbols-outlined text-xl">close</span>
+            </button>
+        </div>
+
+        <form id="companyForm" onsubmit="handleSaveCompany(event)" class="space-y-4 text-xs">
+            <div class="grid grid-cols-12 gap-3">
+                <div class="col-span-6 space-y-1">
+                    <label class="font-medium text-[var(--text-secondary)]">Nombre Comercial / Razón Social *</label>
+                    <input type="text" id="modalCompName" required class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-2 text-[var(--text-primary)] focus:border-[var(--border-focus)] focus:outline-none">
+                </div>
+
+                <div class="col-span-6 space-y-1">
+                    <label class="font-medium text-[var(--text-secondary)]">NIT / RUC / Identificación Fiscal</label>
+                    <input type="text" id="modalCompNit" class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-2 text-[var(--text-primary)] focus:border-[var(--border-focus)] focus:outline-none">
+                </div>
+
+                <div class="col-span-6 space-y-1">
+                    <label class="font-medium text-[var(--text-secondary)]">Teléfono / Celular</label>
+                    <input type="text" id="modalCompPhone" class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-2 text-[var(--text-primary)] focus:border-[var(--border-focus)] focus:outline-none">
+                </div>
+
+                <div class="col-span-6 space-y-1">
+                    <label class="font-medium text-[var(--text-secondary)]">Correo Electrónico</label>
+                    <input type="email" id="modalCompEmail" class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-2 text-[var(--text-primary)] focus:border-[var(--border-focus)] focus:outline-none">
+                </div>
+
+                <div class="col-span-6 space-y-1">
+                    <label class="font-medium text-[var(--text-secondary)]">Ciudad / Estado</label>
+                    <input type="text" id="modalCompCity" class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-2 text-[var(--text-primary)] focus:border-[var(--border-focus)] focus:outline-none">
+                </div>
+
+                <div class="col-span-6 space-y-1">
+                    <label class="font-medium text-[var(--text-secondary)]">Dirección Física</label>
+                    <input type="text" id="modalCompAddress" class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-2 text-[var(--text-primary)] focus:border-[var(--border-focus)] focus:outline-none">
+                </div>
+
+                <!-- Logo Image Dropzone -->
+                <div class="col-span-6 space-y-1">
+                    <label class="font-medium text-[var(--text-secondary)]">Logo de la Empresa (PNG/JPG)</label>
+                    <div id="logoDropzone" 
+                         ondragover="handleDragOver(event, this)" 
+                         ondragleave="handleDragLeave(event, this)" 
+                         ondrop="handleDropLogo(event)"
+                         onclick="document.getElementById('modalCompLogoFile').click()"
+                         class="border-2 border-dashed border-[var(--border-default)] hover:border-[var(--border-focus)] bg-[var(--bg-primary)] rounded-2xl p-3 text-center cursor-pointer flex flex-col items-center justify-center">
+                        <input type="file" id="modalCompLogoFile" accept="image/*" onchange="previewImage(this, 'modalCompLogoPreview')" class="hidden">
+                        <div id="modalCompLogoPreview" class="flex items-center space-x-2 text-[var(--text-secondary)]">
+                            <span class="material-symbols-outlined text-xl">image</span>
+                            <span class="text-[11px]">Arrastra tu logo aquí</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Signature Image Dropzone -->
+                <div class="col-span-6 space-y-1">
+                    <label class="font-medium text-[var(--text-secondary)]">Firma Digital (PNG/JPG)</label>
+                    <div id="signatureDropzone"
+                         ondragover="handleDragOver(event, this)"
+                         ondragleave="handleDragLeave(event, this)"
+                         ondrop="handleDropSignature(event)"
+                         onclick="document.getElementById('modalCompSignatureFile').click()"
+                         class="border-2 border-dashed border-[var(--border-default)] hover:border-[var(--border-focus)] bg-[var(--bg-primary)] rounded-2xl p-3 text-center cursor-pointer flex flex-col items-center justify-center">
+                        <input type="file" id="modalCompSignatureFile" accept="image/*" onchange="previewImage(this, 'modalCompSigPreview')" class="hidden">
+                        <div id="modalCompSigPreview" class="flex items-center space-x-2 text-[var(--text-secondary)]">
+                            <span class="material-symbols-outlined text-xl">draw</span>
+                            <span class="text-[11px]">Arrastra tu firma aquí</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-span-12 pt-1">
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" id="modalCompIsDefault" class="w-4 h-4 rounded text-[var(--text-primary)]">
+                        <span class="font-semibold text-[var(--text-primary)]">Establecer como Empresa Predeterminada</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end space-x-2 pt-3 border-t border-[var(--border-default)]">
+                <button type="button" onclick="closeCompanyModal()" class="px-4 py-2 bg-[var(--bg-secondary)] text-[var(--text-primary)] rounded-full font-semibold hover:bg-white/10 transition">Cancelar</button>
+                <button type="submit" class="px-5 py-2 bg-[var(--text-primary)] text-[var(--bg-primary)] rounded-full font-extrabold shadow hover:opacity-90 transition">Guardar Empresa (.emp)</button>
+            </div>
+        </form>
+    </div>
+</div>

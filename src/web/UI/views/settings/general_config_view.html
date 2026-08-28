@@ -1,0 +1,111 @@
+<!-- SUB-VIEW: CONFIGURACION GENERAL (MD3) -->
+<div id="settingsSubGeneral" class="settings-subview hidden space-y-4">
+    
+    <!-- General Settings Card -->
+    <div class="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-3xl p-5 space-y-4 shadow-sm">
+        <div class="flex items-center space-x-2 border-b border-[var(--border-default)] pb-3">
+            <span class="material-symbols-outlined text-2xl text-[var(--text-primary)]">tune</span>
+            <span class="text-base font-bold text-[var(--text-primary)]">Configuración General del Sistema</span>
+        </div>
+
+        <div class="grid grid-cols-12 gap-4 text-xs">
+            <div class="col-span-6 space-y-1">
+                <label class="font-medium text-[var(--text-secondary)]">Tema de Interfaz:</label>
+                <select id="configThemeSelect" onchange="ThemeEngine.applyTheme(this.value)" class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-2 text-[var(--text-primary)] font-semibold focus:border-[var(--border-focus)] focus:outline-none">
+                    <option value="MD3 Dark">MD3 Dark (Android Material You)</option>
+                    <option value="MD3 Light">MD3 Light (Android Material Pristine)</option>
+                </select>
+            </div>
+
+            <div class="col-span-6 space-y-1">
+                <label class="font-medium text-[var(--text-secondary)]">Moneda por Defecto:</label>
+                <select id="configCurrencyInput" class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-2 text-[var(--text-primary)] font-semibold focus:border-[var(--border-focus)] focus:outline-none">
+                    <option value="Bolivianos (Bs)">Bolivianos (Bs)</option>
+                    <option value="Dólares ($)">Dólares ($)</option>
+                    <option value="Euros (€)">Euros (€)</option>
+                    <option value="Soles (S/)">Soles (S/)</option>
+                    <option value="Pesos ($)">Pesos ($)</option>
+                </select>
+            </div>
+
+            <div class="col-span-6 space-y-1">
+                <label class="font-medium text-[var(--text-secondary)]">Vendedor / Preparado Por:</label>
+                <input type="text" id="configPreparedByInput" placeholder="Nombre del emisor..." class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-2 text-[var(--text-primary)] focus:border-[var(--border-focus)] focus:outline-none">
+            </div>
+
+            <div class="col-span-6 space-y-1">
+                <label class="font-medium text-[var(--text-secondary)]">Tipografía del Documento:</label>
+                <select id="configFontSelect" class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-2 text-[var(--text-primary)] font-semibold focus:border-[var(--border-focus)] focus:outline-none">
+                    <option value="Helvetica">Helvetica / Roboto</option>
+                    <option value="Arial">Arial</option>
+                    <option value="Times-Roman">Times New Roman</option>
+                    <option value="Courier">Courier Monospace</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- PDF Margins Card -->
+    <div class="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-3xl p-5 space-y-4 shadow-sm">
+        <div class="flex items-center space-x-2 border-b border-[var(--border-default)] pb-3">
+            <span class="material-symbols-outlined text-2xl text-[var(--text-primary)]">aspect_ratio</span>
+            <span class="text-base font-bold text-[var(--text-primary)]">Márgenes de Página de PDF</span>
+        </div>
+
+        <div class="grid grid-cols-12 gap-4 text-xs">
+            <div class="col-span-3 space-y-1">
+                <label class="font-medium text-[var(--text-secondary)]">Margen Superior (pt):</label>
+                <input type="number" id="marginTopInput" value="40" min="10" max="100" class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-2 text-[var(--text-primary)] font-bold text-center">
+            </div>
+            <div class="col-span-3 space-y-1">
+                <label class="font-medium text-[var(--text-secondary)]">Margen Inferior (pt):</label>
+                <input type="number" id="marginBottomInput" value="40" min="10" max="100" class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-2 text-[var(--text-primary)] font-bold text-center">
+            </div>
+            <div class="col-span-3 space-y-1">
+                <label class="font-medium text-[var(--text-secondary)]">Margen Izquierdo (pt):</label>
+                <input type="number" id="marginLeftInput" value="40" min="10" max="100" class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-2 text-[var(--text-primary)] font-bold text-center">
+            </div>
+            <div class="col-span-3 space-y-1">
+                <label class="font-medium text-[var(--text-secondary)]">Margen Derecho (pt):</label>
+                <input type="number" id="marginRightInput" value="40" min="10" max="100" class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-2 text-[var(--text-primary)] font-bold text-center">
+            </div>
+        </div>
+    </div>
+
+    <!-- Watermark Card -->
+    <div class="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-3xl p-5 space-y-4 shadow-sm">
+        <div class="flex items-center justify-between border-b border-[var(--border-default)] pb-3">
+            <div class="flex items-center space-x-2">
+                <span class="material-symbols-outlined text-2xl text-[var(--text-primary)]">water_drop</span>
+                <span class="text-base font-bold text-[var(--text-primary)]">Marca de Agua en PDF</span>
+            </div>
+            <label class="flex items-center space-x-2 cursor-pointer">
+                <input type="checkbox" id="watermarkEnabledCheck" class="w-4 h-4 text-[var(--text-primary)] rounded">
+                <span class="font-semibold text-xs text-[var(--text-primary)]">Habilitar Marca de Agua</span>
+            </label>
+        </div>
+
+        <div class="grid grid-cols-12 gap-4 text-xs">
+            <div class="col-span-6 space-y-1">
+                <label class="font-medium text-[var(--text-secondary)]">Texto de Marca de Agua:</label>
+                <input type="text" id="watermarkTextInput" placeholder="BORRADOR / COTIZACIÓN / CONFIDENCIAL" class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-2 text-[var(--text-primary)] font-semibold">
+            </div>
+
+            <div class="col-span-6 space-y-1">
+                <div class="flex items-center justify-between">
+                    <label class="font-medium text-[var(--text-secondary)]">Opacidad de Transparencia:</label>
+                    <span id="watermarkOpacityLabel" class="font-bold text-[var(--text-primary)]">15%</span>
+                </div>
+                <input type="range" id="watermarkOpacityInput" min="5" max="100" value="15" oninput="document.getElementById('watermarkOpacityLabel').textContent = this.value + '%'" class="w-full">
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Action Bar -->
+    <div class="flex items-center justify-end pt-2">
+        <button onclick="saveGlobalConfig()" class="px-6 py-2.5 bg-[var(--text-primary)] text-[var(--bg-primary)] rounded-full text-xs font-extrabold shadow-md hover:opacity-90 transition flex items-center space-x-2">
+            <span class="material-symbols-outlined text-lg">check_circle</span>
+            <span>GUARDAR CONFIGURACIÓN GLOBAL</span>
+        </button>
+    </div>
+</div>

@@ -347,6 +347,30 @@ class ObservationsWindow(QDialog):
     
     def _load_data(self):
         """Load existing data into UI."""
+        # Incorporar imágenes guardadas en all_images a los productos
+        all_images = self._observations_data.get("all_images", {})
+        if all_images:
+            print(f"[DEBUG LOAD] Encontradas {len(all_images)} imágenes en all_images")
+            for product in self._products:
+                desc = product.get("description", "")
+                if desc in all_images:
+                    product["image_path"] = all_images[desc]
+                    print(f"[DEBUG LOAD] Imagen asignada a producto '{desc[:30]}': {all_images[desc]}")
+        
+        # También revisar products guardados
+        saved_products = self._observations_data.get("products", [])
+        for saved in saved_products:
+            desc = saved.get("description", "")
+            img_path = saved.get("image_path", "")
+            if img_path:
+                for product in self._products:
+                    if product.get("description") == desc:
+                        product["image_path"] = img_path
+                        break
+        
+        # Actualizar block_container con los productos actualizados
+        self.block_container.set_products(self._products)
+        
         # Load blocks data
         if "blocks" in self._observations_data:
             self.block_container.load_data(self._observations_data["blocks"])
@@ -415,12 +439,22 @@ class ObservationsWindow(QDialog):
         updated_products = []
         image_map = {} # desc -> image_path
         
-        # First pass: collect images from all matrix blocks
+        # First pass: collect images from all matrix blocks (both products and all_images)
         for block_data in blocks_data:
              if block_data.get("type") == "product_matrix":
+                 # Primero, obtener imágenes de all_images (contiene TODAS las asignadas)
+                 block_all_images = block_data.get("all_images", {})
+                 for desc, img_path in block_all_images.items():
+                     if img_path:
+                         image_map[desc] = img_path
+                         print(f"[DEBUG COLLECT] Imagen de all_images: '{desc[:30]}' -> {img_path}")
+                 
+                 # También revisar products para compatibilidad
                  for prod in block_data.get("products", []):
                      if prod.get("image_path"):
                          image_map[prod.get("description")] = prod.get("image_path")
+
+        print(f"[DEBUG COLLECT] Total imágenes encontradas: {len(image_map)}")
 
         # Second pass: update product list
         for product in self._products:
@@ -432,7 +466,8 @@ class ObservationsWindow(QDialog):
         
         return {
             "blocks": blocks_data,
-            "products": updated_products
+            "products": updated_products,
+            "all_images": image_map  # Guardar también el mapa de imágenes
         }
     
     def _generate_preview(self) -> List[QPixmap]:

@@ -1,0 +1,321 @@
+<!-- FULL WORKSPACE VIEW: COTIZADOR ESPECIALIZADO DE TRABAJOS Y MANO DE OBRA (MD3) -->
+<div id="workCalculatorView" class="workspace-page hidden space-y-5">
+    
+    <!-- Top Navigation Header -->
+    <div class="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-3xl p-4 shadow-sm flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <button onclick="hideWorkCalculatorView()" title="Regresar a la Cotización" class="p-2 bg-[var(--bg-secondary)] hover:bg-white/10 rounded-2xl text-[var(--text-primary)] transition flex items-center justify-center">
+                <span class="material-symbols-outlined text-xl">arrow_back</span>
+            </button>
+            <div>
+                <h2 class="text-base font-extrabold text-[var(--text-primary)] flex items-center space-x-2">
+                    <span class="material-symbols-outlined text-xl text-emerald-400">engineering</span>
+                    <span>Calculador Especializado de Trabajos y Mano de Obra</span>
+                </h2>
+                <p class="text-[11px] text-[var(--text-secondary)]">Presupuestación por categorías con activación por checkboxes y persistencia en .cotz</p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-2">
+            <button type="button" onclick="addWorkLaborToQuotation('per_category')" title="Inyecta filas independientes por categoría activa" class="px-4 py-2 bg-[var(--bg-secondary)] hover:bg-white/10 border border-[var(--border-default)] text-[var(--text-primary)] rounded-full font-bold transition flex items-center space-x-1.5 text-xs">
+                <span class="material-symbols-outlined text-base">format_list_bulleted</span>
+                <span>Agregar Ítems por Categoría</span>
+            </button>
+            <button type="button" onclick="addWorkLaborToQuotation('single')" title="Inyecta 1 sola fila con la suma total y resumen" class="px-5 py-2 bg-[var(--text-primary)] text-[var(--bg-primary)] rounded-full font-extrabold shadow hover:opacity-90 transition flex items-center space-x-1.5 text-xs">
+                <span class="material-symbols-outlined text-base">add_circle</span>
+                <span>Agregar Ítem Único Resumido</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Global Preset & Tarifa Bar -->
+    <div class="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-3xl p-5 space-y-4 shadow-sm text-xs">
+        <div class="flex items-center justify-between border-b border-[var(--border-default)] pb-3 font-bold text-[var(--text-primary)]">
+            <span class="flex items-center space-x-2 text-sm">
+                <span class="material-symbols-outlined text-xl text-emerald-400">tune</span>
+                <span>Tarifas Calidad-Precio y Parámetros Globales</span>
+            </span>
+            <div class="flex items-center space-x-2">
+                <span class="text-xs text-[var(--text-secondary)]">Preset de Precio:</span>
+                <select id="workPresetSelect" onchange="applyWorkPricePreset(this.value)" class="bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-1.5 text-[var(--text-primary)] font-bold focus:border-[var(--border-focus)] focus:outline-none">
+                    <option value="economica">Económica / Amistosa</option>
+                    <option value="calidad_precio" selected>Calidad-Precio (Recomendada)</option>
+                    <option value="premium">Premium / Empresa</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-12 gap-4">
+            <div class="col-span-3 space-y-1">
+                <label class="font-medium text-[var(--text-secondary)]">Base Conexión por Cámara (Bs):</label>
+                <input type="number" id="workGlobalDefaultBase" value="50" min="0" step="5" oninput="updateAllCameraBasesFromGlobal()" class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-2 text-center text-[var(--text-primary)] font-bold">
+            </div>
+            <div class="col-span-3 space-y-1">
+                <label class="font-medium text-[var(--text-secondary)]">Precio Caja Distribución / Pase (Bs):</label>
+                <input type="number" id="workGlobalDefaultCaja" value="15" min="0" step="5" oninput="calculateWorkLaborTotal()" class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-2 text-center text-[var(--text-primary)] font-bold">
+            </div>
+            <div class="col-span-3 space-y-1">
+                <label class="font-medium text-[var(--text-secondary)]">Transporte Operativo (Bs):</label>
+                <input type="number" id="workGlobalTransporte" value="30" min="0" step="5" oninput="calculateWorkLaborTotal()" class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-2 text-center text-[var(--text-primary)] font-bold">
+            </div>
+            <div class="col-span-3 space-y-1">
+                <label class="font-medium text-[var(--text-secondary)]">Plus Garantía / Mantenimiento:</label>
+                <select id="workGlobalGarantia" onchange="calculateWorkLaborTotal()" class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-2 text-[var(--text-primary)] font-semibold">
+                    <option value="1.0">Sin Plus de Garantía (1.0x)</option>
+                    <option value="1.15" selected>Garantía Estándar (1.15x - +15%)</option>
+                    <option value="1.25">Garantía Extendida (1.25x - +25%)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- WORK CATEGORIES GRID -->
+    <div class="space-y-4">
+        
+        <!-- CATEGORY 1: CCTV & VIDEOVIGILANCIA -->
+        <div class="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-3xl p-5 space-y-4 shadow-sm">
+            <div class="flex items-center justify-between border-b border-[var(--border-default)] pb-3">
+                <label class="flex items-center space-x-3 cursor-pointer">
+                    <input type="checkbox" id="workCatCctvCheck" checked onchange="toggleCategorySection('cctv')" class="w-5 h-5 rounded text-[var(--text-primary)] accent-[var(--text-primary)]">
+                    <span class="material-symbols-outlined text-2xl text-[var(--text-primary)]">videocam</span>
+                    <div>
+                        <h3 class="text-sm font-extrabold text-[var(--text-primary)]">Categoría 1: Cámaras y Videovigilancia (CCTV)</h3>
+                        <p class="text-[11px] text-[var(--text-secondary)]">Instalación de cámaras, tramos por altura, cajas de pase y soportes</p>
+                    </div>
+                </label>
+                <button onclick="addWorkCameraCard()" class="px-3.5 py-1.5 bg-[var(--bg-secondary)] border border-[var(--border-default)] hover:bg-white/10 rounded-2xl text-xs font-bold text-[var(--text-primary)] flex items-center space-x-1 transition">
+                    <span class="material-symbols-outlined text-base">add</span>
+                    <span>Agregar Cámara</span>
+                </button>
+            </div>
+
+            <div id="workCatCctvBody" class="space-y-3">
+                <div id="workCamerasContainer" class="space-y-3">
+                    <!-- Dynamic Camera Cards -->
+                </div>
+            </div>
+        </div>
+
+        <!-- CATEGORY 2: REDES Y FIBRA OPTICA -->
+        <div class="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-3xl p-5 space-y-4 shadow-sm">
+            <div class="flex items-center justify-between border-b border-[var(--border-default)] pb-3">
+                <label class="flex items-center space-x-3 cursor-pointer">
+                    <input type="checkbox" id="workCatNetCheck" checked onchange="toggleCategorySection('net')" class="w-5 h-5 rounded text-[var(--text-primary)] accent-[var(--text-primary)]">
+                    <span class="material-symbols-outlined text-2xl text-[var(--text-primary)]">lan</span>
+                    <div>
+                        <h3 class="text-sm font-extrabold text-[var(--text-primary)]">Categoría 2: Redes, Cableado Estructurado y Fibra Óptica</h3>
+                        <p class="text-[11px] text-[var(--text-secondary)]">Puntos UTP Cat6/6A, rosetas keystone, fusiones de fibra y certificación</p>
+                    </div>
+                </label>
+                <span id="workCatNetSubtotal" class="font-mono font-bold text-sm text-emerald-400">0.00 Bs</span>
+            </div>
+
+            <div id="workCatNetBody" class="grid grid-cols-12 gap-3 text-xs">
+                <div class="col-span-4 bg-[var(--bg-primary)] p-3 rounded-2xl border border-[var(--border-default)] space-y-2">
+                    <div class="font-bold text-[var(--text-primary)] flex items-center justify-between">
+                        <span>Puntos UTP Cat6 / 6A:</span>
+                        <span class="text-[10px] text-[var(--text-secondary)]">35 Bs / punto</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <input type="number" id="netPointsQty" value="0" min="0" step="1" oninput="calculateWorkLaborTotal()" class="w-full bg-[var(--bg-secondary)] border border-[var(--border-default)] rounded-xl px-3 py-1.5 text-center font-bold text-[var(--text-primary)]">
+                        <span class="text-[11px] text-[var(--text-secondary)]">pts</span>
+                    </div>
+                </div>
+
+                <div class="col-span-4 bg-[var(--bg-primary)] p-3 rounded-2xl border border-[var(--border-default)] space-y-2">
+                    <div class="font-bold text-[var(--text-primary)] flex items-center justify-between">
+                        <span>Fusiones de Fibra Óptica:</span>
+                        <span class="text-[10px] text-[var(--text-secondary)]">25 Bs / hilo</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <input type="number" id="netFiberSplicesQty" value="0" min="0" step="1" oninput="calculateWorkLaborTotal()" class="w-full bg-[var(--bg-secondary)] border border-[var(--border-default)] rounded-xl px-3 py-1.5 text-center font-bold text-[var(--text-primary)]">
+                        <span class="text-[11px] text-[var(--text-secondary)]">hilos</span>
+                    </div>
+                </div>
+
+                <div class="col-span-4 bg-[var(--bg-primary)] p-3 rounded-2xl border border-[var(--border-default)] space-y-2">
+                    <div class="font-bold text-[var(--text-primary)] flex items-center justify-between">
+                        <span>Certificación / Escaneo de Red:</span>
+                        <span class="text-[10px] text-[var(--text-secondary)]">15 Bs / punto</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <input type="number" id="netCertPointsQty" value="0" min="0" step="1" oninput="calculateWorkLaborTotal()" class="w-full bg-[var(--bg-secondary)] border border-[var(--border-default)] rounded-xl px-3 py-1.5 text-center font-bold text-[var(--text-primary)]">
+                        <span class="text-[11px] text-[var(--text-secondary)]">pts</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CATEGORY 3: RACKS & ENERGIA TELECOM -->
+        <div class="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-3xl p-5 space-y-4 shadow-sm">
+            <div class="flex items-center justify-between border-b border-[var(--border-default)] pb-3">
+                <label class="flex items-center space-x-3 cursor-pointer">
+                    <input type="checkbox" id="workCatRackCheck" checked onchange="toggleCategorySection('rack')" class="w-5 h-5 rounded text-[var(--text-primary)] accent-[var(--text-primary)]">
+                    <span class="material-symbols-outlined text-2xl text-[var(--text-primary)]">dns</span>
+                    <div>
+                        <h3 class="text-sm font-extrabold text-[var(--text-primary)]">Categoría 3: Montaje de Racks, Gabinetes y Energía</h3>
+                        <p class="text-[11px] text-[var(--text-secondary)]">Montaje de racks (4U a 42U), patch panels, organizadores y respaldos UPS</p>
+                    </div>
+                </label>
+                <span id="workCatRackSubtotal" class="font-mono font-bold text-sm text-emerald-400">0.00 Bs</span>
+            </div>
+
+            <div id="workCatRackBody" class="grid grid-cols-12 gap-3 text-xs items-center">
+                <div class="col-span-6 space-y-1">
+                    <label class="font-medium text-[var(--text-secondary)]">Montaje de Rack de Telecomunicaciones:</label>
+                    <select id="rackTypeSelect" onchange="calculateWorkLaborTotal()" class="w-full bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-2 text-[var(--text-primary)] font-semibold focus:border-[var(--border-focus)] focus:outline-none">
+                        <option value="0">Sin Rack (0.00 Bs)</option>
+                        <option value="90">Rack de Pared 4U / 6U (+90.00 Bs)</option>
+                        <option value="140">Rack de Pared 9U / 12U (+140.00 Bs)</option>
+                        <option value="220">Rack de Piso 18U / 24U (+220.00 Bs)</option>
+                        <option value="350">Rack Server Completo 42U (+350.00 Bs)</option>
+                    </select>
+                </div>
+
+                <div class="col-span-6 grid grid-cols-3 gap-2">
+                    <label class="flex items-center space-x-2 cursor-pointer bg-[var(--bg-primary)] p-2.5 rounded-xl border border-[var(--border-default)]">
+                        <input type="checkbox" id="rackPatchCheck" onchange="calculateWorkLaborTotal()" class="w-4 h-4 text-[var(--text-primary)] rounded accent-[var(--text-primary)]">
+                        <div>
+                            <span class="font-bold block text-[11px]">Patch Panel</span>
+                            <span class="text-[10px] text-[var(--text-secondary)]">Peinado (+50 Bs)</span>
+                        </div>
+                    </label>
+
+                    <label class="flex items-center space-x-2 cursor-pointer bg-[var(--bg-primary)] p-2.5 rounded-xl border border-[var(--border-default)]">
+                        <input type="checkbox" id="rackPduCheck" onchange="calculateWorkLaborTotal()" class="w-4 h-4 text-[var(--text-primary)] rounded accent-[var(--text-primary)]">
+                        <div>
+                            <span class="font-bold block text-[11px]">Organizadores</span>
+                            <span class="text-[10px] text-[var(--text-secondary)]">PDU (+40 Bs)</span>
+                        </div>
+                    </label>
+
+                    <label class="flex items-center space-x-2 cursor-pointer bg-[var(--bg-primary)] p-2.5 rounded-xl border border-[var(--border-default)]">
+                        <input type="checkbox" id="rackUpsCheck" onchange="calculateWorkLaborTotal()" class="w-4 h-4 text-[var(--text-primary)] rounded accent-[var(--text-primary)]">
+                        <div>
+                            <span class="font-bold block text-[11px]">UPS Respaldo</span>
+                            <span class="text-[10px] text-[var(--text-secondary)]">Batería (+45 Bs)</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- CATEGORY 4: CONFIGURACION Y PROGRAMACION -->
+        <div class="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-3xl p-5 space-y-4 shadow-sm">
+            <div class="flex items-center justify-between border-b border-[var(--border-default)] pb-3">
+                <label class="flex items-center space-x-3 cursor-pointer">
+                    <input type="checkbox" id="workCatConfigCheck" checked onchange="toggleCategorySection('config')" class="w-5 h-5 rounded text-[var(--text-primary)] accent-[var(--text-primary)]">
+                    <span class="material-symbols-outlined text-2xl text-[var(--text-primary)]">settings_suggest</span>
+                    <div>
+                        <h3 class="text-sm font-extrabold text-[var(--text-primary)]">Categoría 4: Configuración, Servidores y Programación</h3>
+                        <p class="text-[11px] text-[var(--text-secondary)]">Programación de DVR/NVR, routers, VLANs, Access Points Wi-Fi y servidores NAS</p>
+                    </div>
+                </label>
+                <span id="workCatConfigSubtotal" class="font-mono font-bold text-sm text-emerald-400">0.00 Bs</span>
+            </div>
+
+            <div id="workCatConfigBody" class="grid grid-cols-12 gap-3 text-xs">
+                <label class="col-span-4 flex items-center space-x-2 cursor-pointer bg-[var(--bg-primary)] p-3 rounded-2xl border border-[var(--border-default)]">
+                    <input type="checkbox" id="configDvrCheck" checked onchange="calculateWorkLaborTotal()" class="w-4 h-4 text-[var(--text-primary)] rounded accent-[var(--text-primary)]">
+                    <div>
+                        <span class="font-bold block text-[11px]">DVR / NVR & App P2P Celular</span>
+                        <span class="text-[10px] text-[var(--text-secondary)]">Grabador y red (+60 Bs)</span>
+                    </div>
+                </label>
+
+                <label class="col-span-4 flex items-center space-x-2 cursor-pointer bg-[var(--bg-primary)] p-3 rounded-2xl border border-[var(--border-default)]">
+                    <input type="checkbox" id="configRouterCheck" onchange="calculateWorkLaborTotal()" class="w-4 h-4 text-[var(--text-primary)] rounded accent-[var(--text-primary)]">
+                    <div>
+                        <span class="font-bold block text-[11px]">Router / Firewall / VLANs</span>
+                        <span class="text-[10px] text-[var(--text-secondary)]">Puertos y red (+80 Bs)</span>
+                    </div>
+                </label>
+
+                <div class="col-span-4 bg-[var(--bg-primary)] p-3 rounded-2xl border border-[var(--border-default)] space-y-1">
+                    <div class="font-bold text-[var(--text-primary)] flex items-center justify-between">
+                        <span>Access Points Wi-Fi Mesh:</span>
+                        <span class="text-[10px] text-[var(--text-secondary)]">45 Bs / AP</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <input type="number" id="configApQty" value="0" min="0" step="1" oninput="calculateWorkLaborTotal()" class="w-full bg-[var(--bg-secondary)] border border-[var(--border-default)] rounded-xl px-3 py-1 text-center font-bold text-[var(--text-primary)]">
+                        <span class="text-[11px] text-[var(--text-secondary)]">AP(s)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CATEGORY 5: OBRAS CIVILES & MACROS PERSONALIZADOS -->
+        <div class="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-3xl p-5 space-y-4 shadow-sm">
+            <div class="flex items-center justify-between border-b border-[var(--border-default)] pb-3">
+                <label class="flex items-center space-x-3 cursor-pointer">
+                    <input type="checkbox" id="workCatCustomCheck" checked onchange="toggleCategorySection('custom')" class="w-5 h-5 rounded text-[var(--text-primary)] accent-[var(--text-primary)]">
+                    <span class="material-symbols-outlined text-2xl text-[var(--text-primary)]">auto_fix_high</span>
+                    <div>
+                        <h3 class="text-sm font-extrabold text-[var(--text-primary)]">Categoría 5: Obras Civiles y Macros Personalizados</h3>
+                        <p class="text-[11px] text-[var(--text-secondary)]">Perforación de muros, puntos eléctricos acometida y recargos a medida</p>
+                    </div>
+                </label>
+                <button onclick="addWorkCustomMacroRow()" class="px-3.5 py-1.5 bg-[var(--bg-secondary)] border border-[var(--border-default)] hover:bg-white/10 rounded-2xl text-xs font-bold text-[var(--text-primary)] flex items-center space-x-1 transition">
+                    <span class="material-symbols-outlined text-base">add</span>
+                    <span>Agregar Macro de Cobro</span>
+                </button>
+            </div>
+
+            <div id="workCatCustomBody" class="space-y-3">
+                <div id="workCustomMacrosContainer" class="space-y-2">
+                    <!-- Dynamic Custom Macro Rows -->
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Live Global Breakdown Footer Card -->
+    <div class="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-3xl p-5 space-y-4 shadow-sm">
+        <div class="flex items-center justify-between border-b border-[var(--border-default)] pb-3 font-bold text-[var(--text-primary)]">
+            <span class="flex items-center space-x-2 text-sm">
+                <span class="material-symbols-outlined text-xl text-emerald-400">calculate</span>
+                <span>Resumen General de Mano de Obra del Proyecto</span>
+            </span>
+            <span id="workSummaryStats" class="font-mono text-xs text-[var(--text-secondary)]">0 Cámaras | 0m Cableado</span>
+        </div>
+
+        <div class="grid grid-cols-12 gap-3 text-xs items-center">
+            <div class="col-span-3 bg-[var(--bg-primary)] p-3 rounded-2xl border border-[var(--border-default)]">
+                <span class="block text-[10px] text-[var(--text-secondary)]">Cámaras & Cableado:</span>
+                <span id="workDispSubtotalCctv" class="font-extrabold text-sm text-[var(--text-primary)]">0.00 Bs</span>
+            </div>
+            <div class="col-span-3 bg-[var(--bg-primary)] p-3 rounded-2xl border border-[var(--border-default)]">
+                <span class="block text-[10px] text-[var(--text-secondary)]">Redes, Racks & Config:</span>
+                <span id="workDispSubtotalInfra" class="font-extrabold text-sm text-[var(--text-primary)]">0.00 Bs</span>
+            </div>
+            <div class="col-span-3 bg-[var(--bg-primary)] p-3 rounded-2xl border border-[var(--border-default)]">
+                <span class="block text-[10px] text-[var(--text-secondary)]">Transporte & Garantía:</span>
+                <span id="workDispGarantia" class="font-extrabold text-sm text-[var(--text-primary)]">30 Bs (1.15x)</span>
+            </div>
+            <div class="col-span-3 bg-[var(--bg-primary)] p-3 rounded-2xl border border-[var(--border-default)] text-right">
+                <span class="block text-[10px] text-emerald-400 font-bold">TOTAL MANO DE OBRA:</span>
+                <span id="workTotalCalculado" class="font-black text-lg text-emerald-400">0.00 Bs</span>
+            </div>
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="flex items-center justify-between pt-3 border-t border-[var(--border-default)]">
+            <button type="button" onclick="hideWorkCalculatorView()" class="px-5 py-2.5 bg-[var(--bg-secondary)] text-[var(--text-primary)] rounded-full font-bold hover:bg-white/10 transition flex items-center space-x-2 text-xs">
+                <span class="material-symbols-outlined text-base">arrow_back</span>
+                <span>Regresar a la Cotización</span>
+            </button>
+
+            <div class="flex items-center space-x-3">
+                <button type="button" onclick="addWorkLaborToQuotation('per_category')" title="Inyecta filas independientes por categoría activa" class="px-5 py-2.5 bg-[var(--bg-secondary)] hover:bg-white/10 border border-[var(--border-default)] text-[var(--text-primary)] rounded-full font-bold transition flex items-center space-x-2 text-xs">
+                    <span class="material-symbols-outlined text-base">format_list_bulleted</span>
+                    <span>Agregar Ítems por Categoría</span>
+                </button>
+                <button type="button" onclick="addWorkLaborToQuotation('single')" title="Inyecta 1 sola fila con la suma total y resumen" class="px-6 py-2.5 bg-[var(--text-primary)] text-[var(--bg-primary)] rounded-full font-extrabold shadow hover:opacity-90 transition flex items-center space-x-2 text-xs">
+                    <span class="material-symbols-outlined text-base">add_circle</span>
+                    <span>Agregar Ítem Único Resumido</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

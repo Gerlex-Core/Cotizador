@@ -639,6 +639,8 @@ class ProductMatrixBlock(DraggableBlock):
     def get_data(self) -> dict:
         data = super().get_data()
         products_data = []
+        all_images = {}  # Almacenar todas las imágenes asignadas
+        
         for row in range(self.table.rowCount()):
             # Get checkbox from container
             checkbox_container = self.table.cellWidget(row, 0)
@@ -650,22 +652,67 @@ class ProductMatrixBlock(DraggableBlock):
                         checkbox = child
                         break
             
+            desc_item = self.table.item(row, 1)
+            btn = self.table.cellWidget(row, 2)
+            details = self.table.cellWidget(row, 3)
+            
+            # Obtener el path de imagen del botón
+            img_path = btn.property("image_path") if btn else ""
+            description = desc_item.text() if desc_item else ""
+            
+            # Guardar imagen en mapa aunque no esté seleccionado el checkbox
+            if img_path:
+                all_images[description] = img_path
+                print(f"[DEBUG GET_DATA] Imagen encontrada para '{description[:30]}': {img_path}")
+            
+            # Solo agregar a products_data si el checkbox está marcado
             if checkbox and checkbox.isChecked():
-                desc_item = self.table.item(row, 1)
-                btn = self.table.cellWidget(row, 2)
-                details = self.table.cellWidget(row, 3)
-                
                 products_data.append({
-                    "description": desc_item.text() if desc_item else "",
-                    "image_path": btn.property("image_path") if btn else "",
+                    "description": description,
+                    "image_path": img_path,
                     "details": details.text() if details else ""
                 })
+        
         data["products"] = products_data
+        data["all_images"] = all_images  # Guardar todas las imágenes por separado
+        print(f"[DEBUG GET_DATA] Total productos seleccionados: {len(products_data)}")
+        print(f"[DEBUG GET_DATA] Total imágenes guardadas: {len(all_images)}")
         return data
     
     def load_data(self, data: dict):
         super().load_data(data)
-        # Load saved product selections
+        
+        # Cargar mapa de todas las imágenes
+        all_images = data.get("all_images", {})
+        print(f"[DEBUG LOAD_DATA] Cargando {len(all_images)} imágenes desde all_images")
+        
+        # Primero, restaurar todas las imágenes del mapa all_images
+        for row in range(self.table.rowCount()):
+            desc_item = self.table.item(row, 1)
+            if desc_item:
+                description = desc_item.text()
+                if description in all_images:
+                    img_path = all_images[description]
+                    if img_path and os.path.exists(img_path):
+                        btn = self.table.cellWidget(row, 2)
+                        if btn:
+                            btn.setText("Imagen")
+                            btn.setProperty("image_path", img_path)
+                            btn.setToolTip(f"Imagen: {os.path.basename(img_path)}")
+                            btn.setStyleSheet("""
+                                QPushButton {
+                                    background-color: rgba(52, 199, 89, 0.3);
+                                    border: 1px solid #34C759;
+                                    border-radius: 4px;
+                                    color: white;
+                                    padding: 6px 8px;
+                                    font-size: 11px;
+                                    font-weight: bold;
+                                }
+                            """)
+                            print(f"[DEBUG LOAD_DATA] Imagen restaurada para '{description[:30]}': {img_path}")
+        
+        # Luego, cargar productos seleccionados (con checkbox)
         saved_products = data.get("products", [])
         for saved in saved_products:
             for row in range(self.table.rowCount()):
@@ -680,21 +727,24 @@ class ProductMatrixBlock(DraggableBlock):
                                 child.setChecked(True)
                                 break
                     
+                    # Restaurar imagen si no fue cargada por all_images
                     btn = self.table.cellWidget(row, 2)
-                    if btn and saved.get("image_path"):
-                        btn.setText("✅ Imagen")
-                        btn.setProperty("image_path", saved["image_path"])
-                        btn.setStyleSheet("""
-                            QPushButton {
-                                background-color: rgba(52, 199, 89, 0.3);
-                                border: 1px solid #34C759;
-                                border-radius: 4px;
-                                color: white;
-                                padding: 6px 8px;
-                                font-size: 11px;
-                                font-weight: bold;
-                            }
-                        """)
+                    if btn and saved.get("image_path") and not btn.property("image_path"):
+                        img_path = saved["image_path"]
+                        if os.path.exists(img_path):
+                            btn.setText("Imagen")
+                            btn.setProperty("image_path", img_path)
+                            btn.setStyleSheet("""
+                                QPushButton {
+                                    background-color: rgba(52, 199, 89, 0.3);
+                                    border: 1px solid #34C759;
+                                    border-radius: 4px;
+                                    color: white;
+                                    padding: 6px 8px;
+                                    font-size: 11px;
+                                    font-weight: bold;
+                                }
+                            """)
                     
                     details = self.table.cellWidget(row, 3)
                     if details:

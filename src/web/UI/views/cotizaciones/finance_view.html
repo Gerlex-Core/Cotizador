@@ -1,0 +1,71 @@
+<!-- VIEW 1: FINANZAS Y SALDO PENDIENTE (MD3) -->
+<div id="page1" class="workspace-page hidden space-y-4">
+    <!-- Totals Card -->
+    <div class="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-3xl p-5 space-y-4 shadow-sm">
+        <div class="flex items-center space-x-2 border-b border-[var(--border-default)] pb-3">
+            <span class="material-symbols-outlined text-2xl text-[var(--text-primary)]">calculate</span>
+            <span class="text-base font-bold text-[var(--text-primary)]">Desglose Financiero y Totales</span>
+        </div>
+
+        <div class="grid grid-cols-12 gap-4 text-xs">
+            <div class="col-span-6 bg-[var(--bg-primary)] p-4 rounded-2xl border border-[var(--border-default)] space-y-1">
+                <span class="text-[var(--text-secondary)] font-medium">Subtotal Productos:</span>
+                <div id="displaySubtotal" class="text-lg font-bold text-[var(--text-primary)]">0.00</div>
+            </div>
+
+            <div class="col-span-6 bg-[var(--bg-secondary)] p-4 rounded-2xl border border-[var(--border-default)] space-y-1">
+                <span class="text-[var(--text-secondary)] font-medium">TOTAL DOCUMENTO:</span>
+                <div id="displayTotal" class="text-2xl font-black text-[var(--text-primary)]">0.00</div>
+            </div>
+
+            <!-- Discount Row -->
+            <div class="col-span-6 flex items-center justify-between p-3.5 bg-[var(--bg-primary)] rounded-2xl border border-[var(--border-default)]">
+                <label class="flex items-center space-x-2 font-semibold text-[var(--text-primary)] cursor-pointer">
+                    <input type="checkbox" id="applyDiscountCheck" onchange="calculateTotals()" class="w-4 h-4 text-[var(--text-primary)] rounded">
+                    <span>Aplicar Descuento:</span>
+                </label>
+                <div class="flex items-center space-x-2">
+                    <input type="number" id="discountPercentInput" value="0" min="0" max="100" oninput="calculateTotals()" class="w-16 bg-[var(--bg-secondary)] border border-[var(--border-default)] rounded-xl px-2 py-1 text-right text-[var(--text-primary)] font-bold">
+                    <span class="text-[var(--text-secondary)]">%</span>
+                    <span id="displayDiscountAmount" class="text-red-400 font-bold ml-2">- 0.00</span>
+                </div>
+            </div>
+
+            <!-- IVA Row -->
+            <div class="col-span-6 flex items-center justify-between p-3.5 bg-[var(--bg-primary)] rounded-2xl border border-[var(--border-default)]">
+                <label class="flex items-center space-x-2 font-semibold text-[var(--text-primary)] cursor-pointer">
+                    <input type="checkbox" id="applyIvaCheck" checked onchange="calculateTotals()" class="w-4 h-4 text-[var(--text-primary)] rounded">
+                    <span>Aplicar IVA:</span>
+                </label>
+                <div class="flex items-center space-x-2">
+                    <input type="number" id="ivaPercentInput" value="13" min="0" max="50" oninput="calculateTotals()" class="w-16 bg-[var(--bg-secondary)] border border-[var(--border-default)] rounded-xl px-2 py-1 text-right text-[var(--text-primary)] font-bold">
+                    <span class="text-[var(--text-secondary)]">%</span>
+                    <span id="displayIvaAmount" class="text-emerald-400 font-bold ml-2">+ 0.00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Control & Saldo Card -->
+    <div class="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-3xl p-5 space-y-4 shadow-sm">
+        <div class="flex items-center space-x-2 border-b border-[var(--border-default)] pb-3">
+            <span class="material-symbols-outlined text-2xl text-emerald-400">monetization_on</span>
+            <span class="text-base font-bold text-[var(--text-primary)]">Control de Pago y Saldo Pendiente</span>
+        </div>
+
+        <div class="grid grid-cols-12 gap-4 text-xs items-center">
+            <div class="col-span-6 flex items-center space-x-3 p-4 bg-[var(--bg-primary)] rounded-2xl border border-[var(--border-default)]">
+                <label class="flex items-center space-x-2 font-bold text-[var(--text-primary)] cursor-pointer">
+                    <input type="checkbox" id="applyPaymentCheck" onchange="calculateTotals()" class="w-4 h-4 text-[var(--text-primary)] rounded">
+                    <span>Registrar Pago / Anticipo:</span>
+                </label>
+                <input type="number" id="paidAmountInput" value="0.00" step="10" min="0" oninput="calculateTotals()" class="w-32 bg-[var(--bg-secondary)] border border-[var(--border-default)] rounded-xl px-3 py-1.5 text-right text-[var(--text-primary)] font-extrabold text-sm focus:border-[var(--border-focus)] focus:outline-none">
+            </div>
+
+            <div class="col-span-6 p-4 bg-red-500/10 border border-red-500/30 rounded-2xl flex items-center justify-between">
+                <span class="font-bold text-[var(--text-secondary)] text-sm">Saldo Pendiente:</span>
+                <div id="displaySaldoAmount" class="text-2xl font-black text-red-500">0.00</div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -361,83 +361,86 @@ class ThemeEngine:
             return theme.get_color(path, default)
         
         # Get typography
-        font_family = typography.get('fontFamily', 'Segoe UI, Arial')
+        font_family = typography.get('fontFamily', 'Segoe UI, Inter, sans-serif')
         font_size_base = typography.get('fontSize', {}).get('base', '14px')
         
         # Get corner radii
-        corner_sm = layout.get('cornerRadius', {}).get('small', 4)
-        corner_md = layout.get('cornerRadius', {}).get('medium', 8)
-        corner_lg = layout.get('cornerRadius', {}).get('large', 12)
+        corner_sm = layout.get('cornerRadius', {}).get('small', 8)
+        corner_md = layout.get('cornerRadius', {}).get('medium', 12)
+        corner_lg = layout.get('cornerRadius', {}).get('large', 16)
         
         # Build stylesheet
         stylesheet = f"""
             /* === Global Styles === */
             QWidget {{
-                background-color: {get_color('background.primary', '#1C1C1E')};
-                color: {get_color('text.primary', '#FFFFFF')};
+                background-color: {get_color('background.primary', '#0B0E14')};
+                color: {get_color('text.primary', '#F8FAFC')};
                 font-family: {font_family};
                 font-size: {font_size_base};
             }}
             
             /* === Labels === */
             QLabel {{
-                color: {get_color('text.primary', '#FFFFFF')};
+                color: {get_color('text.primary', '#F8FAFC')};
                 background-color: transparent;
-                padding: 4px;
+                padding: 2px;
             }}
             
             /* === Buttons === */
             QPushButton {{
-                background-color: {get_color('background.secondary', '#2C2C2E')};
-                color: {get_color('text.primary', '#FFFFFF')};
-                border: 1px solid {get_color('borders.default', '#3A3A3C')};
+                background-color: {get_color('background.secondary', '#151C2C')};
+                color: {get_color('text.primary', '#F8FAFC')};
+                border: 1px solid {get_color('borders.default', 'rgba(255,255,255,0.1)')};
                 border-radius: {corner_md}px;
-                padding: {components.get('button', {}).get('padding', '10px 20px')};
+                padding: {components.get('button', {}).get('padding', '8px 16px')};
                 font-weight: 600;
                 min-height: 36px;
             }}
             
             QPushButton:hover {{
-                background-color: {get_color('accent.primary', '#0A84FF')};
-                border-color: {get_color('accent.primary', '#0A84FF')};
+                background-color: {get_color('accent.primary', '#2563EB')};
+                border-color: {get_color('accent.secondary', '#3B82F6')};
+                color: #FFFFFF;
             }}
             
             QPushButton:pressed {{
-                background-color: {get_color('accent.secondary', '#0066CC')};
+                background-color: {get_color('accent.primary', '#1D4ED8')};
             }}
             
             QPushButton:disabled {{
-                background-color: {get_color('background.tertiary', 'rgba(255,255,255,0.05)')};
-                color: {get_color('text.muted', 'rgba(255,255,255,0.5)')};
+                background-color: {get_color('background.tertiary', 'rgba(255,255,255,0.03)')};
+                color: {get_color('text.muted', 'rgba(248,250,252,0.4)')};
+                border-color: transparent;
             }}
             
             /* === Input Fields === */
             QLineEdit {{
-                background-color: {get_color('background.secondary', '#2C2C2E')};
-                color: {get_color('text.primary', '#FFFFFF')};
-                border: 2px solid {get_color('borders.default', '#3A3A3C')};
+                background-color: {get_color('background.secondary', '#151C2C')};
+                color: {get_color('text.primary', '#F8FAFC')};
+                border: 1px solid {get_color('borders.default', 'rgba(255,255,255,0.12)')};
                 border-radius: {corner_sm}px;
                 padding: 8px 12px;
-                selection-background-color: {get_color('accent.primary', '#0A84FF')};
+                selection-background-color: {get_color('accent.primary', '#2563EB')};
                 min-height: 36px;
             }}
             
             QLineEdit:focus {{
-                border-color: {get_color('borders.focus', '#0A84FF')};
+                border: 2px solid {get_color('borders.focus', '#3B82F6')};
+                background-color: {get_color('background.primary', '#0B0E14')};
             }}
             
             /* === ComboBox === */
             QComboBox {{
-                background-color: {get_color('background.secondary', '#2C2C2E')};
-                color: {get_color('text.primary', '#FFFFFF')};
-                border: 2px solid {get_color('borders.default', '#3A3A3C')};
+                background-color: {get_color('background.secondary', '#151C2C')};
+                color: {get_color('text.primary', '#F8FAFC')};
+                border: 1px solid {get_color('borders.default', 'rgba(255,255,255,0.12)')};
                 border-radius: {corner_sm}px;
                 padding: 8px 12px;
                 min-height: 36px;
             }}
             
             QComboBox:hover {{
-                border-color: {get_color('accent.primary', '#0A84FF')};
+                border-color: {get_color('accent.primary', '#3B82F6')};
             }}
             
             QComboBox::drop-down {{
@@ -446,92 +449,96 @@ class ThemeEngine:
             }}
             
             QComboBox QAbstractItemView {{
-                background-color: {get_color('background.secondary', '#2C2C2E')};
-                color: {get_color('text.primary', '#FFFFFF')};
-                border: 1px solid {get_color('borders.default', '#3A3A3C')};
-                selection-background-color: {get_color('accent.primary', '#0A84FF')};
+                background-color: {get_color('background.secondary', '#151C2C')};
+                color: {get_color('text.primary', '#F8FAFC')};
+                border: 1px solid {get_color('borders.default', 'rgba(255,255,255,0.12)')};
+                selection-background-color: {get_color('accent.primary', '#2563EB')};
+                border-radius: {corner_sm}px;
+                padding: 4px;
             }}
             
             /* === Menu Bar === */
             QMenuBar {{
-                background-color: {get_color('background.primary', '#1C1C1E')};
-                color: {get_color('text.primary', '#FFFFFF')};
-                border-bottom: 1px solid {get_color('borders.default', '#3A3A3C')};
-                padding: 4px;
+                background-color: {get_color('background.sidebar', '#080B10')};
+                color: {get_color('text.primary', '#F8FAFC')};
+                border-bottom: 1px solid {get_color('borders.default', 'rgba(255,255,255,0.08)')};
+                padding: 4px 8px;
             }}
             
             QMenuBar::item {{
-                padding: 6px 12px;
+                padding: 6px 14px;
                 border-radius: {corner_sm}px;
                 background-color: transparent;
             }}
             
             QMenuBar::item:selected {{
-                background-color: {get_color('accent.primary', '#0A84FF')};
+                background-color: {get_color('accent.primary', '#2563EB')};
+                color: white;
             }}
             
             /* === Menus === */
             QMenu {{
-                background-color: {get_color('background.secondary', '#2C2C2E')};
-                color: {get_color('text.primary', '#FFFFFF')};
-                border: 1px solid {get_color('borders.default', '#3A3A3C')};
+                background-color: {get_color('background.secondary', '#151C2C')};
+                color: {get_color('text.primary', '#F8FAFC')};
+                border: 1px solid {get_color('borders.default', 'rgba(255,255,255,0.12)')};
                 border-radius: {corner_md}px;
-                padding: 8px;
+                padding: 6px;
             }}
             
             QMenu::item {{
-                padding: 8px 24px;
+                padding: 8px 20px;
                 border-radius: {corner_sm}px;
             }}
             
             QMenu::item:selected {{
-                background-color: {get_color('accent.primary', '#0A84FF')};
+                background-color: {get_color('accent.primary', '#2563EB')};
+                color: white;
             }}
             
             /* === Table Widget === */
             QTableWidget {{
-                background-color: {get_color('background.secondary', '#2C2C2E')};
-                color: {get_color('text.primary', '#FFFFFF')};
-                gridline-color: {get_color('borders.subtle', 'rgba(255,255,255,0.1)')};
-                border: 1px solid {get_color('borders.default', '#3A3A3C')};
+                background-color: {get_color('background.secondary', '#151C2C')};
+                color: {get_color('text.primary', '#F8FAFC')};
+                gridline-color: {get_color('borders.subtle', 'rgba(255,255,255,0.05)')};
+                border: 1px solid {get_color('borders.default', 'rgba(255,255,255,0.1)')};
                 border-radius: {corner_md}px;
-                selection-background-color: {get_color('accent.primary', '#0A84FF')};
+                selection-background-color: {get_color('accent.primary', '#2563EB')};
             }}
             
             QTableWidget::item {{
                 padding: 8px;
-                border-bottom: 1px solid {get_color('borders.subtle', 'rgba(255,255,255,0.1)')};
+                border-bottom: 1px solid {get_color('borders.subtle', 'rgba(255,255,255,0.05)')};
             }}
             
             QTableWidget::item:hover {{
-                background-color: {get_color('background.tertiary', 'rgba(255,255,255,0.05)')};
+                background-color: {get_color('background.tertiary', 'rgba(255,255,255,0.06)')};
             }}
             
             QHeaderView::section {{
-                background-color: {get_color('background.primary', '#1C1C1E')};
-                color: {get_color('text.primary', '#FFFFFF')};
+                background-color: {get_color('background.sidebar', '#080B10')};
+                color: {get_color('text.primary', '#F8FAFC')};
                 padding: 10px;
                 border: none;
-                border-bottom: 2px solid {get_color('accent.primary', '#0A84FF')};
+                border-bottom: 2px solid {get_color('accent.primary', '#2563EB')};
                 font-weight: bold;
             }}
             
             /* === Scroll Bars === */
             QScrollBar:vertical {{
-                background-color: {get_color('background.primary', '#1C1C1E')};
-                width: 12px;
+                background-color: transparent;
+                width: 10px;
                 margin: 0px;
             }}
             
             QScrollBar::handle:vertical {{
-                background-color: {get_color('borders.default', '#3A3A3C')};
-                border-radius: 6px;
+                background-color: {get_color('borders.default', 'rgba(255,255,255,0.2)')};
+                border-radius: 5px;
                 min-height: 30px;
                 margin: 2px;
             }}
             
             QScrollBar::handle:vertical:hover {{
-                background-color: {get_color('accent.primary', '#0A84FF')};
+                background-color: {get_color('accent.primary', '#2563EB')};
             }}
             
             QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
@@ -540,9 +547,9 @@ class ThemeEngine:
             
             /* === List Widget === */
             QListWidget {{
-                background-color: {get_color('background.secondary', '#2C2C2E')};
-                color: {get_color('text.primary', '#FFFFFF')};
-                border: 1px solid {get_color('borders.default', '#3A3A3C')};
+                background-color: {get_color('background.secondary', '#151C2C')};
+                color: {get_color('text.primary', '#F8FAFC')};
+                border: 1px solid {get_color('borders.default', 'rgba(255,255,255,0.1)')};
                 border-radius: {corner_md}px;
                 padding: 4px;
             }}
@@ -558,56 +565,71 @@ class ThemeEngine:
             }}
             
             QListWidget::item:selected {{
-                background-color: {get_color('accent.primary', '#0A84FF')};
+                background-color: {get_color('accent.primary', '#2563EB')};
+                color: white;
             }}
             
-            /* === Dialog === */
-            QDialog {{
-                background-color: {get_color('background.primary', '#1C1C1E')};
+            /* === CheckBox === */
+            QCheckBox {{
+                color: {get_color('text.primary', '#F8FAFC')};
+                spacing: 8px;
+            }}
+            
+            QCheckBox::indicator {{
+                width: 20px;
+                height: 20px;
+                border-radius: 4px;
+                border: 2px solid {get_color('accent.primary', '#2563EB')};
+                background-color: {get_color('background.secondary', '#151C2C')};
+            }}
+            
+            QCheckBox::indicator:checked {{
+                background-color: {get_color('accent.primary', '#2563EB')};
+                border-color: {get_color('accent.primary', '#2563EB')};
             }}
             
             /* === Text Edit === */
             QTextEdit {{
-                background-color: {get_color('background.secondary', '#2C2C2E')};
-                color: {get_color('text.primary', '#FFFFFF')};
-                border: 2px solid {get_color('borders.default', '#3A3A3C')};
+                background-color: {get_color('background.secondary', '#151C2C')};
+                color: {get_color('text.primary', '#F8FAFC')};
+                border: 1px solid {get_color('borders.default', 'rgba(255,255,255,0.12)')};
                 border-radius: {corner_md}px;
                 padding: 10px;
-                selection-background-color: {get_color('accent.primary', '#0A84FF')};
+                selection-background-color: {get_color('accent.primary', '#2563EB')};
             }}
             
             QTextEdit:focus {{
-                border-color: {get_color('borders.focus', '#0A84FF')};
+                border: 2px solid {get_color('borders.focus', '#3B82F6')};
             }}
             
             /* === SpinBox === */
             QSpinBox, QDoubleSpinBox {{
-                background-color: {get_color('background.secondary', '#2C2C2E')};
-                color: {get_color('text.primary', '#FFFFFF')};
-                border: 2px solid {get_color('borders.default', '#3A3A3C')};
+                background-color: {get_color('background.secondary', '#151C2C')};
+                color: {get_color('text.primary', '#F8FAFC')};
+                border: 1px solid {get_color('borders.default', 'rgba(255,255,255,0.12)')};
                 border-radius: {corner_sm}px;
                 padding: 8px 12px;
                 min-height: 36px;
             }}
             
             QSpinBox:focus, QDoubleSpinBox:focus {{
-                border-color: {get_color('borders.focus', '#0A84FF')};
+                border: 2px solid {get_color('borders.focus', '#3B82F6')};
             }}
             
             /* === Group Box === */
             QGroupBox {{
-                background-color: {get_color('background.tertiary', 'rgba(255,255,255,0.03)')};
-                border: 1px solid {get_color('borders.default', '#3A3A3C')};
-                border-radius: {corner_md}px;
+                background-color: {get_color('background.card', 'rgba(21, 28, 44, 0.85)')};
+                border: 1px solid {get_color('borders.default', 'rgba(255,255,255,0.1)')};
+                border-radius: {corner_lg}px;
                 margin-top: 16px;
-                padding-top: 16px;
+                padding-top: 20px;
             }}
             
             QGroupBox::title {{
                 subcontrol-origin: margin;
                 subcontrol-position: top left;
-                padding: 4px 12px;
-                background-color: {get_color('accent.primary', '#0A84FF')};
+                padding: 4px 14px;
+                background-color: {get_color('accent.primary', '#2563EB')};
                 border-radius: {corner_sm}px;
                 color: white;
                 font-weight: bold;
@@ -615,40 +637,39 @@ class ThemeEngine:
             
             /* === Tab Widget === */
             QTabWidget::pane {{
-                border: 1px solid {get_color('borders.default', '#3A3A3C')};
+                border: 1px solid {get_color('borders.default', 'rgba(255,255,255,0.1)')};
                 border-radius: {corner_md}px;
-                background-color: {get_color('background.primary', '#1C1C1E')};
+                background-color: {get_color('background.primary', '#0B0E14')};
             }}
             
             QTabBar::tab {{
-                background-color: {get_color('background.secondary', '#2C2C2E')};
-                color: {get_color('text.secondary', '#8E8E93')};
+                background-color: {get_color('background.secondary', '#151C2C')};
+                color: {get_color('text.secondary', '#94A3B8')};
                 padding: 10px 20px;
-                border: 1px solid {get_color('borders.default', '#3A3A3C')};
+                border: 1px solid {get_color('borders.default', 'rgba(255,255,255,0.08)')};
                 border-bottom: none;
                 border-top-left-radius: {corner_md}px;
                 border-top-right-radius: {corner_md}px;
+                font-weight: 600;
             }}
             
             QTabBar::tab:selected {{
-                background-color: {get_color('accent.primary', '#0A84FF')};
+                background-color: {get_color('accent.primary', '#2563EB')};
                 color: white;
             }}
             
             QTabBar::tab:hover:!selected {{
-                background-color: {get_color('background.tertiary', 'rgba(255,255,255,0.05)')};
+                background-color: {get_color('background.tertiary', 'rgba(255,255,255,0.06)')};
             }}
             
             /* === ToolTip === */
             QToolTip {{
-                background-color: {get_color('background.secondary', '#2C2C2E')};
-                color: {get_color('text.primary', '#FFFFFF')};
-                border: 1px solid {get_color('borders.default', '#3A3A3C')};
+                background-color: {get_color('background.secondary', '#151C2C')};
+                color: {get_color('text.primary', '#F8FAFC')};
+                border: 1px solid {get_color('borders.default', 'rgba(255,255,255,0.15)')};
                 border-radius: {corner_sm}px;
-                padding: 6px 10px;
+                padding: 6px 12px;
             }}
-            
-            /* === Check Box === */
             QCheckBox {{
                 color: {get_color('text.primary', '#FFFFFF')};
                 spacing: 8px;

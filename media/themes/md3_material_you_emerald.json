@@ -1,0 +1,41 @@
+{
+    "name": "MD3 Material You Emerald",
+    "description": "Android 14 Material You Mint & Emerald Palette",
+    "is_dark": true,
+    "colors": {
+        "primary": "#A6F4C5",
+        "on_primary": "#003822",
+        "primary_container": "#005234",
+        "on_primary_container": "#C2F8E0",
+        "secondary": "#B6CCB9",
+        "on_secondary": "#223527",
+        "secondary_container": "#384B3C",
+        "surface": "#101412",
+        "on_surface": "#E1E3DF",
+        "surface_variant": "#1B201D",
+        "on_surface_variant": "#C1C8C2",
+        "surface_container_lowest": "#0B0F0D",
+        "surface_container_low": "#181C19",
+        "surface_container": "#1E221F",
+        "surface_container_high": "#282C29",
+        "surface_container_highest": "#333734",
+        "outline": "#8B938D",
+        "outline_variant": "#414943",
+        "accent": "#A6F4C5",
+        "accent_hover": "#C2F8E0",
+        "accent_glow": "rgba(166, 244, 197, 0.25)",
+        "badge_bg": "#005234",
+        "card_shadow": "0 8px 30px rgba(0, 0, 0, 0.5)"
+    },
+    "shapes": {
+        "corner_full": "9999px",
+        "corner_extra_large": "28px",
+        "corner_large": "24px",
+        "corner_medium": "16px",
+        "corner_small": "12px"
+    },
+    "typography": {
+        "font_family": "Roboto, sans-serif",
+        "font_size_base": "13px"
+    }
+}

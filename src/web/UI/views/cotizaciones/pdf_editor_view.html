@@ -1,0 +1,57 @@
+<!-- VIEW 8: EDICIÓN PDF (MD3) -->
+<div id="page8_pdf_editor" class="workspace-page hidden space-y-4">
+    <!-- Header Card -->
+    <div class="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-3xl p-5 space-y-4 shadow-sm">
+        <div class="flex items-center justify-between border-b border-[var(--border-default)] pb-3">
+            <div class="flex items-center space-x-2">
+                <span class="material-symbols-outlined text-2xl text-[var(--text-primary)]">picture_as_pdf</span>
+                <span class="text-base font-bold text-[var(--text-primary)]">Edición y Combinación de PDFs</span>
+            </div>
+            <button onclick="mergePDFs()" id="mergePdfBtn" class="flex items-center space-x-2 px-5 py-2.5 bg-[var(--text-primary)] text-[var(--bg-primary)] rounded-full text-xs font-extrabold shadow-lg hover:opacity-90 transition opacity-50 cursor-not-allowed" disabled>
+                <span class="material-symbols-outlined text-lg">merge</span>
+                <span>COMBINAR PDFs</span>
+            </button>
+        </div>
+
+        <div class="text-sm text-[var(--text-secondary)]">
+            <p>Añade los archivos PDF que deseas combinar. Se unirán en el orden que aparecen en la lista (de arriba hacia abajo).</p>
+        </div>
+
+        <!-- Drag & Drop Zone -->
+        <div id="pdfDropZone" 
+             class="border-2 border-dashed border-[var(--border-default)] rounded-2xl p-8 flex flex-col items-center justify-center text-[var(--text-secondary)] transition-all duration-200 hover:border-[var(--text-primary)] hover:bg-[var(--bg-secondary)] cursor-pointer"
+             onclick="document.getElementById('pdfFileInput').click()"
+             ondragover="handlePdfDragOver(event)"
+             ondragleave="handlePdfDragLeave(event)"
+             ondrop="handlePdfDrop(event)">
+            <span class="material-symbols-outlined text-4xl mb-2 text-[var(--text-primary)]">cloud_upload</span>
+            <span class="font-bold text-sm text-[var(--text-primary)]">Haz clic o arrastra PDFs aquí</span>
+            <span class="text-xs mt-1">Archivos soportados: .pdf</span>
+            <input type="file" id="pdfFileInput" accept=".pdf" multiple class="hidden" onchange="handlePdfFileSelect(event)">
+        </div>
+
+        <!-- Loading State -->
+        <div id="pdfLoadingState" class="hidden flex flex-col items-center justify-center p-8 text-[var(--text-secondary)]">
+            <span class="material-symbols-outlined text-4xl mb-2 animate-spin text-[var(--text-primary)]">sync</span>
+            <span class="text-sm font-bold">Procesando páginas...</span>
+            <span class="text-xs mt-1" id="pdfLoadingProgress">Por favor espera</span>
+        </div>
+
+        <!-- Selected Pages Grid -->
+        <div class="space-y-2 mt-4" id="pdfWorkspaceArea">
+            <div class="flex items-center justify-between mb-2">
+                <h3 class="text-sm font-bold text-[var(--text-primary)]">Páginas a combinar (<span id="pdfCount">0</span>):</h3>
+                <span class="text-xs text-[var(--text-secondary)] italic">Arrastra para reordenar</span>
+            </div>
+            
+            <div id="pdfFilesEmptyState" class="text-xs text-[var(--text-secondary)] italic p-2">
+                No se han cargado páginas.
+            </div>
+
+            <!-- Grid container for pages -->
+            <div id="pdfPagesGrid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 max-h-[60vh] overflow-y-auto pr-2 pb-4">
+                <!-- Page cards will be dynamically injected here -->
+            </div>
+        </div>
+    </div>
+</div>

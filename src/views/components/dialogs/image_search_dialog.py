@@ -114,15 +114,21 @@ class SearchWorker(QThread):
             self.error_occurred.emit(f"Error en {self.engine}: {str(e)}")
 
     def _get_headers(self):
+        """Headers simples que funcionan bien para scraping."""
         return {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.5',
-            'Referer': 'https://google.com'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9,es;q=0.8',
+            'Connection': 'keep-alive',
         }
 
     def _search_duckduckgo(self):
-        """Robust DuckDuckGo JSON API search."""
+        """DuckDuckGo JSON API search."""
+        print("\n" + "="*60)
+        print("[DEBUG DDG] Iniciando busqueda DuckDuckGo")
+        print(f"[DEBUG DDG] Query: '{self.query}'")
+        print("="*60)
+        
         # 1. Get VQD Token
         url = "https://duckduckgo.com/"
         params = {'q': self.query}
@@ -130,28 +136,60 @@ class SearchWorker(QThread):
         session = requests.Session()
         session.headers.update(self._get_headers())
         
-        resp = session.get(url, params=params)
+        print(f"[DEBUG DDG] Paso 1: Obteniendo pagina inicial de DDG...")
+        try:
+            resp = session.get(url, params=params, timeout=15)
+            print(f"[DEBUG DDG] Status Code inicial: {resp.status_code}")
+            print(f"[DEBUG DDG] URL final: {resp.url}")
+        except Exception as e:
+            print(f"[DEBUG DDG] ERROR al obtener pagina inicial: {e}")
+            return []
+            
         html = resp.text
+        print(f"[DEBUG DDG] Tamaño HTML recibido: {len(html)} caracteres")
         
-        # Extract VQD
+        # Save HTML for debugging (first 2000 chars)
+        print(f"[DEBUG DDG] Primeros 500 chars del HTML:")
+        print(html[:500])
+        print("[DEBUG DDG] ...")
+        
+        # Extract VQD using multiple patterns (DDG changes format periodically)
         vqd = None
-        match = re.search(r'vqd="?([^"]+)"?', html)
-        if match:
-            vqd = match.group(1)
-        else:
-            # Try specific script extraction
-            match = re.search(r'vqd=([0-9-]+)\&', html) 
+        patterns = [
+            r'vqd=["\']?([^"\'\&]+)',
+            r'vqd=([0-9-]+)',
+            r'"vqd":"([^"]+)"',
+            r"'vqd':'([^']+)'",
+            r'vqd%3D([^%\&"]+)',
+        ]
+        
+        print(f"[DEBUG DDG] Paso 2: Buscando token VQD con {len(patterns)} patrones...")
+        for i, pattern in enumerate(patterns):
+            match = re.search(pattern, html)
             if match:
                 vqd = match.group(1)
+                print(f"[DEBUG DDG] [OK] VQD encontrado con patron #{i+1}: '{vqd[:20]}...' (truncado)")
+                break
+            else:
+                print(f"[DEBUG DDG] [X] Patron #{i+1} no coincidio: {pattern}")
 
         if not vqd:
-            # Sometimes parsing fails, try direct API (might fail without VQD but worth a shot if we have fallback)
-            # Actually, without VQD, DDG API returns 403 usually.
-            print("Could not find VQD token")
+            print("[DEBUG DDG] [WARN] No se encontro token VQD en ningun patron!")
+            print("[DEBUG DDG] Buscando 'vqd' en el HTML manualmente...")
+            if 'vqd' in html.lower():
+                # Find context around 'vqd'
+                idx = html.lower().find('vqd')
+                context = html[max(0, idx-50):idx+100]
+                print(f"[DEBUG DDG] Contexto encontrado: ...{context}...")
+            else:
+                print("[DEBUG DDG] 'vqd' NO aparece en ninguna parte del HTML")
+            
+            print("[DEBUG DDG] No se pudo obtener token VQD, retornando vacio")
             return []
             
         # 2. Get JSON Results
-        # url: https://duckduckgo.com/i.js
+        print(f"\n[DEBUG DDG] Paso 3: Obteniendo resultados JSON...")
+        json_url = "https://duckduckgo.com/i.js"
         params = {
             'l': 'us-en',
             'o': 'json',
@@ -162,11 +200,9 @@ class SearchWorker(QThread):
         }
         
         # Apply filters
-        # DuckDuckGo filter format: size:Small|Medium|Large|Wallpaper
-        # We want strict control? DDG is loose.
         size_param = ""
         if self.filters.get('type') == 'standard':
-            size_param = "size:Medium" # Approximate
+            size_param = "size:Medium"
         elif self.filters.get('type') == 'custom':
             w = self.filters.get('w', 0)
             if w > 1000:
@@ -176,14 +212,34 @@ class SearchWorker(QThread):
         
         if size_param:
             params['f'] = f"{size_param},,,"
-            
-        json_url = f"https://duckduckgo.com/i.js"
-        resp = session.get(json_url, params=params)
+        
+        print(f"[DEBUG DDG] URL JSON: {json_url}")
+        print(f"[DEBUG DDG] Params: {params}")
+        
+        try:
+            resp = session.get(json_url, params=params, timeout=15)
+            print(f"[DEBUG DDG] Status Code JSON: {resp.status_code}")
+            print(f"[DEBUG DDG] Content-Type: {resp.headers.get('Content-Type', 'N/A')}")
+            print(f"[DEBUG DDG] Tamaño respuesta: {len(resp.text)} caracteres")
+        except Exception as e:
+            print(f"[DEBUG DDG] ERROR al obtener JSON: {e}")
+            return []
         
         results = []
         try:
+            print(f"[DEBUG DDG] Primeros 500 chars de respuesta JSON:")
+            print(resp.text[:500])
+            
             data = resp.json()
+            print(f"[DEBUG DDG] [OK] JSON parseado correctamente")
+            print(f"[DEBUG DDG] Claves en respuesta: {list(data.keys())}")
+            
             raw_results = data.get("results", [])
+            print(f"[DEBUG DDG] Número de resultados raw: {len(raw_results)}")
+            
+            if raw_results:
+                print(f"[DEBUG DDG] Ejemplo primer resultado: {raw_results[0]}")
+            
             for r in raw_results:
                 results.append({
                     'image': r.get('image'),
@@ -192,8 +248,19 @@ class SearchWorker(QThread):
                     'height': r.get('height'),
                     'source': 'DuckDuckGo'
                 })
-        except:
-            pass
+            
+            print(f"[DEBUG DDG] [OK] Total resultados procesados: {len(results)}")
+            
+        except json.JSONDecodeError as e:
+            print(f"[DEBUG DDG] [ERROR] Error parseando JSON: {e}")
+            print(f"[DEBUG DDG] Respuesta completa (primeros 1000 chars):")
+            print(resp.text[:1000])
+        except Exception as e:
+            print(f"[DEBUG DDG] [ERROR] Error inesperado: {e}")
+            import traceback
+            traceback.print_exc()
+        
+        print(f"\n[DEBUG DDG] === FIN BÚSQUEDA DDG - {len(results)} resultados ===\n")
         return results
 
     def _search_pixabay(self):
@@ -242,58 +309,136 @@ class SearchWorker(QThread):
         return results
 
     def _search_bing(self):
-        # Scraping Bing
+        """Scraping Bing Images with multiple fallback patterns."""
+        print("[DEBUG BING] Iniciando busqueda en Bing...")
         headers = self._get_headers()
+        headers['Referer'] = 'https://www.bing.com/'
         q = urllib.parse.quote(self.query)
         url = f"https://www.bing.com/images/search?q={q}&form=HDRSC2&first=1"
         
-        resp = requests.get(url, headers=headers)
-        html = resp.text
+        try:
+            resp = requests.get(url, headers=headers, timeout=15)
+            print(f"[DEBUG BING] Status Code: {resp.status_code}")
+            html = resp.text
+            print(f"[DEBUG BING] HTML recibido: {len(html)} caracteres")
+        except Exception as e:
+            print(f"[DEBUG BING] Error al obtener pagina: {e}")
+            return []
         
         results = []
-        # Find murl (media url)
-        # murl&quot;:&quot;URL&quot;
-        # Also contains height/width: &quot;h&quot;:&quot;1200&quot;,&quot;w&quot;:&quot;1600&quot;
         
-        # Regex to capture block
-        # messy but works for some
-        # We look for simple murl patterns
+        # Pattern 1: murl with html entities (most common)
+        pattern1 = r'murl&quot;:&quot;(https?://[^&]+)&quot;'
+        matches1 = re.findall(pattern1, html)
+        print(f"[DEBUG BING] Patron 1 (murl entities): {len(matches1)} resultados")
         
-        raw_matches = re.findall(r'murl&quot;:&quot;(http[^&]+)&quot;.*?&quot;h&quot;:&quot;(\d+)&quot;.*?&quot;w&quot;:&quot;(\d+)&quot;', html)
+        # Pattern 2: murl with JSON format
+        pattern2 = r'"murl":"(https?://[^"]+)"'
+        matches2 = re.findall(pattern2, html)
+        print(f"[DEBUG BING] Patron 2 (murl JSON): {len(matches2)} resultados")
         
-        for m in raw_matches:
+        # Pattern 3: mediaurl in data attributes
+        pattern3 = r'mediaurl=(https?://[^&"]+)'
+        matches3 = re.findall(pattern3, html)
+        print(f"[DEBUG BING] Patron 3 (mediaurl): {len(matches3)} resultados")
+        
+        # Combine all matches
+        all_urls = set()
+        for url in matches1 + matches2 + matches3:
+            # Decode URL if needed
+            decoded = urllib.parse.unquote(url)
+            if decoded.startswith('http') and any(ext in decoded.lower() for ext in ['.jpg', '.jpeg', '.png', '.gif', '.webp']):
+                all_urls.add(decoded)
+        
+        print(f"[DEBUG BING] URLs unicas encontradas: {len(all_urls)}")
+        
+        # Try to get dimensions from the full pattern
+        dim_pattern = r'murl&quot;:&quot;(https?://[^&]+)&quot;.*?&quot;h&quot;:(\d+).*?&quot;w&quot;:(\d+)'
+        dim_matches = re.findall(dim_pattern, html)
+        dim_dict = {m[0]: (int(m[2]), int(m[1])) for m in dim_matches}  # {url: (width, height)}
+        
+        for img_url in list(all_urls)[:50]:  # Limit to 50
+            width, height = dim_dict.get(img_url, (0, 0))
             results.append({
-                'image': m[0],
-                'thumbnail': m[0], # Bing direct links often don't have separate thumbs easily accessible without more parsing
-                'height': int(m[1]),
-                'width': int(m[2]),
+                'image': img_url,
+                'thumbnail': img_url,
+                'width': width,
+                'height': height,
                 'source': 'Bing'
             })
-            
+        
+        print(f"[DEBUG BING] Total resultados: {len(results)}")
         return results
 
     def _search_google(self):
-        # Very fragile google scrape
+        """Google Images scraping with multiple patterns."""
+        print("[DEBUG GOOGLE] Iniciando busqueda en Google Images...")
         headers = self._get_headers()
+        headers['Referer'] = 'https://www.google.com/'
         q = urllib.parse.quote(self.query)
-        url = f"https://www.google.com/search?q={q}&tbm=isch&gbv=1" # gbv=1 is basic HTML version
         
-        resp = requests.get(url, headers=headers)
-        html = resp.text
+        # Use async parameter for better results
+        url = f"https://www.google.com/search?q={q}&tbm=isch&hl=en"
+        
+        try:
+            resp = requests.get(url, headers=headers, timeout=15)
+            print(f"[DEBUG GOOGLE] Status Code: {resp.status_code}")
+            html = resp.text
+            print(f"[DEBUG GOOGLE] HTML recibido: {len(html)} caracteres")
+        except Exception as e:
+            print(f"[DEBUG GOOGLE] Error: {e}")
+            return []
         
         results = []
-        # Basic HTML version gives direct img src=""
-        # These are thumbnails. Full versions are hidden in href="/url?q=..."
         
-        img_matches = re.findall(r'src="(https://encrypted-[^"]+)"', html)
-        for img in img_matches:
-            results.append({
-                'image': img, # Just the thumb for now as google obfuscates original heavily in gbv=1
-                'thumbnail': img,
-                'width': 0,
-                'height': 0,
-                'source': 'Google'
-            })
+        # Pattern 1: Data URLs in JSON-like structures (most reliable)
+        # Look for ["URL",width,height] patterns
+        pattern1 = r'\["(https?://[^"]+\.(?:jpg|jpeg|png|gif|webp)[^"]*)",(\d+),(\d+)\]'
+        matches1 = re.findall(pattern1, html, re.IGNORECASE)
+        print(f"[DEBUG GOOGLE] Patron 1 (JSON array): {len(matches1)} resultados")
+        
+        for m in matches1:
+            url_img = m[0].replace('\\u003d', '=').replace('\\u0026', '&')
+            if 'encrypted-tbn' not in url_img and 'gstatic' not in url_img:
+                results.append({
+                    'image': url_img,
+                    'thumbnail': url_img,
+                    'width': int(m[1]),
+                    'height': int(m[2]),
+                    'source': 'Google'
+                })
+        
+        # Pattern 2: ou (original url) parameter
+        pattern2 = r'"ou":"(https?://[^"]+)"'
+        matches2 = re.findall(pattern2, html)
+        print(f"[DEBUG GOOGLE] Patron 2 (ou param): {len(matches2)} resultados")
+        
+        for url_img in matches2:
+            url_img = url_img.replace('\\u003d', '=').replace('\\u0026', '&')
+            if url_img not in [r['image'] for r in results]:
+                results.append({
+                    'image': url_img,
+                    'thumbnail': url_img,
+                    'width': 0,
+                    'height': 0,
+                    'source': 'Google'
+                })
+        
+        # Pattern 3: Fallback to encrypted thumbnails if no results
+        if not results:
+            pattern3 = r'src="(https://encrypted-tbn[^"]+)"'
+            matches3 = re.findall(pattern3, html)
+            print(f"[DEBUG GOOGLE] Patron 3 (thumbnails): {len(matches3)} resultados")
+            for img in matches3[:30]:
+                results.append({
+                    'image': img,
+                    'thumbnail': img,
+                    'width': 0,
+                    'height': 0,
+                    'source': 'Google'
+                })
+        
+        print(f"[DEBUG GOOGLE] Total resultados: {len(results)}")
         return results
 
     def _search_unsplash(self):
@@ -392,14 +537,50 @@ class ImageSearchDialog(QDialog):
                 color: white;
                 font-size: 14px;
             }
-        """)
+        """
+        )
         self.search_input.returnPressed.connect(self._start_search)
         search_layout.addWidget(self.search_input, 1)
 
+        # Engine Selector ComboBox
+        self.engine_combo = QComboBox()
+        self.engine_combo.addItems(["Google", "Bing", "DuckDuckGo", "Pixabay (Stock)", "Unsplash"])
+        self.engine_combo.setCurrentIndex(0)  # Google by default
+        self.engine_combo.setMinimumHeight(40)
+        self.engine_combo.setMinimumWidth(150)
+        self.engine_combo.setStyleSheet("""
+            QComboBox {
+                background-color: #2c2c2e;
+                border: 1px solid #555;
+                border-radius: 4px;
+                padding: 0 10px;
+                color: white;
+                font-size: 14px;
+            }
+            QComboBox::drop-down {
+                border: none;
+                width: 30px;
+            }
+            QComboBox::down-arrow {
+                image: none;
+                border-left: 5px solid transparent;
+                border-right: 5px solid transparent;
+                border-top: 6px solid white;
+                margin-right: 10px;
+            }
+            QComboBox QAbstractItemView {
+                background-color: #2c2c2e;
+                color: white;
+                selection-background-color: #0A84FF;
+            }
+        """)
+        search_layout.addWidget(self.engine_combo)
+
         # Standardize Checkbox
         from PyQt6.QtWidgets import QCheckBox
-        self.standardize_check = QCheckBox("Transformar a imagen estándar (300x300)")
+        self.standardize_check = QCheckBox("300x300")
         self.standardize_check.setChecked(True)
+        self.standardize_check.setToolTip("Transformar a imagen estandar (300x300)")
         self.standardize_check.setStyleSheet("""
             QCheckBox { color: white; margin-left: 10px; }
             QCheckBox::indicator { width: 18px; height: 18px; }
@@ -535,12 +716,12 @@ class ImageSearchDialog(QDialog):
         query = self.search_input.text().strip()
         if not query: return
         
-        # Strict DuckDuckGo
-        engine = "DuckDuckGo"
+        # Get selected engine from ComboBox
+        engine = self.engine_combo.currentText()
         
         self.list_widget.clear()
         self.preview_lbl.clear()
-        self.preview_lbl.setText("Buscando en DuckDuckGo...")
+        self.preview_lbl.setText(f"Buscando en {engine}...")
         self.btn_select.setEnabled(False)
         self.progress.setVisible(True)
         self.btn_search.setEnabled(False)
@@ -654,9 +835,12 @@ class ImageSearchDialog(QDialog):
         if not self.current_image_data:
             return
         
-        # Save to temp directory - CotzManager will embed images into .cotz when saved
-        import tempfile
-        downloads_dir = os.path.join(tempfile.gettempdir(), "cotizador_images")
+        # Save to project's product images folder (persistent, not temp)
+        # Get base directory of the project
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
+        downloads_dir = os.path.join(base_dir, "archivocotizacion", "producto", "imagen")
+        
+        # Create directory if it doesn't exist
         if not os.path.exists(downloads_dir):
             os.makedirs(downloads_dir)
     
@@ -685,6 +869,7 @@ class ImageSearchDialog(QDialog):
         
         if success:
             self.selected_image_path = save_path
+            print(f"[IMAGE] Imagen guardada en: {save_path}")
             self.accept()
         else:
             QMessageBox.critical(self, "Error", "No se pudo procesar la imagen.")

@@ -1,0 +1,52 @@
+<!-- MATERIAL DESIGN 3 TOP ACTION BAR -->
+<header class="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-3xl px-4 py-3 flex items-center justify-between gap-3 shrink-0 shadow-md">
+    <!-- Document Parameters Outlined Inputs -->
+    <div class="flex items-center space-x-3 text-xs">
+        <div class="flex items-center space-x-1.5">
+            <span class="material-symbols-outlined text-lg text-[var(--text-secondary)]">file_present</span>
+            <label class="text-[var(--text-secondary)] font-medium">Tipo:</label>
+            <select id="docTypeSelect" onchange="onDocTypeChanged()" class="bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-1.5 text-[var(--text-primary)] font-bold focus:border-[var(--border-focus)] focus:outline-none">
+                <option value="Cotizacion">Cotización</option>
+                <option value="Recibo">Recibo</option>
+            </select>
+        </div>
+
+        <div class="flex items-center space-x-1.5">
+            <label class="text-[var(--text-secondary)] font-medium">N° Documento:</label>
+            <div class="flex items-center space-x-1">
+                <input type="text" id="quotationNumberInput" class="bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-3 py-1.5 text-[var(--text-primary)] font-mono font-bold w-36 focus:border-[var(--border-focus)] focus:outline-none">
+                <button onclick="generateQuotationNumber()" title="Regenerar Código" class="p-1.5 bg-[var(--bg-secondary)] hover:bg-white/10 rounded-xl text-[var(--text-primary)] transition">
+                    <span class="material-symbols-outlined text-base">autorenew</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-1.5">
+            <label class="text-[var(--text-secondary)] font-medium">Fecha:</label>
+            <input type="text" id="dateInput" class="bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-2.5 py-1.5 text-[var(--text-primary)] font-bold w-24 text-center focus:border-[var(--border-focus)] focus:outline-none">
+        </div>
+
+        <div class="flex items-center space-x-1.5">
+            <label class="text-[var(--text-secondary)] font-medium">Validez:</label>
+            <input type="number" id="validityInput" value="15" min="1" max="365" class="bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-xl px-2.5 py-1.5 text-[var(--text-primary)] font-bold w-16 text-center focus:border-[var(--border-focus)] focus:outline-none">
+            <span class="text-[var(--text-secondary)]">días</span>
+        </div>
+    </div>
+
+    <!-- MD3 Action Buttons & Extended FAB -->
+    <div class="flex items-center space-x-2">
+        <button onclick="newQuotation()" class="flex items-center space-x-1.5 px-3.5 py-2 bg-[var(--bg-secondary)] border border-[var(--border-default)] rounded-2xl text-xs font-semibold text-[var(--text-primary)] hover:bg-white/10 transition shadow-xs">
+            <span class="material-symbols-outlined text-base">note_add</span>
+            <span>Nueva</span>
+        </button>
+        <button onclick="saveCotzFile()" class="flex items-center space-x-1.5 px-3.5 py-2 bg-[var(--bg-secondary)] border border-[var(--border-default)] rounded-2xl text-xs font-semibold text-[var(--text-primary)] hover:bg-white/10 transition shadow-xs">
+            <span class="material-symbols-outlined text-base">save</span>
+            <span>Guardar (.cotz)</span>
+        </button>
+        <!-- MD3 Extended FAB -->
+        <button onclick="generatePDF()" class="flex items-center space-x-2 px-5 py-2.5 bg-[var(--text-primary)] text-[var(--bg-primary)] rounded-full text-xs font-extrabold shadow-lg hover:opacity-90 transition">
+            <span class="material-symbols-outlined text-lg">picture_as_pdf</span>
+            <span>GENERAR PDF</span>
+        </button>
+    </div>
+</header>

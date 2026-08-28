@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="es" class="dark h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cotizador Pro Suite v3.5 - Mini Servidor Web</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#0B0E14',
+                        cardBg: 'rgba(21, 28, 44, 0.85)',
+                        cardBorder: 'rgba(255, 255, 255, 0.1)',
+                        accentPrimary: '#2563EB',
+                        accentHover: '#1D4ED8',
+                        accentGlow: 'rgba(37, 99, 235, 0.3)'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Segoe UI', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-[#0B0E14] text-slate-100 font-sans h-full overflow-hidden flex flex-col select-none">
+
+    <!-- MAIN APP CONTAINER -->
+    <div class="flex flex-1 h-full overflow-hidden">
+
+        <!-- SIDEBAR NAVIGATION RAIL -->
+        <aside class="w-64 bg-[#080B10] border-r border-white/10 flex flex-col justify-between p-4 z-20 shrink-0">
+            <div>
+                <!-- Brand Header -->
+                <div class="flex items-center space-x-3 px-2 py-3 mb-4">
+                    <div class="p-2.5 bg-blue-600/20 border border-blue-500/40 rounded-xl text-blue-400">
+                        <i data-lucide="file-text" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-base font-bold tracking-tight text-white">Cotizador Pro</h1>
+                        <span class="text-xs font-semibold text-blue-400">Server Edition v3.5</span>
+                    </div>
+                </div>
+
+                <div class="h-px bg-white/10 my-3"></div>
+
+                <!-- Navigation Items -->
+                <nav class="space-y-1.5" id="navContainer">
+                    <button onclick="switchTab(0)" class="nav-btn active w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 text-slate-400 hover:text-slate-100 hover:bg-white/5" data-tab="0">
+                        <i data-lucide="package" class="w-4 h-4"></i>
+                        <span>Cotización & Productos</span>
+                    </button>
+                    <button onclick="switchTab(1)" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 text-slate-400 hover:text-slate-100 hover:bg-white/5" data-tab="1">
+                        <i data-lucide="wallet" class="w-4 h-4"></i>
+                        <span>Finanzas & Saldo</span>
+                    </button>
+                    <button onclick="switchTab(2)" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 text-slate-400 hover:text-slate-100 hover:bg-white/5" data-tab="2">
+                        <i data-lucide="scroll-text" class="w-4 h-4"></i>
+                        <span>Términos & Notas</span>
+                    </button>
+                    <button onclick="switchTab(3)" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 text-slate-400 hover:text-slate-100 hover:bg-white/5" data-tab="3">
+                        <i data-lucide="building-2" class="w-4 h-4"></i>
+                        <span>Empresa Emisora</span>
+                    </button>
+                    <button onclick="switchTab(4)" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 text-slate-400 hover:text-slate-100 hover:bg-white/5" data-tab="4">
+                        <i data-lucide="settings" class="w-4 h-4"></i>
+                        <span>Configuración</span>
+                    </button>
+                    <button onclick="switchTab(5)" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 text-slate-400 hover:text-slate-100 hover:bg-white/5" data-tab="5">
+                        <i data-lucide="history" class="w-4 h-4"></i>
+                        <span>Historial</span>
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Footer Badge -->
+            <div class="p-3 bg-white/[0.03] border border-white/10 rounded-xl text-center">
+                <span class="text-xs text-slate-400 font-medium">Servidor Activo Local / Red</span>
+                <div class="text-[11px] text-emerald-400 font-mono mt-0.5">● http://0.0.0.0:8000</div>
+            </div>
+        </aside>
+
+        <!-- RIGHT WORKSPACE AREA -->
+        <main class="flex-1 flex flex-col h-full overflow-hidden bg-[#0B0E14] p-4 space-y-3">
+
+            <!-- TOP ACTION HEADER -->
+            <header class="bg-[#151C2C]/80 border border-white/10 rounded-2xl px-4 py-2.5 flex items-center justify-between gap-3 shrink-0 shadow-lg backdrop-blur-md">
+                <!-- Document Parameters -->
+                <div class="flex items-center space-x-3 text-xs">
+                    <div class="flex items-center space-x-1.5">
+                        <label class="text-slate-400 font-semibold">Tipo:</label>
+                        <select id="docTypeSelect" onchange="onDocTypeChanged()" class="bg-[#0B0E14] border border-white/15 rounded-lg px-2.5 py-1.5 text-white font-medium focus:outline-none focus:border-blue-500">
+                            <option value="Cotizacion">Cotización</option>
+                            <option value="Recibo">Recibo</option>
+                        </select>
+                    </div>
+
+                    <div class="flex items-center space-x-1.5">
+                        <label class="text-slate-400 font-semibold">Número:</label>
+                        <div class="flex items-center space-x-1">
+                            <input type="text" id="quotationNumberInput" class="bg-[#0B0E14] border border-white/15 rounded-lg px-2.5 py-1.5 text-white font-mono font-medium w-36 focus:outline-none focus:border-blue-500">
+                            <button onclick="generateQuotationNumber()" title="Regenerar Número" class="p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-slate-300 transition">
+                                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-1.5">
+                        <label class="text-slate-400 font-semibold">Fecha:</label>
+                        <input type="text" id="dateInput" class="bg-[#0B0E14] border border-white/15 rounded-lg px-2 py-1.5 text-white font-medium w-24 text-center focus:outline-none focus:border-blue-500">
+                    </div>
+
+                    <div class="flex items-center space-x-1.5">
+                        <label class="text-slate-400 font-semibold">Validez:</label>
+                        <input type="number" id="validityInput" value="15" min="1" max="365" class="bg-[#0B0E14] border border-white/15 rounded-lg px-2 py-1.5 text-white font-medium w-16 text-center focus:outline-none focus:border-blue-500">
+                        <span class="text-slate-400">días</span>
+                    </div>
+                </div>
+
+                <!-- Primary Action Buttons -->
+                <div class="flex items-center space-x-2">
+                    <button onclick="newQuotation()" class="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-white/10 rounded-xl text-xs font-semibold text-slate-200 transition">
+                        <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                        <span>Nueva</span>
+                    </button>
+                    <button onclick="saveCotzFile()" class="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-white/10 rounded-xl text-xs font-semibold text-slate-200 transition">
+                        <i data-lucide="save" class="w-3.5 h-3.5"></i>
+                        <span>Guardar (.cotz)</span>
+                    </button>
+                    <button onclick="generatePDF()" class="flex items-center space-x-1.5 px-4 py-1.5 bg-blue-600 hover:bg-blue-500 rounded-xl text-xs font-bold text-white shadow-lg shadow-blue-600/30 transition">
+                        <i data-lucide="file-down" class="w-4 h-4"></i>
+                        <span>Generar PDF</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- WORKSPACE PAGES STACK -->
+            <div class="flex-1 overflow-y-auto pr-1">
+
+                <!-- PAGE 0: COTIZACION Y PRODUCTOS -->
+                <div id="page0" class="workspace-page space-y-4">
+                    <!-- Client & Company Info Card -->
+                    <div class="bg-[#151C2C]/80 border border-white/10 rounded-2xl p-4 space-y-3 backdrop-blur-md">
+                        <div class="flex items-center justify-between border-b border-white/10 pb-2.5">
+                            <span class="text-sm font-bold text-slate-200 flex items-center space-x-2">
+                                <i data-lucide="user-check" class="w-4 h-4 text-blue-400"></i>
+                                <span>Información de la Empresa Emisora y Cliente</span>
+                            </span>
+                            <span id="companyInfoLabel" class="text-xs text-slate-400 italic"></span>
+                        </div>
+
+                        <div class="grid grid-cols-12 gap-3 text-xs">
+                            <div class="col-span-4 space-y-1">
+                                <label class="font-semibold text-slate-300">Empresa Emisora:</label>
+                                <select id="companySelect" onchange="onCompanySelectChanged()" class="w-full bg-[#0B0E14] border border-white/15 rounded-xl px-3 py-2 text-white font-medium focus:border-blue-500">
+                                    <option value="">Seleccionar Empresa</option>
+                                </select>
+                            </div>
+                            <div class="col-span-4 space-y-1">
+                                <label class="font-semibold text-slate-300">Nombre del Cliente:</label>
+                                <input type="text" id="clientNameInput" placeholder="Organización / Cliente" class="w-full bg-[#0B0E14] border border-white/15 rounded-xl px-3 py-2 text-white placeholder-slate-500 focus:border-blue-500">
+                            </div>
+                            <div class="col-span-4 space-y-1">
+                                <label class="font-semibold text-slate-300">Contacto (Tel/Email):</label>
+                                <input type="text" id="clientContactInput" placeholder="Teléfono o Correo" class="w-full bg-[#0B0E14] border border-white/15 rounded-xl px-3 py-2 text-white placeholder-slate-500 focus:border-blue-500">
+                            </div>
+                            <div class="col-span-12 space-y-1">
+                                <label class="font-semibold text-slate-300">Dirección del Cliente:</label>
+                                <input type="text" id="clientAddressInput" placeholder="Dirección de entrega o facturación" class="w-full bg-[#0B0E14] border border-white/15 rounded-xl px-3 py-2 text-white placeholder-slate-500 focus:border-blue-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Products Table Card -->
+                    <div class="bg-[#151C2C]/80 border border-white/10 rounded-2xl p-4 space-y-3 backdrop-blur-md flex flex-col">
+                        <div class="flex items-center justify-between border-b border-white/10 pb-2.5">
+                            <span class="text-sm font-bold text-slate-200 flex items-center space-x-2">
+                                <i data-lucide="boxes" class="w-4 h-4 text-blue-400"></i>
+                                <span>Lista de Productos y Servicios</span>
+                            </span>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="addProductRow()" class="px-3 py-1.5 bg-blue-600/20 border border-blue-500/40 hover:bg-blue-600/30 rounded-xl text-xs font-semibold text-blue-400 transition flex items-center space-x-1">
+                                    <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+                                    <span>Agregar Producto</span>
+                                </button>
+                                <button onclick="clearProductRows()" class="px-3 py-1.5 bg-red-600/20 border border-red-500/40 hover:bg-red-600/30 rounded-xl text-xs font-semibold text-red-400 transition flex items-center space-x-1">
+                                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                    <span>Limpiar Tabla</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Products Table -->
+                        <div class="overflow-x-auto rounded-xl border border-white/10">
+                            <table class="w-full text-left text-xs text-slate-300" id="productsTable">
+                                <thead class="bg-[#080B10] text-slate-400 font-semibold uppercase text-[11px] border-b border-white/10">
+                                    <tr>
+                                        <th class="p-3 w-12 text-center">#</th>
+                                        <th class="p-3">Descripción</th>
+                                        <th class="p-3 w-24 text-center">Cantidad</th>
+                                        <th class="p-3 w-36">Unidad</th>
+                                        <th class="p-3 w-32 text-right">Precio Unitario</th>
+                                        <th class="p-3 w-32 text-right">Importe</th>
+                                        <th class="p-3 w-20 text-center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="productsTbody" class="divide-y divide-white/5">
+                                    <!-- Rows added dynamically via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Shipping Options Container -->
+                        <div class="p-3 bg-blue-950/20 border border-blue-500/30 rounded-xl flex items-center justify-between text-xs mt-2">
+                            <div class="flex items-center space-x-3">
+                                <i data-lucide="truck" class="w-5 h-5 text-blue-400"></i>
+                                <label class="flex items-center space-x-2 font-bold text-slate-200 cursor-pointer">
+                                    <input type="checkbox" id="enableShippingCheck" onchange="calculateTotals()" class="w-4 h-4 text-blue-600 rounded bg-slate-900 border-slate-700">
+                                    <span>Habilitar Envío / Delivery</span>
+                                </label>
+                                <select id="shippingTypeSelect" onchange="calculateTotals()" class="bg-[#0B0E14] border border-white/15 rounded-lg px-2.5 py-1.5 text-white font-medium focus:border-blue-500">
+                                    <option value="Envío Local">Envío Local</option>
+                                    <option value="Delivery">Delivery</option>
+                                    <option value="Encomienda">Encomienda</option>
+                                    <option value="Express/Urgente">Express / Urgente</option>
+                                    <option value="Pickup (Retiro)">Pickup (Retiro)</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-slate-400 font-semibold">Monto Envío:</span>
+                                <input type="number" id="shippingAmountInput" value="0.00" step="0.5" min="0" oninput="calculateTotals()" class="bg-[#0B0E14] border border-white/15 rounded-lg px-3 py-1 text-white font-bold w-28 text-right focus:border-blue-500">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PAGE 1: FINANZAS Y SALDO PENDIENTE -->
+                <div id="page1" class="workspace-page hidden space-y-4">
+                    <!-- Calculations & Totals Card -->
+                    <div class="bg-[#151C2C]/80 border border-white/10 rounded-2xl p-4 space-y-4 backdrop-blur-md">
+                        <span class="text-sm font-bold text-slate-200 flex items-center space-x-2 border-b border-white/10 pb-2.5">
+                            <i data-lucide="calculator" class="w-4 h-4 text-emerald-400"></i>
+                            <span>Desglose Financiero & Totales</span>
+                        </span>
+
+                        <div class="grid grid-cols-12 gap-4 text-xs">
+                            <!-- Subtotal -->
+                            <div class="col-span-6 bg-[#0B0E14]/60 p-3 rounded-xl border border-white/5 space-y-1">
+                                <span class="text-slate-400 font-medium">Subtotal de Productos:</span>
+                                <div id="displaySubtotal" class="text-lg font-bold text-white">0.00</div>
+                            </div>
+
+                            <!-- TOTAL -->
+                            <div class="col-span-6 bg-blue-950/30 p-3 rounded-xl border border-blue-500/40 space-y-1">
+                                <span class="text-blue-300 font-medium">TOTAL DOCUMENTO:</span>
+                                <div id="displayTotal" class="text-xl font-extrabold text-blue-400">0.00</div>
+                            </div>
+
+                            <!-- Discount Row -->
+                            <div class="col-span-6 flex items-center justify-between p-3 bg-[#0B0E14]/40 rounded-xl border border-white/5">
+                                <label class="flex items-center space-x-2 font-semibold text-slate-300 cursor-pointer">
+                                    <input type="checkbox" id="applyDiscountCheck" onchange="calculateTotals()" class="w-4 h-4 text-blue-600 rounded">
+                                    <span>Aplicar Descuento:</span>
+                                </label>
+                                <div class="flex items-center space-x-2">
+                                    <input type="number" id="discountPercentInput" value="0" min="0" max="100" oninput="calculateTotals()" class="w-16 bg-[#0B0E14] border border-white/15 rounded-lg px-2 py-1 text-right text-white font-bold">
+                                    <span class="text-slate-400">%</span>
+                                    <span id="displayDiscountAmount" class="text-red-400 font-bold ml-2">- 0.00</span>
+                                </div>
+                            </div>
+
+                            <!-- IVA Row -->
+                            <div class="col-span-6 flex items-center justify-between p-3 bg-[#0B0E14]/40 rounded-xl border border-white/5">
+                                <label class="flex items-center space-x-2 font-semibold text-slate-300 cursor-pointer">
+                                    <input type="checkbox" id="applyIvaCheck" checked onchange="calculateTotals()" class="w-4 h-4 text-blue-600 rounded">
+                                    <span>Aplicar IVA:</span>
+                                </label>
+                                <div class="flex items-center space-x-2">
+                                    <input type="number" id="ivaPercentInput" value="13" min="0" max="50" oninput="calculateTotals()" class="w-16 bg-[#0B0E14] border border-white/15 rounded-lg px-2 py-1 text-right text-white font-bold">
+                                    <span class="text-slate-400">%</span>
+                                    <span id="displayIvaAmount" class="text-emerald-400 font-bold ml-2">+ 0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Control & Saldo Card -->
+                    <div class="bg-[#151C2C]/80 border border-white/10 rounded-2xl p-4 space-y-4 backdrop-blur-md">
+                        <span class="text-sm font-bold text-slate-200 flex items-center space-x-2 border-b border-white/10 pb-2.5">
+                            <i data-lucide="badge-dollar-sign" class="w-4 h-4 text-emerald-400"></i>
+                            <span>Control de Pago y Saldo Pendiente</span>
+                        </span>
+
+                        <div class="grid grid-cols-12 gap-4 text-xs items-center">
+                            <div class="col-span-6 flex items-center space-x-3 p-3 bg-slate-900/60 rounded-xl border border-white/10">
+                                <label class="flex items-center space-x-2 font-bold text-slate-200 cursor-pointer">
+                                    <input type="checkbox" id="applyPaymentCheck" onchange="calculateTotals()" class="w-4 h-4 text-blue-600 rounded">
+                                    <span>Registrar Pago / Anticipo:</span>
+                                </label>
+                                <input type="number" id="paidAmountInput" value="0.00" step="10" min="0" oninput="calculateTotals()" class="w-32 bg-[#0B0E14] border border-white/15 rounded-lg px-3 py-1.5 text-right text-white font-bold text-sm focus:border-blue-500">
+                            </div>
+
+                            <div class="col-span-6 p-3 bg-red-950/20 border border-red-500/30 rounded-xl flex items-center justify-between">
+                                <span class="font-bold text-slate-300 text-sm">Saldo Pendiente:</span>
+                                <div id="displaySaldoAmount" class="text-xl font-extrabold text-red-500">0.00</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bank Details Card -->
+                    <div class="bg-[#151C2C]/80 border border-white/10 rounded-2xl p-4 space-y-3 backdrop-blur-md">
+                        <div class="flex items-center justify-between border-b border-white/10 pb-2.5">
+                            <span class="text-sm font-bold text-slate-200 flex items-center space-x-2">
+                                <i data-lucide="landmark" class="w-4 h-4 text-amber-400"></i>
+                                <span>Datos Bancarios y Depósito</span>
+                            </span>
+                            <label class="flex items-center space-x-2 font-bold text-emerald-400 text-xs cursor-pointer">
+                                <input type="checkbox" id="includeBankDetailsCheck" class="w-4 h-4 text-emerald-600 rounded">
+                                <span>Incluir en PDF</span>
+                            </label>
+                        </div>
+                        <textarea id="bankDetailsInput" rows="3" placeholder="Información bancaria para depósitos (Banco, N° de cuenta, Titular)..." class="w-full bg-[#0B0E14] border border-white/15 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:border-blue-500"></textarea>
+                    </div>
+                </div>
+
+                <!-- PAGE 2: TERMINOS & OBSERVACIONES -->
+                <div id="page2" class="workspace-page hidden space-y-4">
+                    <div class="bg-[#151C2C]/80 border border-white/10 rounded-2xl p-4 space-y-3 backdrop-blur-md">
+                        <span class="text-sm font-bold text-slate-200 flex items-center space-x-2 border-b border-white/10 pb-2.5">
+                            <i data-lucide="file-edit" class="w-4 h-4 text-blue-400"></i>
+                            <span>Observaciones, Cláusulas e Instrucciones</span>
+                        </span>
+                        <div class="space-y-3 text-xs">
+                            <div>
+                                <label class="font-semibold text-slate-300 block mb-1">Notas Internas:</label>
+                                <textarea id="internalNotesInput" rows="3" placeholder="Notas de uso interno..." class="w-full bg-[#0B0E14] border border-white/15 rounded-xl p-3 text-white placeholder-slate-500 focus:border-blue-500"></textarea>
+                            </div>
+                            <div>
+                                <label class="font-semibold text-slate-300 block mb-1">Términos de Instalación / Servicio:</label>
+                                <textarea id="installationTermsInput" rows="3" placeholder="Detalles de instalación o validez..." class="w-full bg-[#0B0E14] border border-white/15 rounded-xl p-3 text-white placeholder-slate-500 focus:border-blue-500"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PAGE 3: EMPRESA EMISORA -->
+                <div id="page3" class="workspace-page hidden space-y-4">
+                    <div class="bg-[#151C2C]/80 border border-white/10 rounded-2xl p-4 space-y-4 backdrop-blur-md">
+                        <span class="text-sm font-bold text-slate-200 flex items-center space-x-2 border-b border-white/10 pb-2.5">
+                            <i data-lucide="building-2" class="w-4 h-4 text-blue-400"></i>
+                            <span>Gestión de Empresa Emisora</span>
+                        </span>
+                        <div class="grid grid-cols-12 gap-3 text-xs">
+                            <div class="col-span-6 space-y-1">
+                                <label class="font-semibold text-slate-300">Nombre de la Empresa:</label>
+                                <input type="text" id="companyNameEdit" class="w-full bg-[#0B0E14] border border-white/15 rounded-xl px-3 py-2 text-white">
+                            </div>
+                            <div class="col-span-6 space-y-1">
+                                <label class="font-semibold text-slate-300">NIT / RUC:</label>
+                                <input type="text" id="companyNitEdit" class="w-full bg-[#0B0E14] border border-white/15 rounded-xl px-3 py-2 text-white">
+                            </div>
+                            <div class="col-span-6 space-y-1">
+                                <label class="font-semibold text-slate-300">Teléfono:</label>
+                                <input type="text" id="companyPhoneEdit" class="w-full bg-[#0B0E14] border border-white/15 rounded-xl px-3 py-2 text-white">
+                            </div>
+                            <div class="col-span-6 space-y-1">
+                                <label class="font-semibold text-slate-300">Correo Electrónico:</label>
+                                <input type="text" id="companyEmailEdit" class="w-full bg-[#0B0E14] border border-white/15 rounded-xl px-3 py-2 text-white">
+                            </div>
+                            <div class="col-span-12 space-y-1">
+                                <label class="font-semibold text-slate-300">Dirección:</label>
+                                <input type="text" id="companyAddressEdit" class="w-full bg-[#0B0E14] border border-white/15 rounded-xl px-3 py-2 text-white">
+                            </div>
+                            <div class="col-span-12 pt-2">
+                                <button onclick="saveCompanyProfile()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-xl text-xs font-bold text-white transition">Guardar Perfil de Empresa</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PAGE 4: CONFIGURACION -->
+                <div id="page4" class="workspace-page hidden space-y-4">
+                    <div class="bg-[#151C2C]/80 border border-white/10 rounded-2xl p-4 space-y-4 backdrop-blur-md">
+                        <span class="text-sm font-bold text-slate-200 flex items-center space-x-2 border-b border-white/10 pb-2.5">
+                            <i data-lucide="settings" class="w-4 h-4 text-blue-400"></i>
+                            <span>Configuración del Sistema</span>
+                        </span>
+                        <div class="grid grid-cols-12 gap-3 text-xs">
+                            <div class="col-span-6 space-y-1">
+                                <label class="font-semibold text-slate-300">Moneda por Defecto:</label>
+                                <input type="text" id="configCurrencyInput" value="Bolivianos (Bs)" class="w-full bg-[#0B0E14] border border-white/15 rounded-xl px-3 py-2 text-white">
+                            </div>
+                            <div class="col-span-6 space-y-1">
+                                <label class="font-semibold text-slate-300">Preparado por (Vendedor):</label>
+                                <input type="text" id="configPreparedByInput" class="w-full bg-[#0B0E14] border border-white/15 rounded-xl px-3 py-2 text-white">
+                            </div>
+                            <div class="col-span-12 pt-2">
+                                <button onclick="saveGlobalConfig()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-xl text-xs font-bold text-white transition">Guardar Configuración Global</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PAGE 5: HISTORIAL -->
+                <div id="page5" class="workspace-page hidden space-y-4">
+                    <div class="bg-[#151C2C]/80 border border-white/10 rounded-2xl p-4 space-y-3 backdrop-blur-md">
+                        <span class="text-sm font-bold text-slate-200 flex items-center space-x-2 border-b border-white/10 pb-2.5">
+                            <i data-lucide="history" class="w-4 h-4 text-blue-400"></i>
+                            <span>Historial de Cotizaciones Recientes</span>
+                        </span>
+                        <div id="historyList" class="space-y-2 text-xs">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- BOTTOM DISPLAY BAR -->
+            <footer class="bg-[#151C2C]/80 border border-white/10 rounded-2xl px-4 py-2 flex items-center justify-between shrink-0">
+                <div class="flex items-center space-x-2 text-xs font-medium text-slate-300">
+                    <span>Subtotal: <strong id="footSubtotal">0.00</strong></span>
+                    <span>•</span>
+                    <span>Envío: <strong id="footShipping">0.00</strong></span>
+                    <span>•</span>
+                    <span class="text-emerald-400">Pagado: <strong id="footPaid">0.00</strong></span>
+                </div>
+                <div class="text-sm font-bold text-blue-400">
+                    TOTAL: <span id="footTotal" class="text-base font-extrabold text-white">0.00</span>
+                </div>
+            </footer>
+
+        </main>
+
+    </div>
+
+    <!-- JS Application File -->
+    <script src="/js/app.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

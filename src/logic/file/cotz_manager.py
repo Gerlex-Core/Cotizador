@@ -120,9 +120,6 @@ class CotzManager:
                         archive_name = f"cot/imagen/producto/{safe_name}{ext}"
                         
                         # Check for duplicates in this save session to avoid overwriting
-                        # (Simple fix: append index if needed, but for now assuming unique names or index fallback)
-                        # Actually if user adds same product twice? 
-                        # Let's append index to be safe and unique
                         if any(x[1] == archive_name for x in images_to_embed):
                              archive_name = f"cot/imagen/producto/{safe_name}_{i}{ext}"
 
@@ -130,7 +127,7 @@ class CotzManager:
                         product["image_path"] = archive_name
                         image_counter += 1
             
-            # Process observation images
+            # Process observation images (legacy format)
             if "observations" in save_data and "images" in save_data["observations"]:
                 for i, img_data in enumerate(save_data["observations"]["images"]):
                     if img_data.get("path") and os.path.exists(img_data["path"]):
@@ -138,6 +135,47 @@ class CotzManager:
                         archive_name = f"images/obs_{i}{ext}"
                         images_to_embed.append((img_data["path"], archive_name))
                         img_data["path"] = archive_name
+                        image_counter += 1
+            
+            # Process observations.all_images (new format for product images in observations)
+            if "observations" in save_data and "all_images" in save_data["observations"]:
+                all_images = save_data["observations"]["all_images"]
+                new_all_images = {}
+                for desc, img_path in all_images.items():
+                    if img_path and os.path.exists(img_path):
+                        ext = os.path.splitext(img_path)[1].lower()
+                        # Sanitize description for archive path
+                        safe_desc = "".join([c for c in desc if c.isalnum() or c in (' ', '-', '_')]).strip()[:30]
+                        if not safe_desc:
+                            safe_desc = f"obs_prod_{image_counter}"
+                        archive_name = f"images/obs_prod_{safe_desc}{ext}"
+                        
+                        # Avoid duplicates
+                        if any(x[1] == archive_name for x in images_to_embed):
+                            archive_name = f"images/obs_prod_{safe_desc}_{image_counter}{ext}"
+                        
+                        images_to_embed.append((img_path, archive_name))
+                        new_all_images[desc] = archive_name
+                        image_counter += 1
+                    else:
+                        new_all_images[desc] = img_path  # Keep original if doesn't exist
+                save_data["observations"]["all_images"] = new_all_images
+            
+            # Process observations.products (product images in observations)
+            if "observations" in save_data and "products" in save_data["observations"]:
+                for i, prod in enumerate(save_data["observations"]["products"]):
+                    if prod.get("image_path") and os.path.exists(prod["image_path"]):
+                        ext = os.path.splitext(prod["image_path"])[1].lower()
+                        safe_desc = "".join([c for c in prod.get("description", "") if c.isalnum() or c in (' ', '-', '_')]).strip()[:30]
+                        if not safe_desc:
+                            safe_desc = f"obs_prod_{i}"
+                        archive_name = f"images/obs_prod_{safe_desc}{ext}"
+                        
+                        if any(x[1] == archive_name for x in images_to_embed):
+                            archive_name = f"images/obs_prod_{safe_desc}_{i}{ext}"
+                        
+                        images_to_embed.append((prod["image_path"], archive_name))
+                        prod["image_path"] = archive_name
                         image_counter += 1
             
             # Process canvas data images
@@ -149,6 +187,17 @@ class CotzManager:
                             archive_name = f"images/canvas_{i}{ext}"
                             images_to_embed.append((item["path"], archive_name))
                             item["path"] = archive_name
+            
+            # Process cover page images (if any user_elements contain images)
+            if "cover_page_data" in save_data and "user_elements" in save_data["cover_page_data"]:
+                for i, element in enumerate(save_data["cover_page_data"]["user_elements"]):
+                    if element.get("type") == "image" and element.get("image_path"):
+                        if os.path.exists(element["image_path"]):
+                            ext = os.path.splitext(element["image_path"])[1].lower()
+                            archive_name = f"cot/imagen/cover/element_{i}{ext}"
+                            images_to_embed.append((element["image_path"], archive_name))
+                            element["image_path"] = archive_name
+                            image_counter += 1
             
             # Create ZIP file
             with zipfile.ZipFile(filepath, 'w', zipfile.ZIP_DEFLATED) as zf:
@@ -251,7 +300,7 @@ class CotzManager:
                                     product["image_path"] = legacy_path
                                     product["_original_archive_path"] = archive_path
                 
-                # Update observation images
+                # Update observation images (legacy format)
                 if "observations" in data and "images" in data["observations"]:
                     for img_data in data["observations"]["images"]:
                         archive_path = img_data.get("path", "")
@@ -266,6 +315,44 @@ class CotzManager:
                                 legacy_path = os.path.join(temp_dir, "images", img_name)
                                 if os.path.exists(legacy_path):
                                     img_data["path"] = legacy_path
+                
+                # Update observations.all_images
+                if "observations" in data and "all_images" in data["observations"]:
+                    all_images = data["observations"]["all_images"]
+                    for desc, archive_path in list(all_images.items()):
+                        if archive_path:
+                            clean_path = archive_path.replace("\\", "/")
+                            if ":" in clean_path:
+                                clean_path = clean_path.split(":")[-1].strip("/")
+                            
+                            full_path = os.path.join(temp_dir, clean_path)
+                            if os.path.exists(full_path):
+                                all_images[desc] = full_path
+                                print(f"[DEBUG LOAD] Imagen restaurada para '{desc[:20]}': {full_path}")
+                            else:
+                                # Try fallback
+                                img_name = os.path.basename(archive_path)
+                                legacy_path = os.path.join(temp_dir, "images", img_name)
+                                if os.path.exists(legacy_path):
+                                    all_images[desc] = legacy_path
+                
+                # Update observations.products
+                if "observations" in data and "products" in data["observations"]:
+                    for prod in data["observations"]["products"]:
+                        archive_path = prod.get("image_path", "")
+                        if archive_path:
+                            clean_path = archive_path.replace("\\", "/")
+                            if ":" in clean_path:
+                                clean_path = clean_path.split(":")[-1].strip("/")
+                            
+                            full_path = os.path.join(temp_dir, clean_path)
+                            if os.path.exists(full_path):
+                                prod["image_path"] = full_path
+                            else:
+                                img_name = os.path.basename(archive_path)
+                                legacy_path = os.path.join(temp_dir, "images", img_name)
+                                if os.path.exists(legacy_path):
+                                    prod["image_path"] = legacy_path
                 
                 # Update canvas data images
                 if "canvas_data" in data:
@@ -282,6 +369,19 @@ class CotzManager:
                                 legacy_path = os.path.join(temp_dir, "images", img_name)
                                 if os.path.exists(legacy_path):
                                     item["path"] = legacy_path
+                
+                # Update cover page images
+                if "cover_page_data" in data and "user_elements" in data["cover_page_data"]:
+                    for element in data["cover_page_data"]["user_elements"]:
+                        if element.get("type") == "image" and element.get("image_path"):
+                            archive_path = element["image_path"]
+                            clean_path = archive_path.replace("\\", "/")
+                            if ":" in clean_path:
+                                clean_path = clean_path.split(":")[-1].strip("/")
+                            
+                            full_path = os.path.join(temp_dir, clean_path)
+                            if os.path.exists(full_path):
+                                element["image_path"] = full_path
             
             self.current_file = filepath
             self._modified = False

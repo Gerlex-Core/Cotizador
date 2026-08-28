@@ -50,11 +50,20 @@ class Quotation:
     products: List[Product] = field(default_factory=list)
     date: str = field(default_factory=lambda: datetime.today().strftime("%d/%m/%Y"))
     currency: str = "Bolivianos (Bs)"
+    apply_payment: bool = False
+    paid_amount: float = 0.0
     
     @property
     def total(self) -> float:
         """Calculate the total amount of the quotation."""
         return sum(product.amount for product in self.products)
+    
+    @property
+    def saldo(self) -> float:
+        """Calculate the remaining balance."""
+        if not self.apply_payment:
+            return 0.0
+        return max(0.0, self.total - self.paid_amount)
     
     def add_product(self, product: Product):
         """Add a product to the quotation."""
@@ -186,7 +195,10 @@ class QuotationLogic:
             "productos": self._quotation.get_products_as_lists(),
             "total": self._quotation.total,
             "moneda": self._quotation.currency,
-            "fecha": self._quotation.date
+            "fecha": self._quotation.date,
+            "apply_payment": self._quotation.apply_payment,
+            "paid_amount": self._quotation.paid_amount,
+            "saldo_amount": self._quotation.saldo
         }
     
     def clear(self):

@@ -1,0 +1,63 @@
+<!-- VIEW 3: HISTORIAL DE COTIZACIONES (MD3) -->
+<div id="page3" class="workspace-page hidden space-y-4">
+    
+    <!-- Upload .cotz file Drag & Drop Dropzone card -->
+    <div class="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-3xl p-5 space-y-3 shadow-sm">
+        <div class="flex items-center space-x-2 border-b border-[var(--border-default)] pb-3">
+            <span class="material-symbols-outlined text-2xl text-[var(--text-primary)]">file_open</span>
+            <span class="text-base font-bold text-[var(--text-primary)]">Abrir Cotización (.cotz / .json)</span>
+        </div>
+        
+        <!-- MD3 Drag & Drop Zone -->
+        <div id="cotzDropzone" 
+             ondragover="handleDragOver(event, this)" 
+             ondragleave="handleDragLeave(event, this)" 
+             ondrop="handleDropCotzFile(event)"
+             onclick="document.getElementById('uploadCotzFileInput').click()"
+             class="border-2 border-dashed border-[var(--border-default)] hover:border-[var(--border-focus)] bg-[var(--bg-primary)] rounded-3xl p-8 text-center cursor-pointer transition-all duration-200 group flex flex-col items-center justify-center space-y-2">
+            
+            <div class="w-14 h-14 rounded-2xl bg-[var(--bg-secondary)] text-[var(--text-primary)] flex items-center justify-center transition-transform group-hover:scale-110 shadow-md">
+                <span class="material-symbols-outlined text-3xl">cloud_upload</span>
+            </div>
+            <div>
+                <p class="font-bold text-sm text-[var(--text-primary)]">Arrastra y suelta tu archivo <code class="text-xs bg-[var(--bg-secondary)] px-2 py-0.5 rounded-lg border border-[var(--border-default)]">.cotz</code> aquí</p>
+                <p class="text-xs text-[var(--text-secondary)] mt-1">o haz clic para explorar en tus archivos localmente</p>
+            </div>
+            <input type="file" id="uploadCotzFileInput" accept=".cotz,.json" onchange="handleSelectCotzFile(event)" class="hidden">
+        </div>
+    </div>
+
+    <!-- Saved Quotations List Card -->
+    <div class="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-3xl p-5 space-y-4 shadow-sm">
+        <div class="flex items-center justify-between border-b border-[var(--border-default)] pb-3">
+            <div class="flex items-center space-x-2">
+                <span class="material-symbols-outlined text-2xl text-[var(--text-primary)]">history</span>
+                <span class="text-base font-bold text-[var(--text-primary)]">Cotizaciones Guardadas e Historial</span>
+            </div>
+            <button onclick="loadDbQuotations()" class="px-3.5 py-1.5 bg-[var(--bg-secondary)] hover:bg-white/10 border border-[var(--border-default)] rounded-full text-xs font-bold text-[var(--text-primary)] flex items-center space-x-1 transition">
+                <span class="material-symbols-outlined text-base">refresh</span>
+                <span>Actualizar</span>
+            </button>
+        </div>
+
+        <div class="overflow-x-auto rounded-2xl border border-[var(--border-default)]">
+            <table class="w-full text-left text-xs">
+                <thead class="bg-[var(--bg-primary)] text-[var(--text-secondary)] uppercase font-semibold border-b border-[var(--border-default)]">
+                    <tr>
+                        <th class="p-3">N° Cotización</th>
+                        <th class="p-3">Cliente</th>
+                        <th class="p-3">Empresa Emisora</th>
+                        <th class="p-3">Fecha</th>
+                        <th class="p-3">Total</th>
+                        <th class="p-3 text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="dbQuotationsTbody" class="divide-y divide-[var(--border-default)] font-medium text-[var(--text-primary)]">
+                    <tr>
+                        <td colspan="6" class="p-6 text-center text-[var(--text-secondary)] italic">Cargando cotizaciones guardadas...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
