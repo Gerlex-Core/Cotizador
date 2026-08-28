@@ -30,7 +30,7 @@ export default function MainLayout() {
     const { activeTab } = useNavigation();
     const { theme } = useTheme();
     const { isAuthenticated } = useAuth();
-    const [currentBg, setCurrentBg] = useState(0);
+    const [currentBg, setCurrentBg] = useState(() => Math.floor(Math.random() * WALLPAPERS.length));
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -91,7 +91,7 @@ export default function MainLayout() {
             {/* Main Application Area */}
             <main className="flex-1 flex flex-col h-full overflow-hidden p-2 md:p-6 space-y-2 md:space-y-4 relative z-10">
                 {/* Header is only shown if we are in QuotationView (0), Designer(2), Finance(4), Terms(5), PDF(8) */}
-                {[0, 2, 4, 5, 8].includes(activeTab) && (
+                {isAuthenticated && [0, 2, 4, 5, 8].includes(activeTab) && (
                     <motion.div
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
