@@ -9,6 +9,8 @@ import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import DeleteIcon from '@mui/icons-material/Delete';
 import StorefrontIcon from '@mui/icons-material/Storefront';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import SettingsIcon from '@mui/icons-material/Settings';
 import { useTheme } from '../../context/ThemeContext';
 import { useQuotation } from '../../context/QuotationContext';
 import { useNavigation } from '../../context/NavigationContext';
@@ -20,7 +22,8 @@ export default function QuotationView() {
         client, setClient, 
         products, addProduct, removeProduct, updateProduct, clearProducts,
         subtotal, ivaAmount, total,
-        generatePDF, exportCotzFile
+        pdfOptions, setPdfOption,
+        generatePDF, exportCotzFile, saveToCloud
     } = useQuotation();
 
     const handleClientChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -103,6 +106,13 @@ export default function QuotationView() {
                             <span className="text-sm text-center">Guardar Local</span>
                         </button>
                         <button 
+                            className={theme === 'material-neo' ? "bg-[var(--bg-secondary)] text-[var(--text-primary)] border border-[var(--border-default)] p-3 rounded-lg font-bold flex flex-col items-center gap-1 hover:bg-[var(--border-default)]" : "glass-button p-3 flex flex-col items-center gap-1 font-bold text-indigo-400"}
+                            onClick={saveToCloud}
+                        >
+                            <CloudUploadIcon />
+                            <span className="text-sm text-center">Guardar Nube</span>
+                        </button>
+                        <button 
                             className={theme === 'material-neo' ? "bg-red-500/20 text-red-400 border border-red-500/30 p-3 rounded-lg font-bold flex flex-col items-center gap-1 hover:bg-red-500/30" : "glass-button p-3 flex flex-col items-center gap-1 font-bold !text-red-400"}
                             onClick={() => { if(confirm('¿Borrar productos?')) clearProducts(); }}
                         >
@@ -116,6 +126,42 @@ export default function QuotationView() {
                             <PictureAsPdfIcon />
                             <span className="text-sm">PDF</span>
                         </button>
+                    </div>
+                </ThemePanel>
+
+                <ThemePanel delay={0.15} className="flex flex-col space-y-3 shrink-0">
+                    <div className="flex items-center space-x-2 border-b border-[var(--border-default)] pb-2">
+                        <SettingsIcon sx={{ color: 'var(--text-primary)' }} fontSize="small" />
+                        <h2 className="text-md font-bold text-[var(--text-primary)]">Opciones de PDF</h2>
+                    </div>
+                    <div className="flex flex-col space-y-2 pt-1">
+                        <label className="flex items-center space-x-2 cursor-pointer group">
+                            <input 
+                                type="checkbox" 
+                                className="w-4 h-4 rounded border-[var(--border-default)] text-[var(--accent-primary)] focus:ring-[var(--accent-primary)] bg-[var(--bg-input)]"
+                                checked={pdfOptions.showVolatilityWarning}
+                                onChange={(e) => setPdfOption('showVolatilityWarning', e.target.checked)}
+                            />
+                            <span className="text-sm font-medium text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">Mensaje de Volatilidad</span>
+                        </label>
+                        <label className="flex items-center space-x-2 cursor-pointer group">
+                            <input 
+                                type="checkbox" 
+                                className="w-4 h-4 rounded border-[var(--border-default)] text-[var(--accent-primary)] focus:ring-[var(--accent-primary)] bg-[var(--bg-input)]"
+                                checked={pdfOptions.showExchangeRate}
+                                onChange={(e) => setPdfOption('showExchangeRate', e.target.checked)}
+                            />
+                            <span className="text-sm font-medium text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">Tipo de Cambio</span>
+                        </label>
+                        <label className="flex items-center space-x-2 cursor-pointer group">
+                            <input 
+                                type="checkbox" 
+                                className="w-4 h-4 rounded border-[var(--border-default)] text-[var(--accent-primary)] focus:ring-[var(--accent-primary)] bg-[var(--bg-input)]"
+                                checked={pdfOptions.includeSummary}
+                                onChange={(e) => setPdfOption('includeSummary', e.target.checked)}
+                            />
+                            <span className="text-sm font-medium text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">Resumen de Condiciones</span>
+                        </label>
                     </div>
                 </ThemePanel>
                 

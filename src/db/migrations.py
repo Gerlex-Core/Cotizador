@@ -150,4 +150,22 @@ def run_migrations(conn: sqlite3.Connection):
         cursor.execute("INSERT INTO schema_migrations (version) VALUES (4);")
         conn.commit()
 
+    # Migration 5: Version-specific descriptions and icons
+    if current_version < 5:
+        cursor.execute("PRAGMA table_info(store_app_versions);")
+        cols = [r[1] for r in cursor.fetchall()]
+        if "description" not in cols:
+            try:
+                cursor.execute("ALTER TABLE store_app_versions ADD COLUMN description TEXT;")
+            except Exception:
+                pass
+        if "icon_url" not in cols:
+            try:
+                cursor.execute("ALTER TABLE store_app_versions ADD COLUMN icon_url TEXT;")
+            except Exception:
+                pass
+
+        cursor.execute("INSERT INTO schema_migrations (version) VALUES (5);")
+        conn.commit()
+
     conn.commit()

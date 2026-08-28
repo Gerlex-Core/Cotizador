@@ -19,6 +19,16 @@ export interface ClientData {
     address: string;
 }
 
+export interface PdfOptions {
+    showExchangeRate: boolean;
+    showVolatilityWarning: boolean;
+    includeSummary: boolean;
+    includeBankDetails: boolean;
+    includeInstallation: boolean;
+    includeWarranty: boolean;
+    includeSignature: boolean;
+}
+
 interface QuotationContextType {
     client: ClientData;
     setClient: (client: ClientData) => void;
@@ -31,8 +41,11 @@ interface QuotationContextType {
     subtotal: number;
     ivaAmount: number;
     total: number;
+    pdfOptions: PdfOptions;
+    setPdfOption: (key: keyof PdfOptions, value: boolean) => void;
     generatePDF: () => Promise<void>;
     exportCotzFile: () => void;
+    saveToCloud: () => Promise<void>;
 }
 
 const QuotationContext = createContext<QuotationContextType | undefined>(undefined);
@@ -43,6 +56,20 @@ export function QuotationProvider({ children }: { children: ReactNode }) {
     const [subtotal, setSubtotal] = useState(0);
     const [ivaAmount, setIvaAmount] = useState(0);
     const [total, setTotal] = useState(0);
+    
+    const [pdfOptions, setPdfOptions] = useState<PdfOptions>({
+        showExchangeRate: true,
+        showVolatilityWarning: true,
+        includeSummary: true,
+        includeBankDetails: true,
+        includeInstallation: true,
+        includeWarranty: true,
+        includeSignature: true
+    });
+
+    const setPdfOption = (key: keyof PdfOptions, value: boolean) => {
+        setPdfOptions(prev => ({ ...prev, [key]: value }));
+    };
 
     const applyIva = true;
     const ivaPercent = 13.0;
@@ -109,7 +136,8 @@ export function QuotationProvider({ children }: { children: ReactNode }) {
                 date: new Date().toLocaleDateString(),
                 currency: "Bolivianos (Bs)",
                 exchange_rate: 12.02,
-                show_exchange_rate: true,
+                show_exchange_rate: pdfOptions.showExchangeRate,
+                show_volatility_warning: pdfOptions.showVolatilityWarning,
                 client: client,
                 products: products,
                 apply_discount: false,
@@ -120,12 +148,12 @@ export function QuotationProvider({ children }: { children: ReactNode }) {
                 shipping: 0,
                 apply_payment: false,
                 paid_amount: 0,
-                include_summary: true,
+                include_summary: pdfOptions.includeSummary,
                 include_details: true,
-                include_bank_details: true,
-                include_installation: true,
-                include_warranty: true,
-                include_signature: true,
+                include_bank_details: pdfOptions.includeBankDetails,
+                include_installation: pdfOptions.includeInstallation,
+                include_warranty: pdfOptions.includeWarranty,
+                include_signature: pdfOptions.includeSignature,
                 cover_page_enabled: false
             };
 
@@ -165,6 +193,7 @@ export function QuotationProvider({ children }: { children: ReactNode }) {
             subtotal,
             ivaAmount,
             total,
+            pdfOptions,
             version: '2.0-offline',
             date: new Date().toISOString()
         };
@@ -179,12 +208,70 @@ export function QuotationProvider({ children }: { children: ReactNode }) {
         URL.revokeObjectURL(url);
     };
 
+    const saveToCloud = async () => {
+        if (products.length === 0) {
+            alert('Por favor agregue al menos un producto a la cotización.');
+            return;
+        }
+
+        const payload = {
+            document_type: "Cotización",
+            quotation_number: `COT-REACT-${Math.floor(Math.random() * 1000)}`,
+            company_name: "Empresa Demo",
+            date: new Date().toLocaleDateString(),
+            currency: "Bolivianos (Bs)",
+            exchange_rate: 12.02,
+            show_exchange_rate: pdfOptions.showExchangeRate,
+            show_volatility_warning: pdfOptions.showVolatilityWarning,
+            client: client,
+            products: products,
+            apply_discount: false,
+            discount_percent: 0,
+            apply_iva: applyIva,
+            iva_percent: ivaPercent,
+            enable_shipping: false,
+            shipping: 0,
+            apply_payment: false,
+            paid_amount: 0,
+            include_summary: pdfOptions.includeSummary,
+            include_details: true,
+            include_bank_details: pdfOptions.includeBankDetails,
+            include_installation: pdfOptions.includeInstallation,
+            include_warranty: pdfOptions.includeWarranty,
+            include_signature: pdfOptions.includeSignature,
+            cover_page_enabled: false
+        };
+
+        try {
+            const { API_BASE_URL } = await import('../config/apiConfig');
+            const response = await fetch(`${API_BASE_URL}/api/quotations/save`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                alert(`Error al guardar en nube: ${errData.detail || response.statusText}`);
+                return;
+            }
+
+            alert('¡Cotización guardada exitosamente en la base de datos web!');
+        } catch (error) {
+            console.error('Error saving to cloud:', error);
+            alert('Error de conexión al guardar en la nube.');
+        }
+    };
+
     return (
         <QuotationContext.Provider value={{
             client, setClient,
             products, setProducts, addProduct, removeProduct, updateProduct, clearProducts,
             subtotal, ivaAmount, total,
-            generatePDF, exportCotzFile
+            pdfOptions, setPdfOption,
+            generatePDF, exportCotzFile, saveToCloud
         }}>
             {children}
         </QuotationContext.Provider>

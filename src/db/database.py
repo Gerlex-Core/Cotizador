@@ -293,18 +293,20 @@ def save_store_app(app_id: str, name: str, description: str, icon_url: str):
     conn.commit()
     conn.close()
 
-def save_store_app_version(app_id: str, version: str, apk_url: str, size_bytes: int):
+def save_store_app_version(app_id: str, version: str, apk_url: str, size_bytes: int, description: str = "", icon_url: str = ""):
     init_db()
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("""
-    INSERT INTO store_app_versions (app_id, version, apk_url, size_bytes)
-    VALUES (?, ?, ?, ?)
+    INSERT INTO store_app_versions (app_id, version, apk_url, size_bytes, description, icon_url)
+    VALUES (?, ?, ?, ?, ?, ?)
     ON CONFLICT(app_id, version) DO UPDATE SET
         apk_url=excluded.apk_url,
         size_bytes=excluded.size_bytes,
+        description=excluded.description,
+        icon_url=excluded.icon_url,
         published_at=CURRENT_TIMESTAMP;
-    """, (app_id, version, apk_url, size_bytes))
+    """, (app_id, version, apk_url, size_bytes, description, icon_url))
     conn.commit()
     conn.close()
 
@@ -319,7 +321,7 @@ def get_store_apps_with_versions() -> Dict[str, Any]:
     result = {}
     for app_r in apps_rows:
         app_id = app_r["id"]
-        cursor.execute("SELECT version, apk_url, size_bytes, published_at FROM store_app_versions WHERE app_id = ? ORDER BY published_at DESC;", (app_id,))
+        cursor.execute("SELECT version, apk_url, size_bytes, description, icon_url, published_at FROM store_app_versions WHERE app_id = ? ORDER BY published_at DESC;", (app_id,))
         versions_rows = cursor.fetchall()
         
         versions = [dict(v) for v in versions_rows]

@@ -61,6 +61,7 @@ class QuotationPayload(BaseModel):
     exchange_rate: float = 12.02
     show_exchange_rate: bool = True
     show_dual_currency: bool = True
+    show_volatility_warning: bool = True
     client: Dict[str, str] = Field(default_factory=dict)
     products: List[ProductItem] = Field(default_factory=list)
     apply_discount: bool = False
@@ -258,6 +259,7 @@ def generate_quotation_pdf(payload: QuotationPayload, background_tasks: Backgrou
             exchange_rate=payload.exchange_rate,
             show_exchange_rate=payload.show_exchange_rate,
             show_dual_currency=payload.show_dual_currency,
+            show_volatility_warning=payload.show_volatility_warning,
             validez_dias=payload.validity,
             cliente=client_dict,
             numero_cotizacion=payload.quotation_number,

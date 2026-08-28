@@ -500,7 +500,8 @@ class PDFGenerator:
                      empresa: str, datos_empresa: dict, fecha: str,
                      cliente: dict = None, numero_cotizacion: str = "",
                      document_type: str = "Cotización", purchase_date: str = "",
-                     exchange_rate: float = 12.02, show_exchange_rate: bool = True, show_dual_currency: bool = True) -> float:
+                     exchange_rate: float = 12.02, show_exchange_rate: bool = True, show_dual_currency: bool = True,
+                     show_volatility_warning: bool = True) -> float:
 
         """Draw the header section with company on left, client on right.
         Uses professional formatting with borders, no emojis."""
@@ -508,7 +509,7 @@ class PDFGenerator:
         right_margin = width - 40
         
         # === TOP VOLATILITY DISCLAIMER BANNER (for Cotizaciones) ===
-        if show_exchange_rate and "COTIZ" in (document_type or "").upper():
+        if show_volatility_warning and show_exchange_rate and "COTIZ" in (document_type or "").upper():
             banner_text = "NOTA: Precios sujetos a variación según la volatilidad del tipo de cambio oficial/flexible al momento del pago."
             c.setFillColor(colors.HexColor('#FEF3C7'))
             c.setStrokeColor(colors.HexColor('#F59E0B'))

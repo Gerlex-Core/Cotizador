@@ -5,7 +5,7 @@ from rich.console import Console
 # Asegurar que el modulo local puede ser importado
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
-from cli_tools import system, database, installers, builder
+from cli_tools import system, database, installers, builder, store_uploader
 
 console = Console()
 
@@ -20,6 +20,7 @@ def main_menu():
         console.print("2. Base de Datos (Migraciones y Datos)")
         console.print("3. Instaladores (Dependencias)")
         console.print("4. Build (Compilar Frontend/Movil)")
+        console.print("5. Tienda de Apps (Subir paquetes)")
         console.print("0. Salir")
         console.print("[bold blue]======================================[/bold blue]")
         
@@ -37,6 +38,9 @@ def main_menu():
         elif choice == '4':
             clear_screen()
             builder.menu()
+        elif choice == '5':
+            clear_screen()
+            store_uploader.menu()
         elif choice == '0':
             console.print("[green]Saliendo...[/green]")
             break

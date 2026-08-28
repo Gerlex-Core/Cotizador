@@ -11,9 +11,9 @@
   .theme-glass-ios {
     --bg-primary: #000000;
     
-    /* Slightly darker translucent black to maintain text contrast against bright backgrounds */
-    --bg-secondary: rgba(0, 0, 0, 0.15); 
-    --bg-card: rgba(0, 0, 0, 0.35); 
+    /* Very dark translucent black to maintain text contrast against bright backgrounds if blur fails */
+    --bg-secondary: rgba(0, 0, 0, 0.75); 
+    --bg-card: rgba(0, 0, 0, 0.85); 
     
     /* Specular highlights and glass edges */
     --border-default: rgba(255, 255, 255, 0.2);
@@ -86,7 +86,7 @@
   }
   
   .theme-glass-ios .theme-bg-overlay {
-    opacity: 0; /* Let all the vibrant colors through for the glass */
+    opacity: 0.6; /* Darken background significantly to improve text readability if blur fails */
   }
 
   .glass-panel {
@@ -119,7 +119,7 @@
   }
   
   .glass-button {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-radius: 1.5rem;
@@ -148,7 +148,7 @@
   }
   
   .glass-input {
-    background: rgba(0, 0, 0, 0.1);
+    background: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(30px);
     -webkit-backdrop-filter: blur(30px);
     color: var(--text-primary);
