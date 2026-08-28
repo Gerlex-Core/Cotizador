@@ -6,6 +6,8 @@ interface AppVersion {
     apk_url: string;
     size_bytes: number;
     published_at: string;
+    description?: string;
+    icon_url?: string;
 }
 
 interface StoreApp {
@@ -19,10 +21,12 @@ interface StoreApp {
 }
 
 export default function StoreView() {
+    const [viewMode, setViewMode] = useState<'catalog' | 'app_detail' | 'version_detail'>('catalog');
     const [apps, setApps] = useState<StoreApp[]>([]);
     const [loading, setLoading] = useState(true);
     const [apiUrl, setApiUrl] = useState('');
     const [selectedApp, setSelectedApp] = useState<StoreApp | null>(null);
+    const [selectedVersion, setSelectedVersion] = useState<AppVersion | null>(null);
 
     useEffect(() => {
         const fetchApps = async () => {
@@ -32,7 +36,39 @@ export default function StoreView() {
                 const response = await fetch(`${API_BASE_URL}/api/store/apps`);
                 if (response.ok) {
                     const data = await response.json();
-                    setApps(data.apps || []);
+                    const appsData = data.apps || [];
+                    setApps(appsData);
+
+                    const pathParts = window.location.pathname.split('/').filter(Boolean);
+                    if (pathParts[0] === 'store' && pathParts[1]) {
+                        const appId = pathParts[1];
+                        const app = appsData.find((a: StoreApp) => a.id === appId);
+                        if (app) {
+                            setSelectedApp(app);
+                            if (pathParts[2]) {
+                                if (pathParts[2] === 'all') {
+                                    setViewMode('app_detail');
+                                } else if (pathParts[2].startsWith('v')) {
+                                    const verNum = pathParts[2].substring(1);
+                                    const ver = app.versions.find((v: AppVersion) => v.version === verNum);
+                                    if (ver) {
+                                        setSelectedVersion(ver);
+                                        setViewMode('version_detail');
+                                    } else {
+                                        setViewMode('app_detail');
+                                    }
+                                } else {
+                                    setViewMode('app_detail');
+                                }
+                            } else {
+                                setViewMode('app_detail');
+                            }
+                        } else {
+                            setViewMode('catalog');
+                        }
+                    } else {
+                        setViewMode('catalog');
+                    }
                 }
             } catch (error) {
                 console.error("Error fetching apps", error);
@@ -42,6 +78,31 @@ export default function StoreView() {
         };
         fetchApps();
     }, []);
+
+    const handleSelectApp = (app: StoreApp) => {
+        setSelectedApp(app);
+        setViewMode('app_detail');
+        window.history.pushState({}, "", `/store/${app.id}`);
+    };
+
+    const handleSelectVersion = (app: StoreApp, ver: AppVersion) => {
+        setSelectedApp(app);
+        setSelectedVersion(ver);
+        setViewMode('version_detail');
+        window.history.pushState({}, "", `/store/${app.id}/v${ver.version}`);
+    };
+
+    const handleBackToCatalog = () => {
+        setSelectedApp(null);
+        setSelectedVersion(null);
+        setViewMode('catalog');
+        window.history.pushState({}, "", `/store`);
+    };
+
+    const handleBackToApp = () => {
+        setViewMode('app_detail');
+        window.history.pushState({}, "", `/store/${selectedApp?.id}`);
+    };
 
     const handleDownload = (apk_url: string) => {
         window.open(`${apiUrl}${apk_url}`, '_blank');
@@ -55,7 +116,7 @@ export default function StoreView() {
         );
     }
 
-    if (selectedApp) {
+    if (viewMode === 'version_detail' && selectedApp && selectedVersion) {
         return (
             <motion.div 
                 initial={{ opacity: 0, x: 20 }}
@@ -64,7 +125,47 @@ export default function StoreView() {
                 className="h-full flex flex-col p-4 md:p-8 overflow-y-auto"
             >
                 <button 
-                    onClick={() => setSelectedApp(null)}
+                    onClick={handleBackToApp}
+                    className="self-start flex items-center space-x-2 text-gray-400 hover:text-white transition-colors mb-8"
+                >
+                    <span className="material-symbols-outlined">arrow_back</span>
+                    <span className="font-bold">Volver a {selectedApp.name}</span>
+                </button>
+
+                <div className="flex flex-col md:flex-row gap-8 items-start">
+                    <img 
+                        src={`${apiUrl}${selectedVersion.icon_url || selectedApp.icon_url}`} 
+                        alt="App Icon" 
+                        className="w-40 h-40 rounded-3xl shadow-2xl object-cover bg-white/5 border border-white/10" 
+                        onError={(e) => { e.currentTarget.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 24 24"><path fill="%23fff" d="M17.523 15.3414c-.5511 0-.9993-.4486-.9993-.9997s.4483-.9993.9993-.9993c.5511 0 .9993.4482.9993.9993.0001.5511-.4482.9997-.9993.9997zm-11.046 0c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.5511 0 .9993.4482.9993.9993 0 .5511-.4482.9997-.9993.9997zm11.4045-6.02l1.9973-3.4592a.416.416 0 00-.1517-.5677.416.416 0 00-.5677.1517l-2.0315 3.5173c-1.4243-.65-3.0456-1.0263-4.7876-1.0263-1.7416 0-3.3633.3763-4.7872 1.0263l-2.0315-3.5173a.416.416 0 00-.5677-.1517.416.416 0 00-.1517.5677l1.9973 3.4592C4.3821 10.5902 2.5937 13.1118 2 16.1906h20c-.5937-3.0788-2.3821-5.6004-4.1185-6.8692z"/></svg>'; }} 
+                    />
+                    <div className="flex-1">
+                        <h1 className="text-4xl font-black text-white mb-2">{selectedApp.name} <span className="text-emerald-400">v{selectedVersion.version}</span></h1>
+                        <p className="text-gray-400 mb-6 text-lg">{selectedVersion.description || selectedApp.description || "Sin descripción disponible para esta versión."}</p>
+                        
+                        <button 
+                            onClick={() => handleDownload(selectedVersion.apk_url)}
+                            className="bg-emerald-500 hover:bg-emerald-400 text-white font-bold py-4 px-8 rounded-2xl shadow-lg hover:shadow-emerald-500/25 transition-all hover:scale-105 active:scale-95 flex items-center space-x-3 text-lg"
+                        >
+                            <span className="material-symbols-outlined text-2xl">download</span>
+                            <span>Descargar Versión (v{selectedVersion.version})</span>
+                        </button>
+                    </div>
+                </div>
+            </motion.div>
+        );
+    }
+
+    if (viewMode === 'app_detail' && selectedApp) {
+        return (
+            <motion.div 
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="h-full flex flex-col p-4 md:p-8 overflow-y-auto"
+            >
+                <button 
+                    onClick={handleBackToCatalog}
                     className="self-start flex items-center space-x-2 text-gray-400 hover:text-white transition-colors mb-8"
                 >
                     <span className="material-symbols-outlined">arrow_back</span>
@@ -92,7 +193,7 @@ export default function StoreView() {
                     </div>
                 </div>
 
-                <div className="mt-12">
+                <div className="mt-12 flex-1">
                     <h3 className="text-xl font-bold text-white mb-6 flex items-center space-x-2">
                         <span className="material-symbols-outlined">history</span>
                         <span>Historial de Versiones</span>
@@ -112,7 +213,12 @@ export default function StoreView() {
                                     <tr key={ver.version} className="border-b border-white/5 hover:bg-white/5 transition-colors">
                                         <td className="p-4">
                                             <div className="flex items-center space-x-2">
-                                                <span className="font-mono font-bold text-white">v{ver.version}</span>
+                                                <button 
+                                                    onClick={() => handleSelectVersion(selectedApp, ver)}
+                                                    className="font-mono font-bold text-emerald-400 hover:text-emerald-300 underline underline-offset-4 transition-colors cursor-pointer"
+                                                >
+                                                    v{ver.version}
+                                                </button>
                                                 {idx === 0 && (
                                                     <span className="bg-emerald-500/20 text-emerald-400 text-xs px-2 py-0.5 rounded-full font-bold uppercase">Actual</span>
                                                 )}
@@ -176,7 +282,7 @@ export default function StoreView() {
                                         initial={{ opacity: 0, y: 20, scale: 0.95 }}
                                         animate={{ opacity: 1, y: 0, scale: 1 }}
                                         transition={{ delay: i * 0.05, type: "spring", stiffness: 300, damping: 25 }}
-                                        onClick={() => setSelectedApp(app)}
+                                        onClick={() => handleSelectApp(app)}
                                         className="relative p-6 rounded-[2rem] cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl border border-white/10 flex flex-col items-center text-center group bg-white/5 backdrop-blur-md overflow-hidden"
                                     >
                                         {/* Subtle hover gradient */}
