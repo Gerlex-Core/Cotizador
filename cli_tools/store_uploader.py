@@ -10,7 +10,7 @@ def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
 
 def get_files(folder_path, app_name, version):
-    apk_files = glob.glob(os.path.join(folder_path, "*.apk"))
+    package_files = glob.glob(os.path.join(folder_path, "*.apk")) + glob.glob(os.path.join(folder_path, "*.zip"))
     
     # Busca imagenes (png, jpg, jpeg)
     all_images = glob.glob(os.path.join(folder_path, "*.png")) + \
@@ -39,7 +39,7 @@ def get_files(folder_path, app_name, version):
     spec_json, gen_json = find_all_matches(all_jsons, app_name, version)
 
     return {
-        "apk": apk_files[0] if apk_files else None,
+        "package": package_files[0] if package_files else None,
         "app_image": gen_img,
         "version_image": spec_img,
         "app_json": gen_json,
@@ -74,17 +74,34 @@ def process_upload():
     
     files = get_files(folder_path, app_name, version)
     
-    if not files["apk"]:
-        console.print("[red]Error: No se encontró ningún archivo .apk en la carpeta.[/red]")
+    if not files["package"]:
+        console.print("[red]Error: No se encontró ningún archivo .apk ni .zip en la carpeta.[/red]")
         input("Presiona Enter para volver...")
         return
         
     app_description = ""
+    app_category = "General"
+    app_developer = ""
+    app_release_date = ""
+    app_website = ""
+    app_tags = ""
+    app_content_rating = "Todos"
+
     if files["app_json"]:
         try:
             with open(files["app_json"], "r", encoding="utf-8") as f:
                 data = json.load(f)
                 app_description = data.get("description", "") or data.get("descripcion", "")
+                app_category = data.get("category", "") or data.get("categoria", "") or "General"
+                app_developer = data.get("developer", "") or data.get("desarrollador", "")
+                app_release_date = data.get("release_date", "") or data.get("fecha_lanzamiento", "")
+                app_website = data.get("website", "") or data.get("sitio_web", "")
+                
+                tags_data = data.get("tags", "") or data.get("etiquetas", "")
+                app_tags = ", ".join(tags_data) if isinstance(tags_data, list) else tags_data
+                
+                app_content_rating = data.get("content_rating", "") or data.get("clasificacion", "") or "Todos"
+                
             console.print(f"[green]Metadatos generales cargados desde {os.path.basename(files['app_json'])}[/green]")
         except Exception as e:
             pass
@@ -108,9 +125,10 @@ def process_upload():
     console.print(f"\n[cyan]Subiendo a {endpoint}...[/cyan]")
     
     try:
-        with open(files["apk"], "rb") as apk_file:
+        with open(files["package"], "rb") as package_file:
+            mime_type = "application/zip" if files["package"].endswith(".zip") else "application/vnd.android.package-archive"
             files_payload = {
-                "apk_file": (os.path.basename(files["apk"]), apk_file, "application/vnd.android.package-archive")
+                "package_file": (os.path.basename(files["package"]), package_file, mime_type)
             }
             
             app_icon_file = None
@@ -128,6 +146,12 @@ def process_upload():
                 "app_name": app_name,
                 "app_description": app_description,
                 "version_description": version_description,
+                "category": app_category,
+                "developer": app_developer,
+                "release_date": app_release_date,
+                "website": app_website,
+                "tags": app_tags,
+                "content_rating": app_content_rating,
                 "version": version
             }
             

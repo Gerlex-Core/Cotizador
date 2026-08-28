@@ -281,19 +281,51 @@ def load_system_config_from_db() -> Dict[str, str]:
     return {r["key"]: r["value"] for r in rows}
 
 
-def save_store_app(app_id: str, name: str, description: str, icon_url: str):
+def get_all_store_categories() -> List[Dict[str, Any]]:
+    init_db()
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, name FROM store_categories ORDER BY name ASC;")
+    rows = cursor.fetchall()
+    conn.close()
+    return [{"id": r["id"], "name": r["name"]} for r in rows]
+
+
+def get_or_create_store_category(name: str) -> int:
+    init_db()
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id FROM store_categories WHERE name COLLATE NOCASE = ?;", (name,))
+    row = cursor.fetchone()
+    if row:
+        cat_id = row[0]
+    else:
+        cursor.execute("INSERT INTO store_categories (name) VALUES (?);", (name,))
+        conn.commit()
+        cat_id = cursor.lastrowid
+    conn.close()
+    return cat_id
+
+
+def save_store_app(app_id: str, name: str, description: str, icon_url: str, category_id: int = 1, developer: str = "", release_date: str = "", website: str = "", tags: str = "", content_rating: str = "Todos"):
     init_db()
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("""
-    INSERT INTO store_apps (id, name, description, icon_url)
-    VALUES (?, ?, ?, ?)
+    INSERT INTO store_apps (id, name, description, icon_url, category_id, developer, release_date, website, tags, content_rating)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
         name=excluded.name,
         description=excluded.description,
         icon_url=excluded.icon_url,
+        category_id=excluded.category_id,
+        developer=excluded.developer,
+        release_date=excluded.release_date,
+        website=excluded.website,
+        tags=excluded.tags,
+        content_rating=excluded.content_rating,
         updated_at=CURRENT_TIMESTAMP;
-    """, (app_id, name, description, icon_url))
+    """, (app_id, name, description, icon_url, category_id, developer, release_date, website, tags, content_rating))
     conn.commit()
     conn.close()
 
@@ -319,7 +351,11 @@ def get_store_apps_with_versions(device_id: str = None) -> Dict[str, Any]:
     conn = get_connection()
     cursor = conn.cursor()
     
-    cursor.execute("SELECT * FROM store_apps;")
+    cursor.execute("""
+        SELECT a.*, c.name as category_name 
+        FROM store_apps a
+        LEFT JOIN store_categories c ON a.category_id = c.id;
+    """)
     apps_rows = cursor.fetchall()
     
     result = {}
@@ -347,6 +383,13 @@ def get_store_apps_with_versions(device_id: str = None) -> Dict[str, Any]:
             "name": app_r["name"],
             "description": app_r["description"],
             "icon_url": app_r["icon_url"],
+            "category_id": app_r["category_id"] if "category_id" in app_r.keys() else 1,
+            "category_name": app_r["category_name"] if "category_name" in app_r.keys() and app_r["category_name"] else "General",
+            "developer": app_r["developer"] if "developer" in app_r.keys() else "",
+            "release_date": app_r["release_date"] if "release_date" in app_r.keys() else "",
+            "website": app_r["website"] if "website" in app_r.keys() else "",
+            "tags": app_r["tags"] if "tags" in app_r.keys() else "",
+            "content_rating": app_r["content_rating"] if "content_rating" in app_r.keys() else "Todos",
             "created_at": app_r["created_at"],
             "downloads": downloads,
             "likes": likes,

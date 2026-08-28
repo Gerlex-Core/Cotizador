@@ -234,4 +234,55 @@ def run_migrations(conn: sqlite3.Connection):
         cursor.execute("INSERT INTO schema_migrations (version) VALUES (7);")
         conn.commit()
 
+    # Migration 8: Store Categories
+    if current_version < 8:
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS store_categories (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT UNIQUE NOT NULL
+        );
+        """)
+        categories = [
+            "General", "Juegos", "Entretenimiento", "Educación", "Finanzas", 
+            "Productividad", "Social", "Salud y Bienestar", "Herramientas", 
+            "Estilo de Vida", "Compras", "Deportes", "Noticias", "Fotografía", "Viajes",
+            "Música y Audio", "Personalización", "Mapas y Navegación", "Negocios"
+        ]
+        for cat in categories:
+            cursor.execute("INSERT OR IGNORE INTO store_categories (name) VALUES (?);", (cat,))
+            
+        cursor.execute("PRAGMA table_info(store_apps);")
+        cols = [r[1] for r in cursor.fetchall()]
+        if "category_id" not in cols:
+            try: 
+                cursor.execute("ALTER TABLE store_apps ADD COLUMN category_id INTEGER DEFAULT 1 REFERENCES store_categories(id);")
+            except Exception: 
+                pass
+
+        cursor.execute("INSERT INTO schema_migrations (version) VALUES (8);")
+        conn.commit()
+
+    # Migration 9: Extra App Metadata
+    if current_version < 9:
+        cursor.execute("PRAGMA table_info(store_apps);")
+        cols = [r[1] for r in cursor.fetchall()]
+        
+        new_columns = [
+            ("developer", "TEXT"),
+            ("release_date", "TEXT"),
+            ("website", "TEXT"),
+            ("tags", "TEXT"),
+            ("content_rating", "TEXT")
+        ]
+        
+        for col_name, col_type in new_columns:
+            if col_name not in cols:
+                try: 
+                    cursor.execute(f"ALTER TABLE store_apps ADD COLUMN {col_name} {col_type};")
+                except Exception: 
+                    pass
+                    
+        cursor.execute("INSERT INTO schema_migrations (version) VALUES (9);")
+        conn.commit()
+
     conn.commit()

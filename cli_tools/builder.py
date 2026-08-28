@@ -59,8 +59,9 @@ def upload_apk_to_store(apk_path, version, app_id="cotizador", app_name="Cotizad
         import requests
         
     try:
+        mime_type = "application/zip" if apk_path.lower().endswith(".zip") else "application/vnd.android.package-archive"
         files = {
-            'apk_file': (os.path.basename(apk_path), open(apk_path, 'rb'), 'application/vnd.android.package-archive'),
+            'package_file': (os.path.basename(apk_path), open(apk_path, 'rb'), mime_type),
         }
         if os.path.exists(icon_path):
             files['icon_file'] = ('icon.png', open(icon_path, 'rb'), 'image/png')
@@ -93,10 +94,10 @@ def manual_apk_upload():
         
     filename = os.path.basename(apk_path)
     
-    # Parse Nombre-V1.2.3.apk
-    match = re.match(r"^(.+?)-V([\d\.]+)\.apk$", filename, re.IGNORECASE)
+    # Parse Nombre-V1.2.3.apk o .zip
+    match = re.match(r"^(.+?)-V([\d\.]+)\.(apk|zip)$", filename, re.IGNORECASE)
     if not match:
-        console.print(f"[red]El nombre del archivo '{filename}' no cumple el formato requerido: NombreApp-V1.2.3.apk[/red]")
+        console.print(f"[red]El nombre del archivo '{filename}' no cumple el formato requerido: NombreApp-V1.2.3.apk o .zip[/red]")
         return
         
     app_id = match.group(1).lower().replace(" ", "-")
@@ -138,11 +139,12 @@ def build_frontend():
 
 def build_tauri(target="desktop"):
     if target == "android":
-        console.print("[cyan]Compilando App Movil (Android APK)...[/cyan]")
-        cmd = ["npm", "run", "tauri", "android", "build"]
+        console.print("[cyan]Compilando App Movil (Android APK - Debug)...[/cyan]")
+        console.print("[yellow]Nota: Se compilará en modo Debug para asegurar que el APK esté firmado y se pueda instalar sin errores de paquete.[/yellow]")
+        cmd = ["npx", "tauri", "android", "build", "--apk", "--debug"]
     else:
         console.print("[cyan]Compilando App Escritorio (Tauri PC)...[/cyan]")
-        cmd = ["npm", "run", "tauri", "build"]
+        cmd = ["npx", "tauri", "build"]
 
     cwd = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'tauri-app'))
     if not os.path.exists(cwd):
@@ -159,9 +161,13 @@ def build_tauri(target="desktop"):
             release_dir = os.path.join(base_dir, "media", "release")
             os.makedirs(release_dir, exist_ok=True)
             
-            apk_path = os.path.join(cwd, "src-tauri", "gen", "android", "app", "build", "outputs", "apk", "universal", "release", "app-universal-release.apk")
+            # Buscar primero el APK universal debug
+            apk_path = os.path.join(cwd, "src-tauri", "gen", "android", "app", "build", "outputs", "apk", "universal", "debug", "app-universal-debug.apk")
             if not os.path.exists(apk_path):
+                # Fallback a buscar cualquier APK generado
                 apk_search = glob.glob(os.path.join(cwd, "src-tauri", "gen", "android", "app", "build", "outputs", "apk", "**", "*.apk"), recursive=True)
+                # Filtrar para evitar unsigned
+                apk_search = [f for f in apk_search if "unsigned" not in f.lower()]
                 if apk_search:
                     apk_path = apk_search[0]
             

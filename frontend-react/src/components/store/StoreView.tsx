@@ -10,11 +10,23 @@ interface AppVersion {
     icon_url?: string;
 }
 
+interface StoreCategory {
+    id: number;
+    name: string;
+}
+
 interface StoreApp {
     id: string;
     name: string;
     description: string;
     icon_url: string;
+    category_id: number;
+    category_name: string;
+    developer: string;
+    release_date: string;
+    website: string;
+    tags: string;
+    content_rating: string;
     created_at: string;
     latest_version: string;
     downloads: number;
@@ -31,6 +43,8 @@ export default function StoreView() {
     const [deviceId, setDeviceId] = useState('');
     const [selectedApp, setSelectedApp] = useState<StoreApp | null>(null);
     const [selectedVersion, setSelectedVersion] = useState<AppVersion | null>(null);
+    const [categories, setCategories] = useState<StoreCategory[]>([]);
+    const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
 
     useEffect(() => {
         const fetchApps = async () => {
@@ -52,7 +66,18 @@ export default function StoreView() {
                 if (response.ok) {
                     const data = await response.json();
                     const appsData = data.apps || [];
-                    setApps(appsData);
+                    
+                    // Convert object dict to array if necessary, since our backend returns a Dict[str, Any]
+                    // Wait, previous code used `data.apps`, but get_store_apps_with_versions returns a dict.
+                    // Actually looking at the backend, `data.apps` seems to be an array or dict?
+                    // But `appsData.find` was called, so it must be an array.
+                    setApps(Array.isArray(appsData) ? appsData : Object.values(appsData));
+
+                    const catResponse = await fetch(`${API_BASE_URL}/api/store/categories`);
+                    if (catResponse.ok) {
+                        const catData = await catResponse.json();
+                        setCategories(catData.categories || []);
+                    }
 
                     const pathParts = window.location.pathname.split('/').filter(Boolean);
                     if (pathParts[0] === 'store' && pathParts[1]) {
@@ -163,6 +188,10 @@ export default function StoreView() {
         }
     };
 
+    const filteredApps = selectedCategoryId === null 
+        ? apps 
+        : apps.filter(a => a.category_id === selectedCategoryId);
+
     if (loading) {
         return (
             <div className="flex h-full items-center justify-center">
@@ -250,6 +279,44 @@ export default function StoreView() {
                     <div className="flex-1">
                         <h1 className="text-4xl font-black text-white mb-2">{selectedApp.name}</h1>
                         <p className="text-gray-400 mb-6 text-lg">{selectedApp.description || "Sin descripción disponible."}</p>
+                        
+                        {/* New Metadata Section */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 text-sm bg-white/5 p-4 rounded-2xl border border-white/10">
+                            {selectedApp.developer && (
+                                <div className="flex flex-col">
+                                    <span className="text-gray-500 font-bold uppercase text-[10px]">Desarrollador</span>
+                                    <span className="text-gray-200 font-semibold">{selectedApp.developer}</span>
+                                </div>
+                            )}
+                            {selectedApp.release_date && (
+                                <div className="flex flex-col">
+                                    <span className="text-gray-500 font-bold uppercase text-[10px]">Lanzamiento</span>
+                                    <span className="text-gray-200 font-semibold">{selectedApp.release_date}</span>
+                                </div>
+                            )}
+                            {selectedApp.content_rating && (
+                                <div className="flex flex-col">
+                                    <span className="text-gray-500 font-bold uppercase text-[10px]">Clasificación</span>
+                                    <span className="text-gray-200 font-semibold">{selectedApp.content_rating}</span>
+                                </div>
+                            )}
+                            {selectedApp.website && (
+                                <div className="flex flex-col">
+                                    <span className="text-gray-500 font-bold uppercase text-[10px]">Sitio Web</span>
+                                    <a href={selectedApp.website.startsWith('http') ? selectedApp.website : 'https://'+selectedApp.website} target="_blank" rel="noreferrer" className="text-emerald-400 hover:underline font-semibold break-all line-clamp-1">{selectedApp.website}</a>
+                                </div>
+                            )}
+                        </div>
+
+                        {selectedApp.tags && (
+                            <div className="flex flex-wrap gap-2 mb-6">
+                                {selectedApp.tags.split(',').map((tag, idx) => (
+                                    <span key={idx} className="bg-emerald-500/10 text-emerald-400 text-xs px-3 py-1 rounded-full border border-emerald-500/20 shadow-sm font-bold">
+                                        {tag.trim()}
+                                    </span>
+                                ))}
+                            </div>
+                        )}
                         
                         <div className="flex items-center space-x-6 mb-6">
                             <div className="flex items-center space-x-2 text-emerald-400">
@@ -348,7 +415,27 @@ export default function StoreView() {
                     </div>
                 </div>
 
-                {apps.length === 0 ? (
+                {categories.length > 0 && apps.length > 0 && (
+                    <div className="flex space-x-3 mb-8 overflow-x-auto pb-2 relative z-10 custom-scrollbar">
+                        <button
+                            onClick={() => setSelectedCategoryId(null)}
+                            className={`px-5 py-2 rounded-full font-bold whitespace-nowrap transition-all ${selectedCategoryId === null ? 'bg-emerald-500 text-white shadow-lg' : 'bg-white/10 text-gray-300 hover:bg-white/20'}`}
+                        >
+                            Todas
+                        </button>
+                        {categories.map(cat => (
+                            <button
+                                key={cat.id}
+                                onClick={() => setSelectedCategoryId(cat.id)}
+                                className={`px-5 py-2 rounded-full font-bold whitespace-nowrap transition-all ${selectedCategoryId === cat.id ? 'bg-emerald-500 text-white shadow-lg' : 'bg-white/10 text-gray-300 hover:bg-white/20'}`}
+                            >
+                                {cat.name}
+                            </button>
+                        ))}
+                    </div>
+                )}
+
+                {filteredApps.length === 0 ? (
                     <div className="flex-1 flex flex-col items-center justify-center text-center relative z-10">
                         <span className="material-symbols-outlined text-8xl text-gray-500/50 mb-4 drop-shadow-lg">cloud_off</span>
                         <h2 className="text-3xl font-bold text-gray-300 mb-2">No hay aplicaciones disponibles</h2>
@@ -358,7 +445,7 @@ export default function StoreView() {
                     <div className="flex-1 overflow-y-auto pr-2 relative z-10 custom-scrollbar">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-10">
                             <AnimatePresence>
-                                {apps.map((app, i) => (
+                                {filteredApps.map((app, i) => (
                                     <motion.div
                                         key={app.id}
                                         initial={{ opacity: 0, y: 20, scale: 0.95 }}
@@ -377,9 +464,12 @@ export default function StoreView() {
                                             onError={(e) => { e.currentTarget.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 24 24"><path fill="%23fff" d="M17.523 15.3414c-.5511 0-.9993-.4486-.9993-.9997s.4483-.9993.9993-.9993c.5511 0 .9993.4482.9993.9993.0001.5511-.4482.9997-.9993.9997zm-11.046 0c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.5511 0 .9993.4482.9993.9993 0 .5511-.4482.9997-.9993.9997zm11.4045-6.02l1.9973-3.4592a.416.416 0 00-.1517-.5677.416.416 0 00-.5677.1517l-2.0315 3.5173c-1.4243-.65-3.0456-1.0263-4.7876-1.0263-1.7416 0-3.3633.3763-4.7872 1.0263l-2.0315-3.5173a.416.416 0 00-.5677-.1517.416.416 0 00-.1517.5677l1.9973 3.4592C4.3821 10.5902 2.5937 13.1118 2 16.1906h20c-.5937-3.0788-2.3821-5.6004-4.1185-6.8692z"/></svg>'; }} 
                                         />
                                         <h3 className="text-2xl font-bold text-white mb-2 z-10 relative drop-shadow-md">{app.name}</h3>
-                                        <span className="bg-emerald-500/20 text-emerald-300 text-xs px-3 py-1 rounded-full font-mono font-bold mb-4 z-10 relative border border-emerald-500/30 shadow-[0_0_10px_rgba(16,185,129,0.2)]">
-                                            v{app.latest_version}
-                                        </span>
+                                        <div className="flex flex-col items-center gap-1 mb-4 z-10 relative">
+                                            <span className="text-gray-400 text-sm font-semibold uppercase tracking-wider">{app.category_name}</span>
+                                            <span className="bg-emerald-500/20 text-emerald-300 text-xs px-3 py-1 rounded-full font-mono font-bold border border-emerald-500/30 shadow-[0_0_10px_rgba(16,185,129,0.2)]">
+                                                v{app.latest_version}
+                                            </span>
+                                        </div>
                                         
                                         <div className="flex items-center space-x-4 mb-2 z-10 relative">
                                             <div className="flex items-center space-x-1 text-emerald-400 text-sm font-bold">
